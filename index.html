@@ -156,6 +156,11 @@ body.full #workspace{display:none}
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
+window.admin=false;window.C=[];window.sel=null;window.ed=null;window.son=1;window.AC=null;window.BT={on:0,round:1,i:0,n:0,order:[]};window.EN=[];window.LOOT={basica:[],diferenciada:[],unica:[],eclipse:[]};window.PEND=[];window.TAB='main';window.LIBS=[];window.WORKSPACE='scene';window.activeLibrary='';window.assignedCharacterId='';window.editFromLibrary=false;
+window.hiddenSceneCharacterIds=new Set();
+window.librarySort='name-asc';try{window.librarySort=localStorage.getItem('lost_library_sort')||'name-asc'}catch(e){}
+window.playerLocksCollapsed=false;try{window.playerLocksCollapsed=localStorage.getItem('lost_player_locks_collapsed')==='1'}catch(e){}
+
 const $=s=>document.querySelector(s),esc=t=>String(t??'').replace(/[&<>"]/g,c=>'&#'+c.charCodeAt()+';'),cl=(n,a,b)=>Math.max(a,Math.min(b,n)),num=v=>parseFloat(String(v).replace(',','.'))||0,J=o=>JSON.parse(JSON.stringify(o)),sg=v=>(v<0?'−':'+')+Math.abs(v),
 SK='STR DEX CON SPD INT LCK SAN'.split(' '),POOL=40,TI=['basica','diferenciada','unica','eclipse'],TN=['Basic','Special','Unique','Eclipse'],KEY='lost_chars_v4',WP=[],WF=[],
 EA=`fire_aspect|Fire aspect|1|Blood|Chance to apply FIRE.|Applies FIRE, criticals apply COMBUSTION.
@@ -194,10 +199,7 @@ stagnant_power|Stagnant Power|3|Mystery|+1 hit die against primes of 8 elements.
 the_start|THE START|3|Epiphany|Temporarily changes weapon shape.|Completely changes weapon on action.
 finale|FINALE|3|???|Attacks increase damage taken by enemies.|Increases damage taken and gives +10% damage/turn.`.split('\n').map(l=>{const[id,n,t,e,a,b]=l.split('|');return{id,n,t,e,d:[a,b]}}),EL=EA.map(a=>[a.id,`[T${a.t} ${a.e}] ${a.n}`]);
 [["Light Melee","Knife|STR|1d4+2|1d6+4|1d12+8|1d20+12;Rapier|SPD|1d4+2|1d6+4|2d6+8|3d6+12;Gauntlets|STR|1d4+2|1d8+4|2d6+10|3d8+12;Shield|CON|1d4+1|1d6+2|2d4+6|2d6+10;Dual Claws|STR|1d4+2|1d8+6|2d8+10|2d12+16;Nunchaku|SPD|1d4+1|1d6+4|1d10+8|2d8+12;Hatchet|STR|1d4+2|1d8+6|2d8+10|3d8+16;Whip|SPD|1d4+1|1d8+2|1d12+6|2d8+10;Sword|STR|1d6+2|1d10+6|1d20+12|3d8+20;Spear|SPD|1d4+2|1d6+4|1d12+8|1d20+12;Energy Saber|STR|1d8+2|1d10+8|1d20+14|3d12+18;Yo-yo|SPD|1d4+1|1d6+4|1d10+8|2d8+10;Combat Syringe|STR|1d4+2|1d6+4|1d10+8|2d8+12"],["Heavy Melee","Greatsword|STR|1d8+2|2d6+6|3d6+14|3d12+16;Energy Sword|STR|2d4+2|3d4+6|3d8+12|3d10+22;Trident|CON|1d4+1|1d6+4|1d10+8|2d8+12;Halberd|CON|1d4+2|1d6+4|1d12+8|3d6+12;Scythe|STR|1d6+2|1d10+6|2d8+12|4d6+18;Axe / Mace|STR|1d6+2|1d10+6|2d10+12|3d8+20;Flail|STR|1d6+2|1d10+6|2d8+12|4d6+18;Warhammer|CON|1d4+2|1d8+4|3d4+8|3d6+14;Chainsaw|CON|1d4+2|1d8+4|3d4+8|4d4+14"],["Ranged Weapons","Pistol|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Hand Cannon|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Throwing Cards|LCK|1d6+0|1d12+0|2d12+0|2d20+0;Energy Blaster|DEX|1d6+2|1d12+6|3d6+12|4d6+20;Revolver|DEX|1d6+2|1d10+6|2d10+10|3d10+16;Submachine Gun|DEX|1d6+2|3d4+4|4d4+10|4d6+16;Flamethrower|DEX|1d6+2|3d4+4|4d4+12|4d6+18;Machine Gun|CON|1d6+1|1d10+2|2d8+6|3d8+10;Shotgun|DEX|1d8+2|2d8+4|2d12+12|3d12+18;Syringe Launcher|DEX|1d4+2|1d8+4|3d4+8|4d4+12"],["Long Range","Bow|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Crossbow|DEX|1d6+2|1d10+6|1d20+12|3d8+20;Assault Rifle|DEX|1d8+2|2d6+4|2d10+10|3d10+16;Plasma Rifle|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Grenade Launcher|CON|1d6+1|1d12+2|1d20+6|4d6+10;Bazooka|CON|1d6+1|2d6+2|2d12+4|4d8+8;Rocket Launcher|CON|1d6+1|2d4+4|4d4+6|4d6+10;Sniper Rifle|DEX|1d10+2|1d20+4|2d12+14|4d10+18"]].forEach(([c,s])=>{const l=s.split(';').map(x=>{const[n,st,...f]=x.split('|');return{n,s:st,f,c}});WP.push([c,l]);WF.push(...l)});
-let admin=false,C,sel,ed,son=1,AC,BT,EN,LOOT,PEND,TAB='main',LIBS=[],WORKSPACE='scene',activeLibrary='',assignedCharacterId='',editFromLibrary=false;
-let hiddenSceneCharacterIds=new Set();
-let librarySort='name-asc';try{librarySort=localStorage.getItem('lost_library_sort')||'name-asc'}catch(e){}
-let playerLocksCollapsed=false;try{playerLocksCollapsed=localStorage.getItem('lost_player_locks_collapsed')==='1'}catch(e){}
+
 function syncPlayerLocksPanel(){const box=document.getElementById('player-lock-content'),button=document.getElementById('player-lock-toggle');if(!box||!button)return;box.classList.toggle('hid',playerLocksCollapsed);button.textContent=playerLocksCollapsed?'SHOW':'HIDE';button.setAttribute('aria-expanded',String(!playerLocksCollapsed))}
 function togglePlayerLocksPanel(){playerLocksCollapsed=!playerLocksCollapsed;try{localStorage.setItem('lost_player_locks_collapsed',playerLocksCollapsed?'1':'0')}catch(e){}syncPlayerLocksPanel()}
 let cloudSyncHandler=null;function scheduleCloudSync(){if(cloudSyncHandler)cloudSyncHandler();}
@@ -318,7 +320,7 @@ const fxv=c=>(admin?`<div class="fx-grid">${MANUAL_FX.map(([k,n,abbr,i,d,hasStk,
 
 const hb=(c,w)=>{const charges=cl(Math.floor(num(w.charges??2)),1,4),charge=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,charges)),slots=charges-charge+1,idx=Array.from({length:slots},(_,j)=>w['attr'+(j+1)]).findIndex(x=>x=='hemotic_bypass'),v=idx<0?0:Math.floor(Math.max(...SK.map(s=>stv(c,s)))/(idx==0&&charge>1?2:4));return v?[['Hemotic Bypass',v]]:[]};
 
-function lostCanEditVitals(id){return !!lostUser&&(admin||!!assignedCharacterId&&assignedCharacterId===id)}
+function lostCanEditVitals(id){return !!window.lostUser&&(admin||!!assignedCharacterId&&assignedCharacterId===id)}
 function lostVitalsControls(c,compact=false){if((c.libraryId&&lostIsPrivateLibraryId(c.libraryId))||!lostCanEditVitals(c.id))return '';const groups=[['hp','HP'],['shield','SHIELD'],['san','SAN']];return `<div class="row" style="gap:3px;${compact?'margin-top:4px;':''}">${groups.map(([k,label])=>`<span class="mt" style="margin-left:3px">${label}</span><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="-1" title="${label} −1">−</button><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="1" title="${label} +1">+</button>`).join('')}</div>`}
 
 const card=r=>{const c=A(r),where=r.libraryId?`<span class="chip">${esc(LIBS.find(x=>x.id==r.libraryId)?.name||'LIBRARY')}</span>`:'';return`<div class="w card${BT.on&&BT.order[BT.i]?.id==c.id?' now':''}" data-id="${c.id}"><div class="tb"><span class="row" style="gap:4px">${c.mirror?'DYAKIER / REIKYAD':esc(c.name.toUpperCase())}${sb(c)}</span><span class="row">${where}<span class="${c.fx?.shieldbreak?'grey chip':'o'}">${c.shield?'▽'+c.shield:''}</span><button class="b s" data-a="hidecard" data-i="${c.id}" title="Hide this card on this device only">HIDE</button></span></div><div class="pd cd"><div class="th">${im(c)}</div><div class="in"><div class="nm">${esc(c.name)}</div>${c.fx?.isBoss?`<span class="chip o">BOSS · ${c.libraryId?'BASE HP':`${bossSceneMultiplier()}× HP`}</span>`:''}${bar(...c.hp,'hp')}${bar(...c.san,'sn')}<span class="chip">REGEN ${c.regen}/TR</span>${typeof lostVitalsControls==='function'?lostVitalsControls(c,true):''}${fxc(c)}${c.last?`<div class="lb"><span>LAST</span><span>${esc(c.last)}</span></div>`:''}</div></div>${admin?`<div class="pd row" style="padding-top:0"><button class="b s${r.libraryId?' am':''}" data-a="${r.libraryId?'deploy':'store'}" data-i="${r.id}">${r.libraryId?'＋ ADD TO SCENE':'▣ HIDE TO LIBRARY'}</button></div>`:''}</div>`};
@@ -517,7 +519,7 @@ let f;if(win)f=[SYM[q],SYM[q],SYM[q]];else do{f=[0,1,2].map(()=>S5[Math.random()
 [...el.querySelectorAll('.rl i')].forEach((e,i)=>{e.classList.add('sp');const t=setInterval(()=>pt(e,S5[Math.random()*5|0]),70);setTimeout(()=>{clearInterval(t);e.classList.remove('sp');pt(e,f[i]);ping('click');if(i==2)fim()},900+i*450)});
 function fim(){const rs=el.querySelector('.res');if(!win){rs.textContent='∅ Nothing this time';return}const p=LOOT[TI[q]],it=p.length?p[Math.random()*p.length|0]:'Item '+TN[q]+' (TBD)';rs.innerHTML=`<b class="o">✧ <span style="color:${QC[q]}">${SYM[q]}</span> ${TN[q]}: ${esc(it)}</b>`;if(!gain(id,`[${TN[q]}] ${it}`))rs.innerHTML+=' <span class="pz">▣ full — decide fate</span>'}}
 
-const psv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_pend=JSON.stringify(PEND)}catch(e){}scheduleCloudSync()},slotsOf=c=>c.slots??9,
+const psv=()=>{if(window.lostUser&&!admin)return;try{localStorage.lost_pend=JSON.stringify(PEND)}catch(e){}scheduleCloudSync()},slotsOf=c=>c.slots??9,
 invHtml=c=>{const v=c.inv||[],n=Math.max(slotsOf(c),v.length);return Array.from({length:n},(_,i)=>i<v.length?`<div class="sl${i>=slotsOf(c)?' ov':''}"><span>${esc(v[i])}</span>${admin?`<button class="b s rd" data-a="rmi" data-i="${i}">✕</button>`:''}</div>`:'<div class="sl e">empty</div>').join('')};
 function gain(id,item){const c=A(C.find(x=>x.id==id));if(!c)return 0;if((c.inv||[]).length<slotsOf(c)){mut(n=>(n.inv||=[]).push(item),id);return 1}PEND.push({id,item});psv();ovUI();return 0}
 function ovUI(){const p=PEND[0],m=$('#ov'),r=p&&C.find(x=>x.id==p.id);if(!p||!admin||!r){m.classList.add('hid');return}const c=A(r),o=sceneChars().map(A).filter(x=>x.id!=c.id),full=x=>(x.inv||[]).length>=slotsOf(x);
@@ -589,14 +591,14 @@ turn:()=>{bturn()},
 init:()=>{$('#ib').classList.toggle('hid');bpanel()},
 max:t=>{const k=t.dataset.k;all(n=>{if(k!='san')n.hp[0]=n.hp[1];if(k!='hp')n.san[0]=n.san[1]})},
 enadd:()=>{EN.push({id:'enemy-'+Date.now(),n:'Enemy '+(EN.length+1),f:'1d20',hp:100,hpMax:100,d:''});esv();renderSidebars();bpanel()},endel:t=>{EN.splice(t.dataset.i,1);esv();renderSidebars();bpanel()},
-roll:()=>{ping('roll');const characterTurns=sceneChars().flatMap(raw=>{const c=A(raw),turns=c.fx?.isBoss?3:1;return Array.from({length:turns},(_,j)=>({id:c.id,n:turns===3?`${c.name} · BOSS TURN ${j+1}/3`:c.name,...ir(R(rf(c,'SPD')),fxe(c,'SPD'))}))});BT.order=[...characterTurns,...EN.map(e=>({id:null,n:e.n||'Enemy',...ir(R(e.f||'1d20'),[])}))].sort((a,b)=>b.t-a.t||Math.random()-.5);BT.on=0;BT.i=0;bsv();bpanel();bchip();render();lostPublishNotice('Table','Initiative Roll',BT.order.map((o,i)=>({n:o.n,t:o.t,d:o.d,b:o.b||0,i:i+1})));if(lostHost&&admin)lostBroadcast({t:'session',state:lostSessionState()})},
-bstart:()=>{if(!BT.order.length)XA.roll();Object.assign(BT,{on:1,round:1,i:0,n:1});bsv();$('#ib').classList.remove('hid');bpanel();bchip();render();if(lostHost&&admin)lostBroadcast({t:'session',state:lostSessionState()})},
-bnext:()=>{if(!BT.on)return;ping('action');BT.n++;if(++BT.i>=BT.order.length){BT.i=0;BT.round++;bturn()}bsv();bpanel();bchip();render();if(lostHost&&admin)lostBroadcast({t:'session',state:lostSessionState()})},
+roll:()=>{ping('roll');const characterTurns=sceneChars().flatMap(raw=>{const c=A(raw),turns=c.fx?.isBoss?3:1;return Array.from({length:turns},(_,j)=>({id:c.id,n:turns===3?`${c.name} · BOSS TURN ${j+1}/3`:c.name,...ir(R(rf(c,'SPD')),fxe(c,'SPD'))}))});BT.order=[...characterTurns,...EN.map(e=>({id:null,n:e.n||'Enemy',...ir(R(e.f||'1d20'),[])}))].sort((a,b)=>b.t-a.t||Math.random()-.5);BT.on=0;BT.i=0;bsv();bpanel();bchip();render();lostPublishNotice('Table','Initiative Roll',BT.order.map((o,i)=>({n:o.n,t:o.t,d:o.d,b:o.b||0,i:i+1})));if(window.lostHost&&admin)lostBroadcast({t:'session',state:lostSessionState()})},
+bstart:()=>{if(!BT.order.length)XA.roll();Object.assign(BT,{on:1,round:1,i:0,n:1});bsv();$('#ib').classList.remove('hid');bpanel();bchip();render();if(window.lostHost&&admin)lostBroadcast({t:'session',state:lostSessionState()})},
+bnext:()=>{if(!BT.on)return;ping('action');BT.n++;if(++BT.i>=BT.order.length){BT.i=0;BT.round++;bturn()}bsv();bpanel();bchip();render();if(window.lostHost&&admin)lostBroadcast({t:'session',state:lostSessionState()})},
 brm:t=>{const i=+t.dataset.i;BT.order.splice(i,1);if(i<BT.i)BT.i--;if(BT.i>=BT.order.length){BT.i=0;if(BT.on){BT.round++;bturn()}}bsv();bpanel();bchip();render()},
-bend:()=>{if(!confirm('End battle? All characters recover 25% HP and SAN and roll loot.'))return;all(n=>{n.hp[0]=Math.min(n.hp[1],n.hp[0]+Math.ceil(n.hp[1]*.25));n.san[0]=Math.min(n.san[1],n.san[0]+Math.ceil(n.san[1]*.25))});BT={on:0,round:1,i:0,n:0,order:[]};bsv();bpanel();bchip();lootUI();render();if(lostHost&&admin)lostBroadcast({t:'session',state:lostSessionState()})},
+bend:()=>{if(!confirm('End battle? All characters recover 25% HP and SAN and roll loot.'))return;all(n=>{n.hp[0]=Math.min(n.hp[1],n.hp[0]+Math.ceil(n.hp[1]*.25));n.san[0]=Math.min(n.san[1],n.san[0]+Math.ceil(n.san[1]*.25))});BT={on:0,round:1,i:0,n:0,order:[]};bsv();bpanel();bchip();lootUI();render();if(window.lostHost&&admin)lostBroadcast({t:'session',state:lostSessionState()})},
 lootcfg:()=>lootUI(),lspin:t=>spin(t.dataset.i),lspinall:()=>sceneChars().forEach((c,i)=>setTimeout(()=>spin(c.id),i*350)),
 send:()=>{const id=$('#who2').value,h=num($('#dh').value),s=num($('#ds').value);if(!C.some(x=>x.id==id))return;mut(n=>{let d=h;const k=Math.min(n.shield||0,Math.max(d,0));n.shield=(n.shield||0)-k;d-=k;n.hp[0]=cl(n.hp[0]-d,0,n.hp[1]);n.san[0]=cl(n.san[0]-s,0,n.san[1]);n.last=[h&&'HP −'+h,s&&'SAN −'+s].filter(Boolean).join(' · ')+` (${hms().slice(0,5)})`},id);$('#dh').value=$('#ds').value=''},
-exp:()=>{const pack={format:'L.O.S.T. session save',version:3,exportedAt:new Date().toISOString(),note:'Host-side full campaign. Players never keep this after leaving a session.',characters:C,libraries:LIBS,enemies:EN,battle:BT,loot:LOOT,pendingInventory:PEND,workspace:WORKSPACE,activeLibrary,playerAssignments:typeof lostPlayersData==='object'?lostPlayersData:{},hiddenSceneCharacterIds:[...hiddenSceneCharacterIds],librarySort};const a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}));a.href=u;a.download='lost_session_'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)},imp:()=>$('#jf').click(),pushscene:()=>{if(!admin||!lostHost){alert('Only the hosting author can push the live scene.');return}lostBroadcast({t:'session',state:lostSessionState()});T('Table','Live scene pushed',`<div class="mt">Connected players received the current scene, enemies and battle state.</div>`,'session push')};
+exp:()=>{const pack={format:'L.O.S.T. session save',version:3,exportedAt:new Date().toISOString(),note:'Host-side full campaign. Players never keep this after leaving a session.',characters:C,libraries:LIBS,enemies:EN,battle:BT,loot:LOOT,pendingInventory:PEND,workspace:WORKSPACE,activeLibrary,playerAssignments:typeof lostPlayersData==='object'?lostPlayersData:{},hiddenSceneCharacterIds:[...hiddenSceneCharacterIds],librarySort};const a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}));a.href=u;a.download='lost_session_'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)},imp:()=>$('#jf').click(),pushscene:()=>{if(!admin||!window.lostHost){alert('Only the hosting author can push the live scene.');return}lostBroadcast({t:'session',state:lostSessionState()});T('Table','Live scene pushed',`<div class="mt">Connected players received the current scene, enemies and battle state.</div>`,'session push')};
 
 document.addEventListener('click',async e=>{const t=e.target.closest('button'),k=e.target.closest('.card'),b=e.target.closest('#rd-badge'),libEntry=e.target.closest('[data-open-libchar]');
 if(b){ping('click');XA.init();return}
@@ -623,16 +625,23 @@ if(d.pool!=null){mut(n=>{n.pool=Math.max(0,num(t.value))});return}
 if(d.f)mut(n=>{const w=n.weapons[d.i];if(d.f=='charges'){w.charges=cl(Math.floor(num(t.value)),1,4);w.ch1=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,w.charges));if(w.charges<=2&&w.ch1==2)w.attr2=''}else{const numeric=['ch1','ch2','hitBonus','damageBonus','charges'];w[d.f]=numeric.includes(d.f)?num(t.value):t.value;if(d.f=='ch1'&&w.ch1==2&&(w.charges??2)<=2){w.attr2='';w.ch2=1}}});
 else if(t.id=='upl'&&t.files[0]){const u=await img(t.files[0]);mut(n=>n.img=u)}});
 addEventListener('hashchange',()=>{ed=null;render();scrollTo(0,0)});
-BT=ld('lost_battle',{on:0,round:1,i:0,n:0,order:[]});if(!Array.isArray(BT.order))BT.order=[];LIBS=ld('lost_libraries',[]);if(!Array.isArray(LIBS))LIBS=[];activeLibrary=ld('lost_active_library',LIBS[0]?.id||'');if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary=LIBS.find(x=>x.id==='main-party')?.id||LIBS[0]?.id||'';EN=normalizeEnemies(ld('lost_enemies',[{n:'Alpha Enemy',f:'1d20+4'},{n:'Beta Enemy',f:'1d20'}]));PEND=ld('lost_pend',[]);LOOT={basica:[],diferenciada:[],unica:[],eclipse:[],...ld('lost_loot',{})};
+BT=ld('lost_battle',{on:0,round:1,i:0,n:0,order:[]});if(!Array.isArray(BT.order))BT.order=[];LIBS=ld('lost_libraries',[]);if(!Array.isArray(LIBS))LIBS=[];activeLibrary=ld('lost_active_library',LIBS[0]?.id||'');if(!LIBS.some(x=>x.id==='main-party'))activeLibrary=LIBS.find(x=>x.id==='main-party')?.id||LIBS[0]?.id||'';EN=normalizeEnemies(ld('lost_enemies',[{n:'Alpha Enemy',f:'1d20+4'},{n:'Beta Enemy',f:'1d20'}]));PEND=ld('lost_pend',[]);LOOT={basica:[],diferenciada:[],unica:[],eclipse:[],...ld('lost_loot',{})};
 try{C=JSON.parse(localStorage[KEY])}catch(e){}if(!Array.isArray(C))C=DEF();
 if(!LIBS.some(x=>x.id==='main-party'))LIBS.unshift({id:'main-party',name:'Main Party'});
 if(localStorage.getItem('lost_main_party_migrated')!=='1'){const defaultIds=new Set(DEF().map(x=>x.id));C.forEach(c=>{if(defaultIds.has(c.id))c.libraryId='main-party'});activeLibrary='main-party';localStorage.setItem('lost_main_party_migrated','1')}
 if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';WORKSPACE=ld('lost_workspace_view','scene');if(!['scene','library-scene'].includes(WORKSPACE))WORKSPACE='scene';
 C.forEach(mth);sv();libsv();esv();render();syncPlayerLocksPanel();
 
-let lostAuth=null,lostDb=null,lostUser=null,lostCampaignRef=null,lostRollsRef=null,lostCampaignUnsub=null,lostRollsUnsub=null,lostPlayersRef=null,lostPlayersUnsub=null,lostOwnPlayerUnsub=null;
-let lostPlayerProfiles=[];
-let lostCloudReady=false,lostApplyingCloud=false,lostSyncTimer=null,lostSeenRolls=new Set(),lostRollFirstSnapshot=true,lostVitalsUnsub=null,lostVitalsReady=false,lostVitalsSeeding=false,lostVitalsCache=null;
+window.lostUser=null;
+window.lostPlayerProfiles=[];
+window.lostHost=false;
+window.lostConns=new Map();
+window.lostRollHist=[];
+window.lostPlayersData={};
+window.lostBcastTimer=null;
+window.lostPeer=null;
+window.lostConn=null;
+
 function lostAuthMessage(msg){const el=$('#auth-status');if(el)el.textContent=msg}
 
 function lostUpdateAuthLoadStatus(){
@@ -641,6 +650,7 @@ function lostUpdateAuthLoadStatus(){
   el.textContent=n?`${n} character(s) · ${e} enem${e===1?'y':'ies'} ready`:'No session file loaded';
   el.style.color=n?'#4ade80':'';
 }
+
 function lostImportSessionPack(p,{confirmReplace=true}={}){
   if(!Array.isArray(p)&&(!p||!Array.isArray(p.characters)))throw new Error('Invalid session JSON');
   if(confirmReplace&&!confirm('Import this JSON and replace the current campaign data on this browser?'))return false;
@@ -703,10 +713,8 @@ function lostSetLoggedInUI(user,isAdmin){
   $('#adm').classList.toggle('hid',!isAdmin);
   admin=!!isAdmin;
 }
-function lostSetLoggedOutUI(){admin=false;lostCloudReady=false;$('#auth-gate').style.display='grid';$('#who').textContent='OFFLINE';$('#roleTag').textContent='READER';$('#adm').classList.add('hid');}
-function lostCampaignState(){
-  return{characters:C||[],libraries:LIBS||[],enemies:EN,battle:BT,loot:LOOT,pendingInventory:PEND,workspace:WORKSPACE,activeLibrary};
-}
+function lostSetLoggedOutUI(){admin=false;$('#auth-gate').style.display='grid';$('#who').textContent='OFFLINE';$('#roleTag').textContent='READER';$('#adm').classList.add('hid');}
+
 function lostSessionState(){
   const privateIds=new Set((LIBS||[]).filter(x=>x.private===true).map(x=>x.id));
   const chars=(C||[]).filter(c=>!privateIds.has(c.libraryId)&&!c.libraryId);
@@ -723,9 +731,9 @@ function lostSessionState(){
     pendingInventory:[]
   };
 }
+
 function lostApplyCampaignState(state,asSession=false){
   if(!state||!Array.isArray(state.characters))return;
-  lostApplyingCloud=true;
   if(admin&&!asSession){
     const localPrivateLibs=(LIBS||[]).filter(x=>x.private===true);
     const localPrivateIds=new Set(localPrivateLibs.map(x=>x.id));
@@ -753,11 +761,9 @@ function lostApplyCampaignState(state,asSession=false){
   }else{
     lostClearCampaignStorage();
   }
-  lostApplyingCloud=false;lostCloudReady=true;render();bpanel();
+  render();bpanel();
 }
-async function lostCloudPrepareImages(value){return value}
-cloudSyncHandler=null;
-function lostQueueCloudSync(){}
+
 function lostCharacterList(){return (C||[]).filter(raw=>!lostIsPrivateLibraryId(raw.libraryId)).map(raw=>{const c=A(raw),lib=raw.libraryId?LIBS.find(x=>x.id===raw.libraryId)?.name:'';return{id:raw.id,name:c.name||raw.id,library:lib}})}
 function lostRenderPlayerLocks(){
   const box=$('#player-lock-content');if(!box||!admin)return;syncPlayerLocksPanel();
@@ -782,11 +788,10 @@ function lostPaintRemoteRoll(ev){if(ev.type==='notice'){lostPaintRemoteNotice(ev
 function lostPaintRemoteNotice(ev){const rows=Array.isArray(ev.rows)?ev.rows:[],inner=`<div class="mt">Initiative order · shared live</div>${rows.map(x=>`<div class="ini"><b>${Number(x.t)||0}</b><span>${Number(x.i)||0}. ${esc(x.n||'Combatant')}</span><small>[${(Array.isArray(x.d)?x.d:[]).map(v=>Number(v)||0).join('+')}]${Number(x.b)?sg(Number(x.b)):''}</small></div>`).join('')}`;T(`${ev.who||'Table'} · @${ev.actor||'player'}`,ev.title||'Initiative',inner,'shared initiative roll')}
 
 const lostOriginalShow=show;
-show=function(who,title,r,ex=[]){const character=cur();if(!canRollCharacter(character)){lostAuthMessage('You can only roll as your assigned character.');return}const actor=lostUserName(lostUser);lostOriginalShow(who+' · @'+actor,title,r,ex);lostPublishRoll(who,title,r,ex,character?.id)};
+show=function(who,title,r,ex=[]){const character=cur();if(!canRollCharacter(character)){lostAuthMessage('You can only roll as your assigned character.');return}const actor=lostUserName(window.lostUser);lostOriginalShow(who+' · @'+actor,title,r,ex);lostPublishRoll(who,title,r,ex,character?.id)};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-auth-action]');if(b)lostAuthAction(b.dataset.authAction)});
 
 const lostUserName=u=>u?.displayName||'Player';
-let lostPeer=null,lostConn=null,lostHost=false,lostConns=new Map(),lostRollHist=[],lostPlayersData={},lostBcastTimer=null;
 try{lostPlayersData=JSON.parse(localStorage.lost_p2p_players||'{}')||{}}catch(e){}
 const lostRoomId=code=>'lostrpg-'+String(code).toLowerCase();
 const lostSend=(c,m)=>{try{if(c&&c.open)c.send(m)}catch(e){console.warn('send failed',e)}};
@@ -803,21 +808,21 @@ function lostApplyVitalDelta(id,delta){
   sv();render();
 }
 function lostAdjustVital(id,key,delta){
-  if(!lostUser||!['hp','shield','san'].includes(key)||!Number.isInteger(delta)||!delta)return;
+  if(!window.lostUser||!['hp','shield','san'].includes(key)||!Number.isInteger(delta)||!delta)return;
   if(!admin&&(!assignedCharacterId||assignedCharacterId!==id)){alert('You can only change HP, shield and SAN for your assigned character.');return}
   if(admin)lostApplyVitalDelta(id,{[key]:delta});else lostSend(lostConn,{t:'vital',id,delta:{[key]:delta}});
 }
 function lostSyncPlayerVitalDelta(before,after){
-  if(!lostUser||admin||!lostConn||!before||!after||!assignedCharacterId||before.id!==assignedCharacterId||after.id!==assignedCharacterId)return;
+  if(!window.lostUser||admin||!lostConn||!before||!after||!assignedCharacterId||before.id!==assignedCharacterId||after.id!==assignedCharacterId)return;
   const a=A(before),b=A(after),delta={};for(const k of ['hp','san']){const d=num(b[k]?.[0])-num(a[k]?.[0]);if(d)delta[k]=d}
   const s=num(b.shield)-num(a.shield);if(s)delta.shield=s;
   if(Object.keys(delta).length)lostSend(lostConn,{t:'vital',id:after.id,delta});
 }
 function lostQueueAuthorVitals(){}
 function lostDeliver(ev){if(lostHost){lostRollHist.push(ev);if(lostRollHist.length>60)lostRollHist.shift();lostBroadcast({t:'roll',ev})}else lostSend(lostConn,{t:'roll',ev})}
-function lostMakeEv(type,who,title,extra){return{type,uid:lostUser.uid,actor:lostUserName(lostUser),who:String(who),title:String(title),clock:new Date().toLocaleTimeString('en-US',{hour12:false}),...extra}}
-function lostPublishRoll(who,title,r,ex,characterId){if(!lostUser)return;lostDeliver(lostMakeEv('roll',who,title,{characterId:String(characterId||''),r,ex}))}
-function lostPublishNotice(who,title,rows){if(!lostUser)return;const ev=lostMakeEv('notice',who,title,{rows});lostPaintRemoteNotice(ev);if(lostHost)lostDeliver(ev)}
+function lostMakeEv(type,who,title,extra){return{type,uid:window.lostUser.uid,actor:lostUserName(window.lostUser),who:String(who),title:String(title),clock:new Date().toLocaleTimeString('en-US',{hour12:false}),...extra}}
+function lostPublishRoll(who,title,r,ex,characterId){if(!window.lostUser)return;lostDeliver(lostMakeEv('roll',who,title,{characterId:String(characterId||''),r,ex}))}
+function lostPublishNotice(who,title,rows){if(!window.lostUser)return;const ev=lostMakeEv('notice',who,title,{rows});lostPaintRemoteNotice(ev);if(lostHost)lostDeliver(ev)}
 function lostAssignPlayer(button){
   if(!admin)return;const uid=button.dataset.uid,characterId=$('#plchar-'+uid)?.value||'';if(!uid)return;
   if(!characterId||!C.some(c=>c.id===characterId)){alert('Choose a valid character first.');return}
@@ -854,19 +859,19 @@ function lostHostOnConn(conn){
 function lostClientData(msg){
   if(!msg||typeof msg!=='object')return;
   if(msg.t==='welcome'){
-    assignedCharacterId=msg.assigned||'';lostSetLoggedInUI(lostUser,false);lostApplyCampaignState(msg.state,true);
+    assignedCharacterId=msg.assigned||'';lostSetLoggedInUI(window.lostUser,false);lostApplyCampaignState(msg.state,true);
     $('#L').innerHTML='';(msg.rolls||[]).forEach(lostAppendHistory);if(!(msg.rolls||[]).length)$('#L').innerHTML='<div class="e0">— No rolls yet —</div>';
-    lostVitalsReady=true;lostOnlineStatus();render();
+    lostOnlineStatus();render();
   }else if(msg.t==='session'||msg.t==='state')lostApplyCampaignState(msg.state,true);
   else if(msg.t==='assign'){assignedCharacterId=msg.characterId||'';render()}
   else if(msg.t==='roll'&&msg.ev)lostPaintRemoteRoll(msg.ev);
   else if(msg.t==='error'){lostFail(msg.msg||'Rejected by the host.')}
 }
 function lostLeave(){
-  const wasHost=!!lostHost,wasPlayer=!!lostUser&&!lostHost;
+  const wasHost=!!lostHost,wasPlayer=!!window.lostUser&&!lostHost;
   clearTimeout(lostBcastTimer);const p=lostPeer,c=lostConn;lostPeer=null;lostConn=null;
   try{c&&c.close()}catch(e){}try{p&&p.destroy()}catch(e){}
-  lostConns.clear();lostHost=false;assignedCharacterId='';lostUser=null;lostPlayerProfiles=[];lostPlayersUnsub=null;
+  lostConns.clear();lostHost=false;assignedCharacterId='';window.lostUser=null;lostPlayerProfiles=[];
   if(wasPlayer||!wasHost){
     lostClearCampaignStorage();
     lostResetSessionMemory();
@@ -877,7 +882,7 @@ function lostLeave(){
 function lostFail(msg){lostLeave();lostAuthMessage(msg)}
 function lostStartHost(room){
   lostAuthMessage('Starting session…');const peer=lostPeer=new Peer(lostRoomId(room));
-  peer.on('open',()=>{lostHost=true;lostSetLoggedInUI(lostUser,true);lostPlayersUnsub=()=>{};lostCloudReady=true;lostRefreshProfiles();lostRenderPlayerLocks();lostOnlineStatus();$('#L').innerHTML='<div class="e0">— No rolls recorded in this session —</div>';render()});
+  peer.on('open',()=>{lostHost=true;lostSetLoggedInUI(window.lostUser,true);lostRefreshProfiles();lostRenderPlayerLocks();lostOnlineStatus();$('#L').innerHTML='<div class="e0">— No rolls recorded in this session —</div>';render()});
   peer.on('connection',lostHostOnConn);
   peer.on('error',e=>{console.error(e);if(!lostHost)lostFail(e.type==='unavailable-id'?'That room code is already in use (another host, or your last session has not expired yet — wait a minute or pick another code).':'Could not start the session: '+e.type);else lostSetRollStatus('NETWORK ERROR · '+e.type,true)});
   peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
@@ -887,7 +892,7 @@ function lostStartJoin(room){
   lostAuthMessage('Connecting to the host…');const peer=lostPeer=new Peer();let done=false;
   const timer=setTimeout(()=>{if(!done&&lostPeer===peer)lostFail('Could not reach the host. Check the room code and that the author has started the session.')},15000);
   peer.on('open',()=>{const conn=lostConn=peer.connect(lostRoomId(room),{reliable:true});
-    conn.on('open',()=>{done=true;clearTimeout(timer);lostSend(conn,{t:'hello',name:lostUser.displayName})});
+    conn.on('open',()=>{done=true;clearTimeout(timer);lostSend(conn,{t:'hello',name:window.lostUser.displayName})});
     conn.on('data',lostClientData);
     conn.on('close',()=>{if(lostConn===conn)lostFail('Disconnected from the host. Join again once the session is running.')});
   });
@@ -910,7 +915,7 @@ function lostAuthAction(action){
   if(!/^[a-zA-Z0-9_]{3,20}$/.test(name)){lostAuthMessage('Name must be 3–20 characters: letters, numbers or underscore.');return}
   if(!/^[a-z0-9_-]{4,30}$/.test(room)){lostAuthMessage('Room code must be 4–30 characters: letters, numbers, - or _.');return}
   try{localStorage.lost_p2p_name=name;localStorage.lost_p2p_room=room}catch(e){}
-  lostUser={uid:'u:'+name.toLowerCase(),displayName:name};
+  window.lostUser={uid:'u:'+name.toLowerCase(),displayName:name};
   if(action==='host'){
     if(!(C||[]).length){lostAuthMessage('Load a session JSON first (or continue with defaults).');}
     lostStartHost(room);
