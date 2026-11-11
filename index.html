@@ -142,8 +142,14 @@ body.full #workspace{display:none}
  <div class="pd"><div class="nm">Enter the campaign</div><div class="mt" id="auth-status" style="margin:6px 0 12px">Host a session (author) or join one with the room code.</div>
  <label for="auth-username">YOUR NAME</label><input id="auth-username" maxlength="20" autocomplete="username" placeholder="3–20 letters, numbers or _">
  <label for="auth-password">ROOM CODE</label><input id="auth-password" autocomplete="off" placeholder="e.g. friday-night" style="margin-bottom:10px">
+ <div class="ab" style="margin:8px 0 10px;border-color:var(--g)">
+  <div class="row sp"><b class="o">AUTHOR · LOAD SESSION FIRST</b><span class="mt" id="auth-load-status">No session file loaded</span></div>
+  <div class="mt" style="margin:4px 0 6px">Load your full campaign JSON here before hosting. Players never keep this file.</div>
+  <div class="row"><button class="b am" type="button" data-auth-action="loadsession">⇩ LOAD SESSION JSON</button><button class="b s" type="button" data-auth-action="clearsession">CLEAR LOADED</button></div>
+  <input type="file" id="auth-jf" accept=".json" hidden>
+ </div>
  <div class="row"><button class="b am" data-auth-action="join">JOIN SESSION</button><button class="b" data-auth-action="host">HOST SESSION (AUTHOR)</button></div>
- <div class="mt" style="margin-top:10px">Players: enter your name and the room code, then JOIN. Campaign data is session-only — it disappears when you leave or the host closes. Author: HOST on the browser with your campaign JSON; use SAVE JSON / LOAD JSON to keep the full campaign offline. Do not JOIN from the author browser.</div>
+ <div class="mt" style="margin-top:10px">Players: enter your name and the room code, then JOIN. Campaign data is session-only — wiped when you leave. Author: load your JSON above, then HOST. Do not JOIN from the author browser.</div>
  </div></div>
 </div>
 <div id="rd-badge" class="hid" data-a="init"><span>ROUND</span><span class="num" id="rd-num">1</span></div><div id="ov" class="hid" style="position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:12px;z-index:90"></div><div id="T"></div>
@@ -199,8 +205,8 @@ slug=n=>n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(
 DEF=()=>['Jake Marlowe','Person Jaulo','Mr. Happy',0,'Beacon','Murphy L.','Rob Kyle','Ásgeirr'].map((n,i)=>n?{...blank(n),id:slug(n),order:i+1}:{id:'dyakier-reikyad',mirror:1,side:'A',order:i+1,sides:{A:blank('Dyakier Voss'),B:blank('Reikyad')}}),
 stv=(c,k)=>c.st?.[k]||0,left=c=>(c.pool??POOL)-SK.reduce((a,k)=>a+stv(c,k),0),
 A=c=>c?.mirror?{...c.sides[c.side],id:c.id,mirror:1,side:c.side,sides:c.sides,order:c.order,libraryId:c.libraryId||''}:c,cur=()=>A(C.find(x=>x.id==sel)),
-sv=()=>{if(!admin)return;try{localStorage[KEY]=JSON.stringify(C)}catch(e){alert('Storage full: export JSON and use smaller images.')}scheduleCloudSync();},
-libsv=()=>{if(!admin)return;try{localStorage.lost_libraries=JSON.stringify(LIBS);localStorage.lost_active_library=activeLibrary}catch(e){alert('Could not save libraries in browser storage. Export a JSON backup.')}scheduleCloudSync();},
+sv=()=>{if(lostUser&&!admin)return;try{localStorage[KEY]=JSON.stringify(C)}catch(e){alert('Storage full: export JSON and use smaller images.')}scheduleCloudSync();},
+libsv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_libraries=JSON.stringify(LIBS);localStorage.lost_active_library=activeLibrary}catch(e){alert('Could not save libraries in browser storage. Export a JSON backup.')}scheduleCloudSync();},
 sceneChars=()=>C.filter(x=>!x.libraryId),libraryChars=(id=activeLibrary)=>C.filter(x=>x.libraryId===id),bossSceneMultiplier=()=>Math.max(1,sceneChars().length+1),
 mth=c=>{if(c.mirror){Object.values(c.sides).forEach(side=>{side.libraryId=c.libraryId||'';mth(side)});return}c.st??={};c.fx??={};const m=c.mod=mods(c),ov=(k,d)=>c.ov?.[k]>''?num(c.ov[k]):d,baseH=Math.max(0,ov('hp',stv(c,'CON')*5+m.hpmax)),S=Math.max(0,ov('san',stv(c,'SAN')*3+m.sanmax)),bossMult=c.fx?.isBoss&&!c.libraryId?Math.max(1,sceneChars().length+1):1,oldMult=Math.max(1,num(c._bossHpMultiplier)||1),oldHp=Number(c.hp?.[0]??baseH),scaledHp=oldMult!==bossMult?Math.round(oldHp/oldMult*bossMult):oldHp,H=Math.max(0,baseH*bossMult);c._bossHpMultiplier=bossMult;c.regen=ov('regen',stv(c,'INT')+m.regen);c.hp=[cl(scaledHp,0,H),H];c.san=[cl(c.san?.[0]??S,0,S),S];c.imps??=[{},{},{},{}];c.weapons??=[wpn(),wpn()];c.weapons.forEach(w=>{w.charges=cl(Math.floor(num(w.charges??2)),1,4);w.ch1=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,w.charges))});c.slots??=9;c.actives??=[];c.passives??=[]},
 put=n=>{const i=C.findIndex(x=>x.id==n.id),before=i>=0?J(C[i]):null;if(i<0)C.push(n);else if(C[i].mirror){const{id,mirror,side,sides,order,libraryId,...r}=n;C[i].sides[C[i].side]=r;if(libraryId!==undefined)C[i].libraryId=libraryId}else C[i]=n;C.forEach(mth);if(before){const after=C.find(x=>x.id===n.id);if(admin)lostQueueAuthorVitals(before,after);else lostSyncPlayerVitalDelta(before,after)}sv();render()},
@@ -211,7 +217,7 @@ sb=c=>c.mirror?['A','B'].map(s=>`<button class="b s${c.side==s?' on':''}" data-a
 bar=(v,m,k)=>`<div class="lb"><span>${k=='hp'?'HEALTH':'SANITY'}</span><span>${v}/${m} ${k=='hp'?'HP':'SAN'}</span></div><div class="m ${k}"><i style="width:${m?cl(v/m*100,0,100):0}%"></i></div>`,
 no=t=>`<div class="mt">— ${t} —</div>`,
 hms=()=>new Date().toLocaleTimeString('en-US',{hour12:false});
-const ld=(k,d)=>{try{return JSON.parse(localStorage[k])||d}catch(e){return d}},bsv=()=>{if(!admin)return;try{localStorage.lost_battle=JSON.stringify(BT)}catch(e){}scheduleCloudSync()},esv=()=>{if(!admin)return;try{localStorage.lost_enemies=JSON.stringify(EN)}catch(e){}scheduleCloudSync()},lsv=()=>{if(!admin)return;try{localStorage.lost_loot=JSON.stringify(LOOT)}catch(e){}scheduleCloudSync()};
+const ld=(k,d)=>{try{return JSON.parse(localStorage[k])||d}catch(e){return d}},bsv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_battle=JSON.stringify(BT)}catch(e){}scheduleCloudSync()},esv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_enemies=JSON.stringify(EN)}catch(e){}scheduleCloudSync()},lsv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_loot=JSON.stringify(LOOT)}catch(e){}scheduleCloudSync()};
 hiddenSceneCharacterIds=new Set(ld('lost_hidden_scene_characters',[]));
 function saveSceneViewPrefs(){try{localStorage.setItem('lost_hidden_scene_characters',JSON.stringify([...hiddenSceneCharacterIds]))}catch(e){console.warn('Could not save local character view preferences',e)}}
 function lostIsPrivateLibraryId(id,libraries=LIBS){return !!id&&!!libraries.find(lib=>lib.id===id&&lib.private===true)}
@@ -526,7 +532,7 @@ let f;if(win)f=[SYM[q],SYM[q],SYM[q]];else do{f=[0,1,2].map(()=>S5[Math.random()
 [...el.querySelectorAll('.rl i')].forEach((e,i)=>{e.classList.add('sp');const t=setInterval(()=>pt(e,S5[Math.random()*5|0]),70);setTimeout(()=>{clearInterval(t);e.classList.remove('sp');pt(e,f[i]);ping('click');if(i==2)fim()},900+i*450)});
 function fim(){const rs=el.querySelector('.res');if(!win){rs.textContent='∅ Nothing this time';return}const p=LOOT[TI[q]],it=p.length?p[Math.random()*p.length|0]:'Item '+TN[q]+' (TBD)';rs.innerHTML=`<b class="o">✧ <span style="color:${QC[q]}">${SYM[q]}</span> ${TN[q]}: ${esc(it)}</b>`;if(!gain(id,`[${TN[q]}] ${it}`))rs.innerHTML+=' <span class="pz">▣ full — decide fate</span>'}}
 
-const psv=()=>{if(!admin)return;try{localStorage.lost_pend=JSON.stringify(PEND)}catch(e){}scheduleCloudSync()},slotsOf=c=>c.slots??9,
+const psv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_pend=JSON.stringify(PEND)}catch(e){}scheduleCloudSync()},slotsOf=c=>c.slots??9,
 invHtml=c=>{const v=c.inv||[],n=Math.max(slotsOf(c),v.length);return Array.from({length:n},(_,i)=>i<v.length?`<div class="sl${i>=slotsOf(c)?' ov':''}"><span>${esc(v[i])}</span>${admin?`<button class="b s rd" data-a="rmi" data-i="${i}">✕</button>`:''}</div>`:'<div class="sl e">empty</div>').join('')};
 function gain(id,item){const c=A(C.find(x=>x.id==id));if(!c)return 0;if((c.inv||[]).length<slotsOf(c)){mut(n=>(n.inv||=[]).push(item),id);return 1}PEND.push({id,item});psv();ovUI();return 0}
 function ovUI(){const p=PEND[0],m=$('#ov'),r=p&&C.find(x=>x.id==p.id);if(!p||!admin||!r){m.classList.add('hid');return}const c=A(r),o=sceneChars().map(A).filter(x=>x.id!=c.id),full=x=>(x.inv||[]).length>=slotsOf(x);
@@ -616,7 +622,7 @@ if(!t&&k){ping('click');if(k.dataset.new)XA.new();else if(!k.classList.contains(
 if(!t)return;ping('click');const f=XP[t.dataset.a]||admin&&XA[t.dataset.a];if(f)try{await f(t)}catch(x){console.error(x);alert('Action processing error.')}});
 document.addEventListener('keydown',e=>{const item=e.target.closest?.('[data-open-libchar]');if(item&&(e.key==='Enter'||e.key===' ')){e.preventDefault();location.hash=item.dataset.openLibchar}});
 document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;ping('click');
-if(t.id=='jf'){try{if(!t.files?.[0])return;const p=JSON.parse(await t.files[0].text());if(!Array.isArray(p)&&(!p||!Array.isArray(p.characters)))throw 0;if(!confirm('Import this JSON and replace the current campaign data?')){t.value='';return}if(Array.isArray(p)){C=p;LIBS=[];WORKSPACE='scene';activeLibrary='';}else{C=p.characters;LIBS=Array.isArray(p.libraries)?p.libraries:[];if(Array.isArray(p.enemies))EN=normalizeEnemies(p.enemies);if(p.battle)BT=p.battle;if(p.loot)LOOT={basica:[],diferenciada:[],unica:[],eclipse:[],...p.loot};if(Array.isArray(p.pendingInventory))PEND=p.pendingInventory;WORKSPACE=p.workspace||'scene';activeLibrary=p.activeLibrary||LIBS[0]?.id||'';if(p.playerAssignments&&typeof p.playerAssignments==='object'){lostPlayersData=p.playerAssignments;try{localStorage.lost_p2p_players=JSON.stringify(lostPlayersData)}catch(e){}if(typeof lostRefreshProfiles==='function')lostRefreshProfiles()}if(Array.isArray(p.hiddenSceneCharacterIds)){hiddenSceneCharacterIds=new Set(p.hiddenSceneCharacterIds);saveSceneViewPrefs()}if(p.librarySort){librarySort=p.librarySort;try{localStorage.setItem('lost_library_sort',librarySort)}catch(e){}}}if(!LIBS.some(x=>x.id==='main-party'))LIBS.unshift({id:'main-party',name:'Main Party'});C.forEach(c=>{if(c.libraryId&&!LIBS.some(x=>x.id===c.libraryId))c.libraryId=''});C.forEach(mth);if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';sv();libsv();esv();bsv();lsv();psv();location.hash='';render();if(typeof lostRenderPlayerLocks==='function')lostRenderPlayerLocks();alert('Session JSON loaded on this host. Players only see it after they join (or after you PUSH LIVE SCENE).');}catch(x){console.error(x);alert('Invalid or unsupported JSON file.')}finally{t.value=''}return}
+if(t.id=='jf'||t.id=='auth-jf'){try{if(!t.files?.[0])return;const p=JSON.parse(await t.files[0].text());if(lostImportSessionPack(p)){lostAuthMessage('Session loaded. Enter name + room code, then HOST SESSION.');alert('Session JSON loaded. You can HOST SESSION now.');}}catch(x){console.error(x);alert('Invalid or unsupported JSON file.')}finally{t.value=''}return}
 if(d.en!=null){const enemy=EN[d.en];if(enemy){enemy[d.k]=['hp','hpMax'].includes(d.k)?num(t.value):t.value;esv();renderSidebars();if($('#bp'))bpanel();}return}
 if(t.id==='libraryPick'){activeLibrary=t.value;libsv();render();return}
 if(t.id==='librarySort'){librarySort=t.value;try{localStorage.setItem('lost_library_sort',librarySort)}catch(e){}renderSidebars();return}
@@ -647,6 +653,53 @@ let lostAuth=null,lostDb=null,lostUser=null,lostCampaignRef=null,lostRollsRef=nu
 let lostPlayerProfiles=[];
 let lostCloudReady=false,lostApplyingCloud=false,lostSyncTimer=null,lostSeenRolls=new Set(),lostRollFirstSnapshot=true,lostVitalsUnsub=null,lostVitalsReady=false,lostVitalsSeeding=false,lostVitalsCache=null;
 function lostAuthMessage(msg){const el=$('#auth-status');if(el)el.textContent=msg}
+
+function lostUpdateAuthLoadStatus(){
+  const el=$('#auth-load-status');if(!el)return;
+  const n=(C||[]).length,e=(EN||[]).length;
+  el.textContent=n?`${n} character(s) · ${e} enem${e===1?'y':'ies'} ready`:'No session file loaded';
+  el.style.color=n?'#4ade80':'';
+}
+function lostImportSessionPack(p,{confirmReplace=true}={}){
+  if(!Array.isArray(p)&&(!p||!Array.isArray(p.characters)))throw new Error('Invalid session JSON');
+  if(confirmReplace&&!confirm('Import this JSON and replace the current campaign data on this browser?'))return false;
+  if(Array.isArray(p)){C=p;LIBS=[];WORKSPACE='scene';activeLibrary='';}
+  else{
+    C=p.characters;LIBS=Array.isArray(p.libraries)?p.libraries:[];
+    if(Array.isArray(p.enemies))EN=normalizeEnemies(p.enemies);
+    if(p.battle)BT=p.battle;if(!Array.isArray(BT.order))BT.order=[];
+    if(p.loot)LOOT={basica:[],diferenciada:[],unica:[],eclipse:[],...p.loot};
+    if(Array.isArray(p.pendingInventory))PEND=p.pendingInventory;
+    WORKSPACE=p.workspace||'scene';activeLibrary=p.activeLibrary||LIBS[0]?.id||'';
+    if(p.playerAssignments&&typeof p.playerAssignments==='object'){
+      lostPlayersData=p.playerAssignments;
+      try{localStorage.lost_p2p_players=JSON.stringify(lostPlayersData)}catch(e){}
+      if(typeof lostRefreshProfiles==='function')lostRefreshProfiles();
+    }
+    if(Array.isArray(p.hiddenSceneCharacterIds)){hiddenSceneCharacterIds=new Set(p.hiddenSceneCharacterIds);saveSceneViewPrefs()}
+    if(p.librarySort){librarySort=p.librarySort;try{localStorage.setItem('lost_library_sort',librarySort)}catch(e){}}
+  }
+  if(!LIBS.some(x=>x.id==='main-party'))LIBS.unshift({id:'main-party',name:'Main Party'});
+  C.forEach(c=>{if(c.libraryId&&!LIBS.some(x=>x.id===c.libraryId))c.libraryId=''});
+  C.forEach(mth);
+  if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';
+  // Always persist for the author browser (even before HOST). Players never reach this path with intent to keep data.
+  try{
+    localStorage[KEY]=JSON.stringify(C);
+    localStorage.lost_libraries=JSON.stringify(LIBS);
+    localStorage.lost_active_library=activeLibrary;
+    localStorage.lost_enemies=JSON.stringify(EN);
+    localStorage.lost_battle=JSON.stringify(BT);
+    localStorage.lost_loot=JSON.stringify(LOOT);
+    localStorage.lost_pend=JSON.stringify(PEND);
+  }catch(e){console.warn(e)}
+  location.hash='';
+  render();
+  if(typeof lostRenderPlayerLocks==='function')lostRenderPlayerLocks();
+  lostUpdateAuthLoadStatus();
+  return true;
+}
+
 function lostClearCampaignStorage(){
   // Wipe campaign keys so a closed session leaves no reusable hostable copy on this device.
   const keys=[KEY,'lost_libraries','lost_active_library','lost_enemies','lost_battle','lost_loot','lost_pend','lost_workspace_view','lost_hidden_scene_characters','lost_prejoin_backup'];
@@ -873,6 +926,15 @@ function lostStartJoin(room){
 }
 function lostAuthAction(action){
   if(action==='logout'){lostLeave();lostAuthMessage('Disconnected.');return}
+  if(action==='loadsession'){$('#auth-jf')?.click();return}
+  if(action==='clearsession'){
+    if(!confirm('Clear the loaded session from this browser?'))return;
+    lostClearCampaignStorage();lostResetSessionMemory();
+    try{localStorage.removeItem('lost_p2p_players')}catch(e){}
+    lostPlayersData={};if(typeof lostRefreshProfiles==='function')lostRefreshProfiles();
+    render();lostUpdateAuthLoadStatus();lostAuthMessage('Loaded session cleared. Load a JSON file before hosting, or host with the default roster.');
+    return;
+  }
   if(typeof Peer==='undefined'){lostAuthMessage('The connection library failed to load. Check your internet and reload.');return}
   if(lostPeer)return;
   const name=$('#auth-username').value.trim(),room=$('#auth-password').value.trim().toLowerCase();
@@ -880,8 +942,12 @@ function lostAuthAction(action){
   if(!/^[a-z0-9_-]{4,30}$/.test(room)){lostAuthMessage('Room code must be 4–30 characters: letters, numbers, - or _.');return}
   try{localStorage.lost_p2p_name=name;localStorage.lost_p2p_room=room}catch(e){}
   lostUser={uid:'u:'+name.toLowerCase(),displayName:name};
-  if(action==='host')lostStartHost(room);else lostStartJoin(room);
+  if(action==='host'){
+    if(!(C||[]).length){lostAuthMessage('Load a session JSON first (or continue with defaults).');}
+    lostStartHost(room);
+  }else lostStartJoin(room);
 }
 lostSetLoggedOutUI();
 try{$('#auth-username').value=localStorage.lost_p2p_name||'';$('#auth-password').value=localStorage.lost_p2p_room||''}catch(e){}
+try{lostUpdateAuthLoadStatus()}catch(e){}
 </script></body></html>
