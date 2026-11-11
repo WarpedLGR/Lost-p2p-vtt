@@ -139,7 +139,7 @@ body.full #workspace{display:none}
 </main>
 <div id="auth-gate" style="position:fixed;inset:0;background:#09030eeF;display:grid;place-items:center;padding:16px;z-index:200">
  <div class="w" style="width:min(430px,100%);box-shadow:0 12px 50px #000"><div class="tb"><span>◉ L.O.S.T. · PLAYER LOGIN</span><span class="mt">P2P</span></div>
- <div class="pd"><div class="nm">Enter the campaign</div><div class="mt" id="auth-status" style="margin:6px 0 12px">Host a session (author) or join one with the room code.</div>
+ <div class="pd"><div class="nm">Enter the campaign</div><div class="mt" id="auth-status" style="margin:6px 0 12px">Host a session (author) or join one with the room code. For offline play use LOCAL AUTHOR.</div>
  <label for="auth-username">YOUR NAME</label><input id="auth-username" maxlength="20" autocomplete="username" placeholder="3–20 letters, numbers or _">
  <label for="auth-password">ROOM CODE</label><input id="auth-password" autocomplete="off" placeholder="e.g. friday-night" style="margin-bottom:10px">
  <div class="ab" style="margin:8px 0 10px;border-color:var(--g)">
@@ -148,8 +148,12 @@ body.full #workspace{display:none}
   <div class="row"><button class="b am" type="button" data-auth-action="loadsession">⇩ LOAD SESSION JSON</button><button class="b s" type="button" data-auth-action="clearsession">CLEAR LOADED</button></div>
   <input type="file" id="auth-jf" accept=".json" hidden>
  </div>
- <div class="row"><button class="b am" data-auth-action="join">JOIN SESSION</button><button class="b" data-auth-action="host">HOST SESSION (AUTHOR)</button></div>
- <div class="mt" style="margin-top:10px">Players: enter your name and the room code, then JOIN. Campaign data is session-only — wiped when you leave. Author: load your JSON above, then HOST. Do not JOIN from the author browser.</div>
+ <div class="row">
+   <button class="b am" data-auth-action="join">JOIN SESSION</button>
+   <button class="b" data-auth-action="host">HOST SESSION (AUTHOR)</button>
+   <button class="b am" data-auth-action="local">LOCAL AUTHOR (OFFLINE)</button>
+ </div>
+ <div class="mt" style="margin-top:10px">Players: enter your name and the room code, then JOIN. Campaign data is session-only — wiped when you leave. Author: load your JSON above, then HOST, or use LOCAL AUTHOR for offline play (no PeerJS required). Do not JOIN from the author browser.</div>
  </div></div>
 </div>
 <div id="rd-badge" class="hid" data-a="init"><span>ROUND</span><span class="num" id="rd-num">1</span></div><div id="ov" class="hid" style="position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:12px;z-index:90"></div><div id="T"></div>
@@ -263,7 +267,6 @@ function getFxVal(c,k){
   if(!c.fx?.[k]) return 0;
   return typeof c.fx[k]==='number' ? c.fx[k] : (c.fx[k]?1:0);
 }
-
 
 // Weapon customization (local character data only)
 function weaponConfig(w){
@@ -618,11 +621,19 @@ exp:()=>{const pack={format:'L.O.S.T. session save',version:3,exportedAt:new Dat
 document.addEventListener('click',async e=>{const t=e.target.closest('button'),k=e.target.closest('.card'),b=e.target.closest('#rd-badge'),libEntry=e.target.closest('[data-open-libchar]');
 if(b){ping('click');XA.init();return}
 if(libEntry&&!t){ping('click');location.hash=libEntry.dataset.openLibchar;return}
-if(!t&&k){ping('click');if(k.dataset.new)XA.new();else if(!k.classList.contains('add'))location.hash=k.dataset.id;return}
+if(!t&&k){
+  ping('click');
+  if(k.dataset.new){
+    if(admin) XA.new();
+    return;
+  }
+  if(!k.classList.contains('add')) location.hash=k.dataset.id;
+  return;
+}
 if(!t)return;ping('click');const f=XP[t.dataset.a]||admin&&XA[t.dataset.a];if(f)try{await f(t)}catch(x){console.error(x);alert('Action processing error.')}});
 document.addEventListener('keydown',e=>{const item=e.target.closest?.('[data-open-libchar]');if(item&&(e.key==='Enter'||e.key===' ')){e.preventDefault();location.hash=item.dataset.openLibchar}});
 document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;ping('click');
-if(t.id=='jf'||t.id=='auth-jf'){try{if(!t.files?.[0])return;const p=JSON.parse(await t.files[0].text());if(lostImportSessionPack(p)){lostAuthMessage('Session loaded. Enter name + room code, then HOST SESSION.');alert('Session JSON loaded. You can HOST SESSION now.');}}catch(x){console.error(x);alert('Invalid or unsupported JSON file.')}finally{t.value=''}return}
+if(t.id=='jf'||t.id=='auth-jf'){try{if(!t.files?.[0])return;const p=JSON.parse(await t.files[0].text());if(lostImportSessionPack(p)){lostAuthMessage('Session loaded. Enter name + room code, then HOST SESSION, or use LOCAL AUTHOR.');alert('Session JSON loaded. You can HOST SESSION or use LOCAL AUTHOR now.');}}catch(x){console.error(x);alert('Invalid or unsupported JSON file.')}finally{t.value=''}return}
 if(d.en!=null){const enemy=EN[d.en];if(enemy){enemy[d.k]=['hp','hpMax'].includes(d.k)?num(t.value):t.value;esv();renderSidebars();if($('#bp'))bpanel();}return}
 if(t.id==='libraryPick'){activeLibrary=t.value;libsv();render();return}
 if(t.id==='librarySort'){librarySort=t.value;try{localStorage.setItem('lost_library_sort',librarySort)}catch(e){}renderSidebars();return}
@@ -909,7 +920,7 @@ function lostStartHost(room){
   lostAuthMessage('Starting session…');const peer=lostPeer=new Peer(lostRoomId(room));
   peer.on('open',()=>{lostHost=true;lostSetLoggedInUI(lostUser,true);lostPlayersUnsub=()=>{};lostCloudReady=true;lostRefreshProfiles();lostRenderPlayerLocks();lostOnlineStatus();$('#L').innerHTML='<div class="e0">— No rolls recorded in this session —</div>';render()});
   peer.on('connection',lostHostOnConn);
-  peer.on('error',e=>{console.error(e);if(!lostHost)lostFail(e.type==='unavailable-id'?'That room code is already in use (another host, or your last session has not expired yet — wait a minute or pick another code).':'Could not start the session: '+e.type);else lostSetRollStatus('NETWORK ERROR · '+e.type,true)});
+  peer.on('error',e=>{console.error(e);if(!lostHost){const msg=e.type==='unavailable-id'?'That room code is already in use (wait ~1 min or pick another code).':'Could not start the session: '+e.type+'. Try LOCAL AUTHOR (OFFLINE) instead.';lostFail(msg)}else lostSetRollStatus('NETWORK ERROR · '+e.type,true)});
   peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
 }
 function lostStartJoin(room){
@@ -932,10 +943,27 @@ function lostAuthAction(action){
     lostClearCampaignStorage();lostResetSessionMemory();
     try{localStorage.removeItem('lost_p2p_players')}catch(e){}
     lostPlayersData={};if(typeof lostRefreshProfiles==='function')lostRefreshProfiles();
-    render();lostUpdateAuthLoadStatus();lostAuthMessage('Loaded session cleared. Load a JSON file before hosting, or host with the default roster.');
+    render();lostUpdateAuthLoadStatus();lostAuthMessage('Loaded session cleared. Load a JSON file before hosting, or use LOCAL AUTHOR / HOST with the default roster.');
     return;
   }
-  if(typeof Peer==='undefined'){lostAuthMessage('The connection library failed to load. Check your internet and reload.');return}
+
+  // LOCAL / OFFLINE AUTHOR – no PeerJS required
+  if(action==='local'){
+    const name=($('#auth-username').value.trim()||'Author').replace(/[^a-zA-Z0-9_]/g,'').slice(0,20)||'Author';
+    lostUser={uid:'u:'+name.toLowerCase(),displayName:name};
+    lostHost=true;
+    lostSetLoggedInUI(lostUser,true);
+    lostCloudReady=true;
+    lostRefreshProfiles();
+    lostRenderPlayerLocks();
+    lostSetRollStatus('LOCAL AUTHOR · OFFLINE');
+    $('#L').innerHTML='<div class="e0">— Local session · no network —</div>';
+    render();
+    lostAuthMessage('Local author mode active. Full campaign is editable on this browser only.');
+    return;
+  }
+
+  if(typeof Peer==='undefined'){lostAuthMessage('PeerJS failed to load. Use LOCAL AUTHOR (OFFLINE) or check your internet and reload.');return}
   if(lostPeer)return;
   const name=$('#auth-username').value.trim(),room=$('#auth-password').value.trim().toLowerCase();
   if(!/^[a-zA-Z0-9_]{3,20}$/.test(name)){lostAuthMessage('Name must be 3–20 characters: letters, numbers or underscore.');return}
