@@ -153,6 +153,8 @@ body.full #workspace{display:none}
  </div></div>
 </div>
 <div id="rd-badge" class="hid" data-a="init"><span>ROUND</span><span class="num" id="rd-num">1</span></div><div id="ov" class="hid" style="position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:12px;z-index:90"></div><div id="T"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 const $=s=>document.querySelector(s),esc=t=>String(t??'').replace(/[&<>"]/g,c=>'&#'+c.charCodeAt()+';'),cl=(n,a,b)=>Math.max(a,Math.min(b,n)),num=v=>parseFloat(String(v).replace(',','.'))||0,J=o=>JSON.parse(JSON.stringify(o)),sg=v=>(v<0?'−':'+')+Math.abs(v),
 SK='STR DEX CON SPD INT LCK SAN'.split(' '),POOL=40,TI=['basica','diferenciada','unica','eclipse'],TN=['Basic','Special','Unique','Eclipse'],KEY='lost_chars_v4',WP=[],WF=[],
@@ -193,7 +195,6 @@ the_start|THE START|3|Epiphany|Temporarily changes weapon shape.|Completely chan
 finale|FINALE|3|???|Attacks increase damage taken by enemies.|Increases damage taken and gives +10% damage/turn.`.split('\n').map(l=>{const[id,n,t,e,a,b]=l.split('|');return{id,n,t,e,d:[a,b]}}),EL=EA.map(a=>[a.id,`[T${a.t} ${a.e}] ${a.n}`]);
 [["Light Melee","Knife|STR|1d4+2|1d6+4|1d12+8|1d20+12;Rapier|SPD|1d4+2|1d6+4|2d6+8|3d6+12;Gauntlets|STR|1d4+2|1d8+4|2d6+10|3d8+12;Shield|CON|1d4+1|1d6+2|2d4+6|2d6+10;Dual Claws|STR|1d4+2|1d8+6|2d8+10|2d12+16;Nunchaku|SPD|1d4+1|1d6+4|1d10+8|2d8+12;Hatchet|STR|1d4+2|1d8+6|2d8+10|3d8+16;Whip|SPD|1d4+1|1d8+2|1d12+6|2d8+10;Sword|STR|1d6+2|1d10+6|1d20+12|3d8+20;Spear|SPD|1d4+2|1d6+4|1d12+8|1d20+12;Energy Saber|STR|1d8+2|1d10+8|1d20+14|3d12+18;Yo-yo|SPD|1d4+1|1d6+4|1d10+8|2d8+10;Combat Syringe|STR|1d4+2|1d6+4|1d10+8|2d8+12"],["Heavy Melee","Greatsword|STR|1d8+2|2d6+6|3d6+14|3d12+16;Energy Sword|STR|2d4+2|3d4+6|3d8+12|3d10+22;Trident|CON|1d4+1|1d6+4|1d10+8|2d8+12;Halberd|CON|1d4+2|1d6+4|1d12+8|3d6+12;Scythe|STR|1d6+2|1d10+6|2d8+12|4d6+18;Axe / Mace|STR|1d6+2|1d10+6|2d10+12|3d8+20;Flail|STR|1d6+2|1d10+6|2d8+12|4d6+18;Warhammer|CON|1d4+2|1d8+4|3d4+8|3d6+14;Chainsaw|CON|1d4+2|1d8+4|3d4+8|4d4+14"],["Ranged Weapons","Pistol|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Hand Cannon|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Throwing Cards|LCK|1d6+0|1d12+0|2d12+0|2d20+0;Energy Blaster|DEX|1d6+2|1d12+6|3d6+12|4d6+20;Revolver|DEX|1d6+2|1d10+6|2d10+10|3d10+16;Submachine Gun|DEX|1d6+2|3d4+4|4d4+10|4d6+16;Flamethrower|DEX|1d6+2|3d4+4|4d4+12|4d6+18;Machine Gun|CON|1d6+1|1d10+2|2d8+6|3d8+10;Shotgun|DEX|1d8+2|2d8+4|2d12+12|3d12+18;Syringe Launcher|DEX|1d4+2|1d8+4|3d4+8|4d4+12"],["Long Range","Bow|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Crossbow|DEX|1d6+2|1d10+6|1d20+12|3d8+20;Assault Rifle|DEX|1d8+2|2d6+4|2d10+10|3d10+16;Plasma Rifle|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Grenade Launcher|CON|1d6+1|1d12+2|1d20+6|4d6+10;Bazooka|CON|1d6+1|2d6+2|2d12+4|4d8+8;Rocket Launcher|CON|1d6+1|2d4+4|4d4+6|4d6+10;Sniper Rifle|DEX|1d10+2|1d20+4|2d12+14|4d10+18"]].forEach(([c,s])=>{const l=s.split(';').map(x=>{const[n,st,...f]=x.split('|');return{n,s:st,f,c}});WP.push([c,l]);WF.push(...l)});
 let admin=false,C,sel,ed,son=1,AC,BT,EN,LOOT,PEND,TAB='main',LIBS=[],WORKSPACE='scene',activeLibrary='',assignedCharacterId='',editFromLibrary=false;
-// Player-facing roster preferences are stored locally only; they never modify campaign data.
 let hiddenSceneCharacterIds=new Set();
 let librarySort='name-asc';try{librarySort=localStorage.getItem('lost_library_sort')||'name-asc'}catch(e){}
 let playerLocksCollapsed=false;try{playerLocksCollapsed=localStorage.getItem('lost_player_locks_collapsed')==='1'}catch(e){}
@@ -224,10 +225,8 @@ function lostIsPrivateLibraryId(id,libraries=LIBS){return !!id&&!!libraries.find
 function lostDummyCharacterId(){const found=(C||[]).find(raw=>!lostIsPrivateLibraryId(raw.libraryId)&&String(A(raw).name||'').trim().toLowerCase()==='dummy');return found?.id||''}
 function lostEffectiveCharacterId(){return assignedCharacterId||(!admin?lostDummyCharacterId():'')}
 const canRollCharacter=c=>admin|| (!!lostEffectiveCharacterId() && c?.id===lostEffectiveCharacterId());
-/* sound */
 const SN={click:['triangle',440,220,.04,.08],roll:['sawtooth',300,650,.12,.1],action:['square',523,659,.15,.08]};
 function ping(k){if(!son)return;try{AC??=new AudioContext;AC.resume();const[w,f,g,d,v]=SN[k],t=AC.currentTime,o=AC.createOscillator(),n=AC.createGain();o.type=w;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(g,t+d);n.gain.setValueAtTime(v,t);n.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(n).connect(AC.destination);o.start(t);o.stop(t+d+.01)}catch(e){}}
-/* rolls */
 function parseRollFormula(value){const f=String(value??'').replace(/\s/g,'');const m=/^(\d{1,3})d(\d{1,5})((?:[+-]\d{1,5})*)$/i.exec(f);if(!m||f.length>50)return null;const n=Number(m[1]),z=Number(m[2]);if(!Number.isInteger(n)||n<1||n>100||!Number.isInteger(z)||z<2||z>10000)return null;const bonus=(m[3].match(/[+-]\d{1,5}/g)||[]).reduce((sum,term)=>sum+Number(term),0);return Number.isSafeInteger(bonus)?{f,n,z,b:bonus}:null}
 function randomInt(max){if(globalThis.crypto?.getRandomValues){const u=new Uint32Array(1),limit=Math.floor(0x100000000/max)*max;do{globalThis.crypto.getRandomValues(u)}while(u[0]>=limit);return u[0]%max}return Math.floor(Math.random()*max)}
 function R(value){const p=parseRollFormula(value||'1d20');if(!p)return null;const d=Array.from({length:p.n},()=>randomInt(p.z)+1),s=d.reduce((a,x)=>a+x,0);return{f:p.f,d,z:p.z,s,b:p.b,t:s+p.b,lo:p.n+p.b,hi:p.n*p.z+p.b}}
@@ -237,7 +236,6 @@ p=[`<b>${r.s}</b> dice`,r.b&&`<b>${sg(r.b)}</b> bonus`,...ex.map(([l,v])=>`<b>${
 T(who,title,`<div class="mt">${esc(r.f)} · range ${r.lo+e}–${r.hi+e}</div><div class="dc">${r.d.length}d${r.z} ${r.d.map(x=>`<i class="${x==r.z?'mx':x==1?'mn':''}">${x}</i>`).join('')}</div><div class="mt">${p}</div><div class="tot ${k}">= ${t}${n==20?' CRITICAL!':n==1?' FAILURE!':''}</div>`,
 `<code>${esc(r.f)}</code> [${r.d.join('+')}]=${r.s}${r.b?sg(r.b):''}${ex.map(x=>sg(x[1])).join('')} → <b class="o">${t}</b>`)}
 
-/* STATUS EFFECTS SYSTEM */
 const FX=[
   ['bleeding','Bleed','BLD','♦','Remove 4% de HP por turno. Ao atingir 4 acúmulos, transforma-se em Hemorragia.',1,3],
   ['hemorrhage','Hemorrhage','HMG','♦♦','Início da rodada: perde 20% do HP máximo em dano e sofre -10 em rolagens físicas.',0,0],
@@ -264,7 +262,6 @@ function getFxVal(c,k){
   return typeof c.fx[k]==='number' ? c.fx[k] : (c.fx[k]?1:0);
 }
 
-// Weapon customization (local character data only)
 function weaponConfig(w){
   const base=WF.find(x=>x.n==w?.name),ti=Math.max(0,TI.indexOf(w?.tier));
   const hitStat=SK.includes(w?.hitStat)?w.hitStat:(base?.s||'STR');
@@ -275,7 +272,7 @@ function weaponConfig(w){
 function validWeaponFormula(value){return !!parseRollFormula(value);}
 
 function rf(c,k){
-  if(c.ro?.[k])return c.ro[k]; // rolagem manual
+  if(c.ro?.[k])return c.ro[k];
   const b=c.fx?.lockedin?5:0,p=getFxVal(c,'poison'),m=c.mod||{},totalB=(stv(c,k)||0)+b-p+(m.roll||0)+(m.stat?.[k]||0);
   return '1d20'+(totalB?sg(totalB):'');
 }
@@ -319,13 +316,11 @@ const fxv=c=>(admin?`<div class="fx-grid">${MANUAL_FX.map(([k,n,abbr,i,d,hasStk,
   return `<div class="mt">${i} <b class="o">${n}${hasStk?` [x${v}]`:''}</b>: ${esc(d)}</div>`;
 }).join('')||(admin?'':no('No active status effects')));
 
-const hb=(c,w)=>{const charges=cl(Math.floor(num(w.charges??2)),1,4),charge=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,charges)),slots=charges-charge+1,idx=Array.from({length:slots},(_,i)=>w['attr'+(i+1)]).findIndex(x=>x=='hemotic_bypass'),v=idx<0?0:Math.floor(Math.max(...SK.map(s=>stv(c,s)))/(idx==0&&charge>1?2:4));return v?[['Hemotic Bypass',v]]:[]};
+const hb=(c,w)=>{const charges=cl(Math.floor(num(w.charges??2)),1,4),charge=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,charges)),slots=charges-charge+1,idx=Array.from({length:slots},(_,j)=>w['attr'+(j+1)]).findIndex(x=>x=='hemotic_bypass'),v=idx<0?0:Math.floor(Math.max(...SK.map(s=>stv(c,s)))/(idx==0&&charge>1?2:4));return v?[['Hemotic Bypass',v]]:[]};
 
-/* Shared vitals controls. Players can edit only their assigned character; author can edit all. */
 function lostCanEditVitals(id){return !!lostUser&&(admin||!!assignedCharacterId&&assignedCharacterId===id)}
 function lostVitalsControls(c,compact=false){if((c.libraryId&&lostIsPrivateLibraryId(c.libraryId))||!lostCanEditVitals(c.id))return '';const groups=[['hp','HP'],['shield','SHIELD'],['san','SAN']];return `<div class="row" style="gap:3px;${compact?'margin-top:4px;':''}">${groups.map(([k,label])=>`<span class="mt" style="margin-left:3px">${label}</span><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="-1" title="${label} −1">−</button><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="1" title="${label} +1">+</button>`).join('')}</div>`}
 
-/* screens */
 const card=r=>{const c=A(r),where=r.libraryId?`<span class="chip">${esc(LIBS.find(x=>x.id==r.libraryId)?.name||'LIBRARY')}</span>`:'';return`<div class="w card${BT.on&&BT.order[BT.i]?.id==c.id?' now':''}" data-id="${c.id}"><div class="tb"><span class="row" style="gap:4px">${c.mirror?'DYAKIER / REIKYAD':esc(c.name.toUpperCase())}${sb(c)}</span><span class="row">${where}<span class="${c.fx?.shieldbreak?'grey chip':'o'}">${c.shield?'▽'+c.shield:''}</span><button class="b s" data-a="hidecard" data-i="${c.id}" title="Hide this card on this device only">HIDE</button></span></div><div class="pd cd"><div class="th">${im(c)}</div><div class="in"><div class="nm">${esc(c.name)}</div>${c.fx?.isBoss?`<span class="chip o">BOSS · ${c.libraryId?'BASE HP':`${bossSceneMultiplier()}× HP`}</span>`:''}${bar(...c.hp,'hp')}${bar(...c.san,'sn')}<span class="chip">REGEN ${c.regen}/TR</span>${typeof lostVitalsControls==='function'?lostVitalsControls(c,true):''}${fxc(c)}${c.last?`<div class="lb"><span>LAST</span><span>${esc(c.last)}</span></div>`:''}</div></div>${admin?`<div class="pd row" style="padding-top:0"><button class="b s${r.libraryId?' am':''}" data-a="${r.libraryId?'deploy':'store'}" data-i="${r.id}">${r.libraryId?'＋ ADD TO SCENE':'▣ HIDE TO LIBRARY'}</button></div>`:''}</div>`};
 function workspaceTools(){
   const isLibraryScene=WORKSPACE==='library-scene'&&!!LIBS.find(x=>x.id===activeLibrary)&&(!libraryIsPrivate(activeLibrary)||admin);
@@ -437,14 +432,11 @@ $('#v').innerHTML=`<div class="tb"><span>EDIT · ${esc(c.name||'NEW CHARACTER')}
 const grab=()=>{if(!$('#fn'))return;const imageUrl=$('#fimg')?.value.trim();Object.assign(ed,{name:$('#fn').value.trim(),shield:num($('#fe').value),inv:$('#fi').value.split('\n').map(s=>s.trim()).filter(Boolean),notes:$('#fo').value,className:$('#fclass')?.value||'',specialty:$('#fspecialty')?.value||'',specialtyInfo:$('#fspecialtyInfo')?.value||''});if($('#fimg-clear')?.checked)ed.img='';else if(imageUrl)ed.img=imageUrl;ed.hp[0]=num($('#fh').value);ed.san[0]=num($('#fs').value)},
 img=f=>new Promise(r=>{const i=new Image;i.onload=()=>{const k=Math.min(1,256/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.72))};i.src=URL.createObjectURL(f)});
 
-/* BATTLE: turn effects, configurable initiative, loot */
 const tick=(n,o)=>{const f=n.fx||{},w=[];let hpDmg=0, isBoss=!!f.isBoss;
 
-// Auto-trigger Hemorrhage se Bleeding >= 4
 if(getFxVal(n,'bleeding')>=4) f.hemorrhage=true;
 if(getFxVal(n,'fire')>=2){ f.combustion=2; f.fire=0; }
 
-// 1. Hemorrhage vs Bleeding (Hemorrhage ignora Bleeding)
 if(f.hemorrhage){
   const pct = isBoss ? 10 : 20;
   const d = Math.ceil(n.hp[1] * pct / 100);
@@ -458,10 +450,9 @@ if(f.hemorrhage){
   }
 }
 
-// 2. Combustion vs Fire (Combustion ignora Fire)
 const comb=getFxVal(n,'combustion');
 if(comb>0){
-  const roll = 12 + (Math.random()*8|0); // 12-20%
+  const roll = 12 + (Math.random()*8|0);
   const pct = isBoss ? roll/2 : roll;
   const d = Math.ceil(n.hp[1] * pct / 100);
   hpDmg += d; w.push(`Combustion −${d} HP (${pct.toFixed(1)}%)`);
@@ -470,28 +461,25 @@ if(comb>0){
   if(f.wet){
     w.push('Fire neutralized by Wet!');
   } else {
-    const roll = (1 + Math.random()*10|0); // 1-10%
+    const roll = (1 + Math.random()*10|0);
     const pct = isBoss ? roll/2 : roll;
     const d = Math.ceil(n.hp[1] * pct / 100);
     hpDmg += d; w.push(`Fire −${d} HP (${pct.toFixed(1)}%)`);
   }
 }
 
-// 3. Shocked (5% HP, cancela regen)
 if(f.shocked){
-  const pct = f.wet ? 10 : 5; // Wet dobra Shocked
+  const pct = f.wet ? 10 : 5;
   const d = Math.ceil(n.hp[1] * pct / 100);
   hpDmg += d; w.push(`Shocked −${d} HP (${pct}%${f.wet?' [Wet x2]':''})`);
 }
 
-// 4. Poison (-5 HP fixo por turno)
 const pStk=getFxVal(n,'poison');
 if(pStk>0){
   const d = 5;
   hpDmg += d; w.push(`Poison −${d} HP [-${pStk} Rolls]`);
 }
 
-// 5. Sanity Regen (Trauma / Shocked cancelam; Motivated +25%)
 const blockSan = f.trauma || f.shocked;
 let sanRegen = 0;
 if(!blockSan){
@@ -499,7 +487,6 @@ if(!blockSan){
   sanRegen = Math.ceil(baseReg * (f.motivated ? 1.25 : 1));
 }
 
-// Aplicação
 n.hp[0] = Math.max(0, n.hp[0] - hpDmg);
 n.san[0] = cl(n.san[0] + sanRegen, 0, n.san[1]);
 
@@ -539,8 +526,6 @@ m.innerHTML=`<div class="w" style="max-width:520px;width:100%;max-height:90vh;ov
 <h3>↦ GIVE NEW ITEM TO</h3><div class="row"><select id="ovto" style="flex:1">${o.map(x=>`<option value="${x.id}"${full(x)?' disabled':''}>${esc(x.name)} (${(x.inv||[]).length}/${slotsOf(x)})${full(x)?' · full':''}</option>`).join('')}</select><button class="b am" data-a="ovgive">GIVE</button></div>
 <h3>⌧ DISCARD</h3><button class="b rd" data-a="ovdrop">Discard new item</button></div></div>`;m.classList.remove('hid')}
 
-/* actions: XP = public, XA = author only */
-/* EXTRAS: assinaturas, implantes, passivas com efeito, ajustes manuais */
 const TG=[['roll','All rolls'],...SK.map(k=>['stat:'+k,k+' rolls']),['hpmax','Max HP'],['sanmax','Max SAN'],['regen','SAN regen'],['dmg','Weapon damage']],TL=Object.fromEntries(TG),
 mods=c=>{const m={roll:0,hpmax:0,sanmax:0,regen:0,dmg:0,stat:Object.fromEntries(SK.map(k=>[k,0]))};
 (c.passives||[]).forEach(p=>{if(p.off||p._lostMeta)return;delete p.err;(p.tags||[]).forEach(g=>{const v=num(g.v);g.t.startsWith('stat:')?m.stat[g.t.slice(5)]+=v:m[g.t]+=v});if(p.code)try{new Function('c','m',p.code)(J(c),m)}catch(e){p.err=e.message}});return m},
@@ -644,9 +629,7 @@ if(!LIBS.some(x=>x.id==='main-party'))LIBS.unshift({id:'main-party',name:'Main P
 if(localStorage.getItem('lost_main_party_migrated')!=='1'){const defaultIds=new Set(DEF().map(x=>x.id));C.forEach(c=>{if(defaultIds.has(c.id))c.libraryId='main-party'});activeLibrary='main-party';localStorage.setItem('lost_main_party_migrated','1')}
 if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';WORKSPACE=ld('lost_workspace_view','scene');if(!['scene','library-scene'].includes(WORKSPACE))WORKSPACE='scene';
 C.forEach(mth);sv();libsv();esv();render();syncPlayerLocksPanel();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script>
+
 let lostAuth=null,lostDb=null,lostUser=null,lostCampaignRef=null,lostRollsRef=null,lostCampaignUnsub=null,lostRollsUnsub=null,lostPlayersRef=null,lostPlayersUnsub=null,lostOwnPlayerUnsub=null;
 let lostPlayerProfiles=[];
 let lostCloudReady=false,lostApplyingCloud=false,lostSyncTimer=null,lostSeenRolls=new Set(),lostRollFirstSnapshot=true,lostVitalsUnsub=null,lostVitalsReady=false,lostVitalsSeeding=false,lostVitalsCache=null;
@@ -681,7 +664,6 @@ function lostImportSessionPack(p,{confirmReplace=true}={}){
   C.forEach(c=>{if(c.libraryId&&!LIBS.some(x=>x.id===c.libraryId))c.libraryId=''});
   C.forEach(mth);
   if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';
-  // Always persist for the author browser (even before HOST). Players never reach this path with intent to keep data.
   try{
     localStorage[KEY]=JSON.stringify(C);
     localStorage.lost_libraries=JSON.stringify(LIBS);
@@ -699,7 +681,6 @@ function lostImportSessionPack(p,{confirmReplace=true}={}){
 }
 
 function lostClearCampaignStorage(){
-  // Wipe campaign keys so a closed session leaves no reusable hostable copy on this device.
   const keys=[KEY,'lost_libraries','lost_active_library','lost_enemies','lost_battle','lost_loot','lost_pend','lost_workspace_view','lost_hidden_scene_characters','lost_prejoin_backup'];
   for(const k of keys){try{localStorage.removeItem(k)}catch(e){}}
 }
@@ -709,7 +690,6 @@ function lostResetSessionMemory(){
   C.forEach(mth);
 }
 function lostStripPrivateLocalData(){
-  // Players never keep author campaign data on disk.
   if(admin)return;
   lostClearCampaignStorage();
 }
@@ -724,16 +704,12 @@ function lostSetLoggedInUI(user,isAdmin){
   admin=!!isAdmin;
 }
 function lostSetLoggedOutUI(){admin=false;lostCloudReady=false;$('#auth-gate').style.display='grid';$('#who').textContent='OFFLINE';$('#roleTag').textContent='READER';$('#adm').classList.add('hid');}
-// Full host-side snapshot (also used by SAVE SESSION JSON).
 function lostCampaignState(){
   return{characters:C||[],libraries:LIBS||[],enemies:EN,battle:BT,loot:LOOT,pendingInventory:PEND,workspace:WORKSPACE,activeLibrary};
 }
-// Lean live session payload for connected players (no private libraries, no offline persistence).
 function lostSessionState(){
   const privateIds=new Set((LIBS||[]).filter(x=>x.private===true).map(x=>x.id));
-  const chars=(C||[]).filter(c=>!privateIds.has(c.libraryId)&&!c.libraryId); // scene characters only
-  // Include assigned library characters that are currently needed? Scene-only is safer against content theft.
-  // Also include characters that appear in battle order.
+  const chars=(C||[]).filter(c=>!privateIds.has(c.libraryId)&&!c.libraryId);
   const need=new Set(chars.map(c=>c.id));
   (BT?.order||[]).forEach(o=>{if(o.id)need.add(o.id)});
   Object.values(lostPlayersData||{}).forEach(p=>{if(p.characterId)need.add(p.characterId)});
@@ -743,7 +719,7 @@ function lostSessionState(){
     libraries:[{id:'main-party',name:'Main Party'}],
     enemies:EN,
     battle:BT,
-    loot:{basica:[],diferenciada:[],unica:[],eclipse:[]}, // loot tables stay host-side
+    loot:{basica:[],diferenciada:[],unica:[],eclipse:[]},
     pendingInventory:[]
   };
 }
@@ -772,7 +748,6 @@ function lostApplyCampaignState(state,asSession=false){
   if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';
   C.forEach(c=>{if(c.libraryId&&!LIBS.some(x=>x.id===c.libraryId))c.libraryId=''});
   C.forEach(mth);
-  // Host may persist; players keep session only in memory.
   if(admin){
     try{localStorage[KEY]=JSON.stringify(C);localStorage.lost_libraries=JSON.stringify(LIBS);localStorage.lost_active_library=activeLibrary;localStorage.lost_enemies=JSON.stringify(EN);localStorage.lost_battle=JSON.stringify(BT);localStorage.lost_loot=JSON.stringify(LOOT);localStorage.lost_pend=JSON.stringify(PEND)}catch(e){}
   }else{
@@ -781,9 +756,8 @@ function lostApplyCampaignState(state,asSession=false){
   lostApplyingCloud=false;lostCloudReady=true;render();bpanel();
 }
 async function lostCloudPrepareImages(value){return value}
-// Disabled continuous full-campaign upload. Host pushes only on join / manual PUSH / battle events.
 cloudSyncHandler=null;
-function lostQueueCloudSync(){/* continuous full-state broadcast disabled */}
+function lostQueueCloudSync(){}
 function lostCharacterList(){return (C||[]).filter(raw=>!lostIsPrivateLibraryId(raw.libraryId)).map(raw=>{const c=A(raw),lib=raw.libraryId?LIBS.find(x=>x.id===raw.libraryId)?.name:'';return{id:raw.id,name:c.name||raw.id,library:lib}})}
 function lostRenderPlayerLocks(){
   const box=$('#player-lock-content');if(!box||!admin)return;syncPlayerLocksPanel();
@@ -810,7 +784,7 @@ function lostPaintRemoteNotice(ev){const rows=Array.isArray(ev.rows)?ev.rows:[],
 const lostOriginalShow=show;
 show=function(who,title,r,ex=[]){const character=cur();if(!canRollCharacter(character)){lostAuthMessage('You can only roll as your assigned character.');return}const actor=lostUserName(lostUser);lostOriginalShow(who+' · @'+actor,title,r,ex);lostPublishRoll(who,title,r,ex,character?.id)};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-auth-action]');if(b)lostAuthAction(b.dataset.authAction)});
-/* ---- P2P layer (PeerJS): the author's browser is the host; players connect directly to it. ---- */
+
 const lostUserName=u=>u?.displayName||'Player';
 let lostPeer=null,lostConn=null,lostHost=false,lostConns=new Map(),lostRollHist=[],lostPlayersData={},lostBcastTimer=null;
 try{lostPlayersData=JSON.parse(localStorage.lost_p2p_players||'{}')||{}}catch(e){}
@@ -821,7 +795,6 @@ const lostEffectiveFor=uid=>lostPlayersData[uid]?.characterId||lostDummyCharacte
 function lostRefreshProfiles(){lostPlayerProfiles=Object.values(lostPlayersData).map(p=>({...p,id:p.uid})).sort((a,b)=>String(a.username).localeCompare(String(b.username)));lostRenderPlayerLocks()}
 function lostSavePlayers(){try{localStorage.lost_p2p_players=JSON.stringify(lostPlayersData)}catch(e){}lostRefreshProfiles()}
 function lostOnlineStatus(){lostSetRollStatus(lostHost?'HOSTING · '+lostConns.size+' online':'CONNECTED TO HOST')}
-function lostQueueCloudSync(){/* continuous full-state broadcast disabled */}
 function lostApplyVitalDelta(id,delta){
   const raw=lostRawCharacter(id);if(!raw||(raw.libraryId&&lostIsPrivateLibraryId(raw.libraryId)))return;
   const c=raw.mirror?raw.sides[raw.side]:raw;c.hp??=[0,0];c.san??=[0,0];
@@ -895,7 +868,6 @@ function lostLeave(){
   try{c&&c.close()}catch(e){}try{p&&p.destroy()}catch(e){}
   lostConns.clear();lostHost=false;assignedCharacterId='';lostUser=null;lostPlayerProfiles=[];lostPlayersUnsub=null;
   if(wasPlayer||!wasHost){
-    // Session closed: wipe campaign from this browser so content cannot be re-hosted offline.
     lostClearCampaignStorage();
     lostResetSessionMemory();
     $('#L').innerHTML='<div class="e0">— Session closed · campaign data cleared —</div>';
@@ -911,7 +883,6 @@ function lostStartHost(room){
   peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
 }
 function lostStartJoin(room){
-  // Players start clean; any previous campaign cache is discarded so sessions cannot be reused offline.
   lostClearCampaignStorage();lostResetSessionMemory();
   lostAuthMessage('Connecting to the host…');const peer=lostPeer=new Peer();let done=false;
   const timer=setTimeout(()=>{if(!done&&lostPeer===peer)lostFail('Could not reach the host. Check the room code and that the author has started the session.')},15000);
