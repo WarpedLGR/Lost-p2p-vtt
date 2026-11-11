@@ -110,7 +110,7 @@ body.full #workspace{display:none}
 @media(max-width:1050px){.play-layout{grid-template-columns:minmax(160px,190px) minmax(0,1fr)}#library-sidebar{grid-column:1/-1;position:static;max-height:none}#library-content{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px}#library-content .side-empty{grid-column:1/-1}}
 @media(max-width:700px){.play-layout{grid-template-columns:1fr}#enemy-sidebar,#library-sidebar{position:static;max-height:none}#enemy-content,#library-content{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px}#enemy-content>.side-tools,#library-content>.side-tools{grid-column:1/-1}.bar,main{padding-left:8px;padding-right:8px}}
 </style></head><body><div class="crt"></div>
-<header><div class="bar"><h1>◉ L.O.S.T.</h1><div class="row"><button class="b s" data-a="snd">♪ SOUND: ON</button><span id="bch" class="chip o hid" style="margin:0"></span><span id="who" class="chip" style="margin:0">OFFLINE</span><span id="roleTag" class="chip" style="margin:0">READER</span><button class="b s" data-auth-action="logout">LOG OUT</button></div></div></header>
+<header><div class="bar"><h1>◉ L.O.S.T.</h1><div class="row"><button class="b s" data-a="snd">♪ SOUND: ON</button><span id="bch" class="chip o hid" style="margin:0"></span><span id="who" class="chip" style="margin:0">OFFLINE</span><span id="roleTag" class="chip" style="margin:0">READER</span><button class="b s" data-auth-action="logout">LEAVE</button></div></div></header>
 <main>
 <section id="adm" class="w hid"><div class="tb"><span>✎ AUTHOR PANEL</span><span class="row"><button class="b s" data-a="exp">⇧ SAVE JSON</button><button class="b s" data-a="imp">⇩ LOAD JSON</button><button class="b s am" data-a="new">+ NEW</button></span></div>
 <div class="pd row" style="gap:6px"><button class="b am" data-a="start_fight">⚔︎ START FIGHT & ROLL INITIATIVE</button><button class="b" data-a="turn">TurnProgress (Manual Round End)</button><button class="b am" data-a="lootcfg">▣ Loot</button></div>
@@ -134,12 +134,12 @@ body.full #workspace{display:none}
 </div>
 </main>
 <div id="auth-gate" style="position:fixed;inset:0;background:#09030eeF;display:grid;place-items:center;padding:16px;z-index:200">
- <div class="w" style="width:min(430px,100%);box-shadow:0 12px 50px #000"><div class="tb"><span>◉ L.O.S.T. · PLAYER LOGIN</span><span class="mt">FIREBASE</span></div>
- <div class="pd"><div class="nm">Enter the campaign</div><div class="mt" id="auth-status" style="margin:6px 0 12px">Connect the Firebase project to enable online play.</div>
- <label for="auth-username">USERNAME</label><input id="auth-username" maxlength="20" autocomplete="username" placeholder="3–20 letters, numbers or _">
- <label for="auth-password">PASSWORD</label><input id="auth-password" type="password" autocomplete="current-password" placeholder="Your password" style="margin-bottom:10px">
- <div class="row"><button class="b am" data-auth-action="login">LOG IN</button><button class="b" data-auth-action="signup">CREATE ACCOUNT</button></div>
- <div class="mt" style="margin-top:10px">No email address needed. Use the same username and password whenever you return. Rolls and campaign changes are shared live with everyone logged in.</div>
+ <div class="w" style="width:min(430px,100%);box-shadow:0 12px 50px #000"><div class="tb"><span>◉ L.O.S.T. · PLAYER LOGIN</span><span class="mt">P2P</span></div>
+ <div class="pd"><div class="nm">Enter the campaign</div><div class="mt" id="auth-status" style="margin:6px 0 12px">Host a session (author) or join one with the room code.</div>
+ <label for="auth-username">YOUR NAME</label><input id="auth-username" maxlength="20" autocomplete="username" placeholder="3–20 letters, numbers or _">
+ <label for="auth-password">ROOM CODE</label><input id="auth-password" autocomplete="off" placeholder="e.g. friday-night" style="margin-bottom:10px">
+ <div class="row"><button class="b am" data-auth-action="join">JOIN SESSION</button><button class="b" data-auth-action="host">HOST SESSION (AUTHOR)</button></div>
+ <div class="mt" style="margin-top:10px">Players: enter your name and the room code from the author, then JOIN. Author: use HOST on the browser that holds your campaign. Players can only connect while the author has the session open. Do not JOIN from the browser that holds your campaign data.</div>
  </div></div>
 </div>
 <div id="rd-badge" class="hid" data-a="init"><span>ROUND</span><span class="num" id="rd-num">1</span></div><div id="ov" class="hid" style="position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:12px;z-index:90"></div><div id="T"></div>
@@ -612,30 +612,12 @@ if(localStorage.getItem('lost_main_party_migrated')!=='1'){const defaultIds=new 
 if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';WORKSPACE=ld('lost_workspace_view','scene');if(!['scene','library-scene'].includes(WORKSPACE))WORKSPACE='scene';
 C.forEach(mth);sv();libsv();esv();render();syncPlayerLocksPanel();
 </script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-/* Firebase Web App configuration — project: websait-45a9e */
-const LOST_FIREBASE_CONFIG={
-  apiKey:'AIzaSyAZTklX1f4_e_saGo9dqPwiav9pLGu6_Xs',
-  authDomain:'websait-45a9e.firebaseapp.com',
-  projectId:'websait-45a9e',
-  storageBucket:'websait-45a9e.firebasestorage.app',
-  messagingSenderId:'173597389309',
-  appId:'1:173597389309:web:191f36f3d09af2a31be994'
-};
 let lostAuth=null,lostDb=null,lostUser=null,lostCampaignRef=null,lostRollsRef=null,lostCampaignUnsub=null,lostRollsUnsub=null,lostPlayersRef=null,lostPlayersUnsub=null,lostOwnPlayerUnsub=null;
 let lostPlayerProfiles=[];
 let lostCloudReady=false,lostApplyingCloud=false,lostSyncTimer=null,lostSeenRolls=new Set(),lostRollFirstSnapshot=true,lostVitalsUnsub=null,lostVitalsReady=false,lostVitalsSeeding=false,lostVitalsCache=null;
-// Firebase Email/Password is used internally: players enter only a username.
-// This private alias is generated automatically and is not a real inbox.
-const lostUsernameEmail=name=>`${name.toLowerCase()}@players.lost-game.app`;
-const lostUserName=user=>user?.displayName||user?.email?.split('@')[0]||'Player';
-const LOST_SESSION=Math.random().toString(36).slice(2)+Date.now().toString(36);let lostStateApplied=false;
-async function lostCheckAdmin(user){try{const d=await firebase.firestore().collection('admins').doc(user.uid).get();return d.exists}catch(e){console.warn('Admin check failed',e);return false}}
 function lostAuthMessage(msg){const el=$('#auth-status');if(el)el.textContent=msg}
-function lostConfigReady(){return LOST_FIREBASE_CONFIG.apiKey.startsWith('AIza')&&LOST_FIREBASE_CONFIG.projectId!=='YOUR_PROJECT_ID'&&!!LOST_FIREBASE_CONFIG.appId&&LOST_FIREBASE_CONFIG.appId!=='PASTE_FIREBASE_APP_ID'}
 function lostStripPrivateLocalData(){
   const privateIds=new Set((LIBS||[]).filter(x=>x.private===true).map(x=>x.id));
   if(!privateIds.size)return;
@@ -676,7 +658,6 @@ function lostApplyCampaignState(state){
   lostApplyingCloud=false;lostCloudReady=true;render();bpanel();
 }
 async function lostCloudPrepareImages(value){return value}
-function lostQueueCloudSync(){if(lostApplyingCloud||!lostCloudReady||!admin||!lostCampaignRef)return;clearTimeout(lostSyncTimer);lostSyncTimer=setTimeout(async()=>{try{const state=lostCampaignState(),size=JSON.stringify(state).length;if(size>950000){lostAuthMessage('WARNING: campaign data is '+Math.round(size/1024)+' KB; Firestore limit is 1 MB. Use Imgur image URLs instead of uploaded images.');alert('Campaign data is too large to sync ('+Math.round(size/1024)+' KB). Replace uploaded images with Imgur URLs.');return}await lostCampaignRef.set({state,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:lostUser.uid,session:LOST_SESSION},{merge:true});lostSetRollStatus('SAVED '+hms())}catch(e){console.error('Firebase save failed',e);lostAuthMessage('Cloud save failed: '+e.message);lostSetRollStatus('SAVE ERROR · '+(e.code||e.message),true)}},220)}
 cloudSyncHandler=lostQueueCloudSync;
 function lostCharacterList(){return (C||[]).filter(raw=>!lostIsPrivateLibraryId(raw.libraryId)).map(raw=>{const c=A(raw),lib=raw.libraryId?LIBS.find(x=>x.id===raw.libraryId)?.name:'';return{id:raw.id,name:c.name||raw.id,library:lib}})}
 function lostRenderPlayerLocks(){
@@ -691,122 +672,134 @@ function lostRenderPlayerLocks(){
     return `<div class="player-lock-row"><div class="player-lock-user"><b>@${username}</b><div class="player-lock-hint">${status}</div></div><select id="plchar-${uid}" aria-label="Character assigned to ${username}">${choices}</select><button class="b s am" data-a="assignplayer" data-uid="${uid}">ASSIGN</button><button class="b s rd" data-a="unlockplayer" data-uid="${uid}">UNLOCK</button></div>`;
   }).join('')+`<div class="player-lock-hint">Assigned accounts can roll only as their selected character. Unassigned accounts automatically use the public character named DUMMY when it exists; otherwise the previous unrestricted behavior remains. Use UNLOCK to return an account to the default.</div>`;
 }
-async function lostEnsurePlayerProfile(user){
-  const ref=lostCampaignRef.collection('players').doc(user.uid),snap=await ref.get();
-  if(!snap.exists)await ref.set({uid:user.uid,username:lostUserName(user),createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-  return ref;
-}
-async function lostAssignPlayer(button){
-  if(!admin||!lostPlayersRef)return;
-  const uid=button.dataset.uid,select=$('#plchar-'+uid),characterId=select?.value||'';
-  if(!uid)return;
-  if(!characterId||!C.some(c=>c.id===characterId)){alert('Choose a valid character first.');return}
-  const raw=C.find(c=>c.id===characterId),name=A(raw).name||characterId;
-  await lostPlayersRef.doc(uid).set({characterId,characterName:name,assignedAt:firebase.firestore.FieldValue.serverTimestamp(),assignedBy:lostUser.uid},{merge:true});
-}
-async function lostUnassignPlayer(button){
-  if(!admin||!lostPlayersRef)return;
-  const uid=button.dataset.uid;if(!uid)return;
-  await lostPlayersRef.doc(uid).update({characterId:firebase.firestore.FieldValue.delete(),characterName:firebase.firestore.FieldValue.delete(),assignedAt:firebase.firestore.FieldValue.delete(),assignedBy:firebase.firestore.FieldValue.delete()});
-}
 function lostRawCharacter(id){return (C||[]).find(raw=>raw.id===id)||null}
-function lostApplyVitalSnapshot(snapshot){
-  snapshot.docs.forEach(doc=>{const raw=lostRawCharacter(doc.id);if(!raw)return;const c=raw.mirror?raw.sides[raw.side]:raw,v=doc.data()||{};c.hp??=[0,0];c.san??=[0,0];c.hp[0]=cl(num(v.hp),0,Math.max(0,num(c.hp[1])));c.san[0]=cl(num(v.san),0,Math.max(0,num(c.san[1])));c.shield=Math.max(0,num(v.shield));});
-  try{localStorage[KEY]=JSON.stringify(C)}catch(e){}render();
-}
-async function lostSeedVitals(){
-  if(!admin||!lostCampaignRef||!lostCloudReady||lostVitalsSeeding)return;
-  lostVitalsSeeding=true;
-  try{
-    const col=lostCampaignRef.collection('vitals'),snap=await col.get(),existing=new Map(snap.docs.map(d=>[d.id,d.data()])),batch=lostDb.batch();let writes=0;
-    for(const raw of C||[]){if(raw.libraryId&&lostIsPrivateLibraryId(raw.libraryId))continue;const c=A(raw);if(!c?.id)continue;const old=existing.get(raw.id),ref=col.doc(raw.id),maxHp=Math.max(0,num(c.hp?.[1])),maxSan=Math.max(0,num(c.san?.[1]));
-      if(!old){batch.set(ref,{characterId:raw.id,hp:cl(num(c.hp?.[0]),0,maxHp),maxHp,shield:Math.max(0,num(c.shield)),san:cl(num(c.san?.[0]),0,maxSan),maxSan,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:lostUser.uid});writes++}
-      else if(num(old.maxHp)!==maxHp||num(old.maxSan)!==maxSan){batch.set(ref,{maxHp,maxSan,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:lostUser.uid},{merge:true});writes++}
-    }
-    if(writes)await batch.commit();
-  }catch(e){console.error('Vitals initialization failed',e);lostSetRollStatus('VITALS ERROR · '+e.message,true)}finally{lostVitalsSeeding=false}
-}
-async function lostAdjustVital(id,key,delta){
-  if(!lostUser||!['hp','shield','san'].includes(key)||!Number.isInteger(delta)||!delta)return;
-  if(!admin&&(!assignedCharacterId||assignedCharacterId!==id)){alert('You can only change HP, shield and SAN for your assigned character.');return}
-  const raw=lostRawCharacter(id);if(!raw){alert('Character not found in the shared scene.');return}
-  if(!lostVitalsReady){alert('Shared stats are still connecting. Try again in a moment.');return}
-  const ref=lostCampaignRef.collection('vitals').doc(id);
-  try{
-    const value=await lostDb.runTransaction(async tx=>{const snap=await tx.get(ref);if(!snap.exists)throw new Error('Vitals not initialized. Ask the author to reload the campaign.');const v=snap.data()||{},max=key==='hp'?Math.max(0,num(v.maxHp)):key==='san'?Math.max(0,num(v.maxSan)):1000000,current=Math.max(0,num(v[key])),next=cl(current+delta,0,max);tx.update(ref,{[key]:next,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:lostUser.uid});return next});
-    const c=raw.mirror?raw.sides[raw.side]:raw;if(key==='hp')c.hp[0]=value;else if(key==='san')c.san[0]=value;else c.shield=value;render();
-  }catch(e){console.error('Shared stat update failed',e);alert('Could not update '+key.toUpperCase()+': '+e.message)}
-}
 function lostSetRollStatus(message,bad=false){const el=$('#roll-sync-status');if(el){el.textContent=message;el.style.color=bad?'#f87171':'#a78bfa'}}
-async function lostSyncPlayerVitalDelta(before,after){
-  if(!lostUser||admin||!before||!after||!assignedCharacterId||before.id!==assignedCharacterId||after.id!==assignedCharacterId)return;
-  const a=A(before),b=A(after),delta={};for(const k of ['hp','san']){const d=num(b[k]?.[0])-num(a[k]?.[0]);if(d)delta[k]=d}const shieldDelta=num(b.shield)-num(a.shield);if(shieldDelta)delta.shield=shieldDelta;if(!Object.keys(delta).length)return;
-  try{const ref=lostCampaignRef.collection('vitals').doc(after.id);await lostDb.runTransaction(async tx=>{const snap=await tx.get(ref);if(!snap.exists)throw new Error('Vitals not initialized. Ask the author to reload.');const v=snap.data()||{},patch={updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:lostUser.uid};for(const [k,d] of Object.entries(delta)){const max=k==='hp'?Math.max(0,num(v.maxHp)):k==='san'?Math.max(0,num(v.maxSan)):1000000;patch[k]=cl(num(v[k])+d,0,max)}tx.update(ref,patch)})}catch(e){console.error('Player stat sync failed',e);lostSetRollStatus('VITALS ERROR · '+e.message,true);alert('Your stat change did not sync: '+e.message)}
-}
-function lostQueueAuthorVitals(before,after){
-  if(!admin||!lostUser||!lostCampaignRef||!before||!after||(after.libraryId&&lostIsPrivateLibraryId(after.libraryId)))return;
-  const a=A(before),b=A(after);if(num(a.hp?.[0])===num(b.hp?.[0])&&num(a.hp?.[1])===num(b.hp?.[1])&&num(a.san?.[0])===num(b.san?.[0])&&num(a.san?.[1])===num(b.san?.[1])&&num(a.shield)===num(b.shield))return;
-  const ref=lostCampaignRef.collection('vitals').doc(after.id);
-  lostDb.runTransaction(async tx=>{const snap=await tx.get(ref);const maxHp=Math.max(0,num(b.hp?.[1])),maxSan=Math.max(0,num(b.san?.[1]));if(!snap.exists)tx.set(ref,{characterId:after.id,hp:cl(num(b.hp?.[0]),0,maxHp),maxHp,shield:Math.max(0,num(b.shield)),san:cl(num(b.san?.[0]),0,maxSan),maxSan,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:lostUser.uid});else tx.update(ref,{hp:cl(num(b.hp?.[0]),0,maxHp),maxHp,shield:Math.max(0,num(b.shield)),san:cl(num(b.san?.[0]),0,maxSan),maxSan,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:lostUser.uid})}).catch(e=>{console.error('Author vitals update failed',e);lostSetRollStatus('VITALS ERROR · '+e.message,true)});
-}
-
-async function lostStartCloud(){
-  lostCampaignRef=firebase.firestore().collection('campaigns').doc('lost-main');lostRollsRef=lostCampaignRef.collection('rolls');lostPlayersRef=lostCampaignRef.collection('players');
-  if(lostCampaignUnsub)lostCampaignUnsub();if(lostRollsUnsub)lostRollsUnsub();if(lostOwnPlayerUnsub)lostOwnPlayerUnsub();if(lostPlayersUnsub)lostPlayersUnsub();lostRollFirstSnapshot=true;lostStateApplied=false;
-  lostCampaignUnsub=lostCampaignRef.onSnapshot(async snap=>{
-    if(!snap.exists){if(admin){try{const state=lostCampaignState();await lostCampaignRef.set({state,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:lostUser.uid,session:LOST_SESSION})}catch(e){console.error(e);lostAuthMessage('Could not initialize campaign: '+e.message)}}else lostAuthMessage('Waiting for the author to publish the shared campaign.');return}
-    const root=snap.data()||{};const data=root.state,ownEcho=admin&&lostStateApplied&&root.session===LOST_SESSION;if(data&&!ownEcho){lostApplyCampaignState(data);lostStateApplied=true}else if(!data)render();if(lostVitalsCache)lostApplyVitalSnapshot(lostVitalsCache);lostRenderPlayerLocks();if(admin)lostSeedVitals();
-  },err=>{console.error(err);lostAuthMessage('Campaign sync error: '+err.message)});
-  lostOwnPlayerUnsub=lostPlayersRef.doc(lostUser.uid).onSnapshot(doc=>{assignedCharacterId=doc.exists?(doc.data().characterId||''):'';render();lostRenderPlayerLocks()},err=>{console.error('Player assignment error',err);lostAuthMessage('Could not load your character assignment: '+err.message)});
-  if(lostVitalsUnsub)lostVitalsUnsub();lostVitalsReady=false;lostVitalsUnsub=lostCampaignRef.collection('vitals').onSnapshot(snap=>{lostVitalsReady=true;lostVitalsCache=snap;lostApplyVitalSnapshot(snap);lostSetRollStatus('LIVE · '+snap.size+' characters');if(admin)lostSeedVitals()},err=>{console.error('Shared vitals stream error',err);lostSetRollStatus('VITALS ERROR · '+err.message,true)});
-  if(admin){lostPlayersUnsub=lostPlayersRef.orderBy('username').onSnapshot(snap=>{lostPlayerProfiles=snap.docs.map(d=>({id:d.id,...d.data()}));lostRenderPlayerLocks()},err=>{console.error('Player list error',err);const box=$('#player-lock-content');if(box)box.innerHTML=`<div class="pz">Could not load players: ${esc(err.message)}</div>`})}else{lostPlayerProfiles=[];lostRenderPlayerLocks()}
-  lostRollsUnsub=lostRollsRef.orderBy('createdAt','desc').limit(40).onSnapshot(snap=>{
-    lostSetRollStatus('LIVE ROLLS · '+snap.size);const docs=snap.docs.slice().reverse();
-    if(lostRollFirstSnapshot){$('#L').innerHTML='';for(const d of docs){lostSeenRolls.add(d.id);lostAppendHistory(d.data())}if(!docs.length)$('#L').innerHTML='<div class="e0">— No shared rolls yet —</div>';lostRollFirstSnapshot=false;return}
-    snap.docChanges().forEach(change=>{if(change.type!=='added'||lostSeenRolls.has(change.doc.id))return;lostSeenRolls.add(change.doc.id);const ev=change.doc.data();lostPaintRemoteRoll(ev)});
-    while(lostSeenRolls.size>500)lostSeenRolls.delete(lostSeenRolls.values().next().value);
-  },err=>{console.error('Roll stream error',err);lostSetRollStatus('ROLL ERROR · '+err.code+' · '+err.message,true);const box=$('#L');if(box)box.innerHTML=`<div class="pz">Shared roll history failed: ${esc(err.code||'error')} · ${esc(err.message)}. Check Firestore Rules and reload.</div>`;lostAuthMessage('Shared roll history error: '+err.message)});
-}
 function lostRollLog(ev){if(ev.type==='notice')return (ev.rows||[]).map(x=>`${esc(x.i)}. ${esc(x.n)} [${(Array.isArray(x.d)?x.d:[]).map(v=>Number(v)||0).join('+')}]${Number(x.b)?sg(Number(x.b)):''}: <b class="o">${Number(x.t)||0}</b>`).join(' · ');const r=ev.r||{};const ex=Array.isArray(ev.ex)?ev.ex:[];return `<code>${esc(r.f||'')}</code> [${(r.d||[]).join('+')}] = <b class="o">${Number(r.t??0)+ex.reduce((a,x)=>a+Number(x[1]||0),0)}</b>`}
 function lostAppendHistory(ev){const L=$('#L');if(!L)return;L.insertAdjacentHTML('afterbegin',`<div class="lg"><b>[${esc(ev.clock||'live')}] ${esc(ev.who||'Player')}</b> ${esc(ev.title||'Roll')} <small>by @${esc(ev.actor||'player')}</small> ${lostRollLog(ev)}</div>`);while(L.children.length>80)L.lastChild.remove()}
 function lostPaintRemoteRoll(ev){if(ev.type==='notice'){lostPaintRemoteNotice(ev);return}const r=ev.r||{},ex=Array.isArray(ev.ex)?ev.ex:[],e=ex.reduce((a,x)=>a+Number(x[1]||0),0),total=Number(r.t||0)+e,n=r.z==20&&r.d?.length===1?r.d[0]:0,k=n===20?'cr':n===1?'fl':'',parts=[`<b>${r.s}</b> dice`,r.b&&`<b>${sg(r.b)}</b> bonus`,...ex.map(([l,v])=>`<b>${sg(v)}</b> ${esc(l)}`)].filter(Boolean).join(' · ');
   const inner=`<div class="mt">${esc(r.f||'')} · range ${Number(r.lo||0)+e}–${Number(r.hi||0)+e}</div><div class="dc">${(r.d||[]).length}d${r.z||''} ${(r.d||[]).map(x=>`<i class="${x==r.z?'mx':x==1?'mn':''}">${x}</i>`).join('')}</div><div class="mt">${parts}</div><div class="tot ${k}">= ${total}${n===20?' CRITICAL!':n===1?' FAILURE!':''}</div>`;
   T(`${ev.who||'Player'} · @${ev.actor||'player'}`,ev.title||'Roll',inner,lostRollLog(ev));
 }
-async function lostPublishRoll(who,title,r,ex,characterId){if(!lostUser||!lostRollsRef)return;const doc=lostRollsRef.doc();lostSeenRolls.add(doc.id);try{await doc.set({type:'roll',uid:lostUser.uid,actor:lostUserName(lostUser),who:String(who),title:String(title),characterId:String(characterId||''),r,ex,clock:new Date().toLocaleTimeString('en-US',{hour12:false}),createdAt:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){lostSeenRolls.delete(doc.id);console.error('Could not publish roll',e);lostSetRollStatus('PUBLISH ERROR · '+e.code,true);lostAuthMessage('Roll was made locally but could not be shared: '+e.message)}}
-async function lostPublishNotice(who,title,rows){if(!lostUser||!lostRollsRef)return;const actor=lostUserName(lostUser),clock=new Date().toLocaleTimeString('en-US',{hour12:false}),ev={type:'notice',uid:lostUser.uid,actor,who,title,rows,clock};lostPaintRemoteNotice(ev);const doc=lostRollsRef.doc();lostSeenRolls.add(doc.id);try{await doc.set({...ev,createdAt:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){lostSeenRolls.delete(doc.id);console.error('Could not publish initiative',e);lostSetRollStatus('PUBLISH ERROR · '+e.code,true);lostAuthMessage('Initiative was rolled locally but could not be shared: '+e.message)}}
 function lostPaintRemoteNotice(ev){const rows=Array.isArray(ev.rows)?ev.rows:[],inner=`<div class="mt">Initiative order · shared live</div>${rows.map(x=>`<div class="ini"><b>${Number(x.t)||0}</b><span>${Number(x.i)||0}. ${esc(x.n||'Combatant')}</span><small>[${(Array.isArray(x.d)?x.d:[]).map(v=>Number(v)||0).join('+')}]${Number(x.b)?sg(Number(x.b)):''}</small></div>`).join('')}`;T(`${ev.who||'Table'} · @${ev.actor||'player'}`,ev.title||'Initiative',inner,'shared initiative roll')}
 
 const lostOriginalShow=show;
 show=function(who,title,r,ex=[]){const character=cur();if(!canRollCharacter(character)){lostAuthMessage('You can only roll as your assigned character.');return}const actor=lostUserName(lostUser);lostOriginalShow(who+' · @'+actor,title,r,ex);lostPublishRoll(who,title,r,ex,character?.id)};
-async function lostAuthAction(action){
-  if(action==='logout'){if(lostAuth)await lostAuth.signOut();return}
-  if(!lostAuth){lostAuthMessage('Firebase is not configured yet. Fill LOST_FIREBASE_CONFIG in the HTML, then reload.');return}
-  const username=$('#auth-username').value.trim(),password=$('#auth-password').value;
-  if(!/^[a-zA-Z0-9_]{3,20}$/.test(username)){lostAuthMessage('Username must be 3–20 characters: letters, numbers or underscore.');return}
-  if(password.length<6){lostAuthMessage('Password must contain at least 6 characters.');return}
-  const email=lostUsernameEmail(username);
-  try{
-    lostAuthMessage(action==='signup'?'Creating account…':'Signing in…');
-    if(action==='signup'){
-      const cred=await lostAuth.createUserWithEmailAndPassword(email,password);
-      await cred.user.updateProfile({displayName:username});
-      lostUser=cred.user;
-    }else{const cred=await lostAuth.signInWithEmailAndPassword(email,password);lostUser=cred.user;if(!lostUser.displayName)await lostUser.updateProfile({displayName:username})}
-  }catch(e){console.error(e);lostAuthMessage(e.code==='auth/email-already-in-use'?'That username is already taken.':e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'?'Username or password is incorrect.':e.message)}
-}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-auth-action]');if(b)lostAuthAction(b.dataset.authAction)});
-async function lostInitFirebase(){
-  if(!lostConfigReady()){lostSetLoggedOutUI();lostAuthMessage('Firebase is not configured. Open the HTML and paste your Firebase Web App config into LOST_FIREBASE_CONFIG.');return}
-  try{
-    if(!firebase.apps.length)firebase.initializeApp(LOST_FIREBASE_CONFIG);
-    lostAuth=firebase.auth();lostDb=firebase.firestore();await lostAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    lostAuth.onAuthStateChanged(async user=>{
-      lostUser=user;
-      if(!user){if(lostCampaignUnsub)lostCampaignUnsub();if(lostRollsUnsub)lostRollsUnsub();if(lostPlayersUnsub)lostPlayersUnsub();if(lostOwnPlayerUnsub)lostOwnPlayerUnsub();if(lostVitalsUnsub)lostVitalsUnsub();lostVitalsUnsub=null;lostVitalsReady=false;lostVitalsCache=null;assignedCharacterId='';lostPlayerProfiles=[];lostSetLoggedOutUI();render();return}
-      try{const isAdmin=await lostCheckAdmin(user);lostSetLoggedInUI(user,isAdmin);lostAuthMessage('Connected to the shared campaign.');lostCampaignRef=firebase.firestore().collection('campaigns').doc('lost-main');await lostEnsurePlayerProfile(user);await lostStartCloud();render()}catch(e){console.error(e);lostAuthMessage('Could not verify account: '+e.message)}
-    });
-  }catch(e){console.error(e);lostSetLoggedOutUI();lostAuthMessage('Firebase initialization failed: '+e.message)}
+/* ---- P2P layer (PeerJS): the author's browser is the host; players connect directly to it. ---- */
+const lostUserName=u=>u?.displayName||'Player';
+let lostPeer=null,lostConn=null,lostHost=false,lostConns=new Map(),lostRollHist=[],lostPlayersData={},lostBcastTimer=null;
+try{lostPlayersData=JSON.parse(localStorage.lost_p2p_players||'{}')||{}}catch(e){}
+const lostRoomId=code=>'lostrpg-'+String(code).toLowerCase();
+const lostSend=(c,m)=>{try{if(c&&c.open)c.send(m)}catch(e){console.warn('send failed',e)}};
+const lostBroadcast=(m,except)=>lostConns.forEach(p=>{if(p.conn!==except)lostSend(p.conn,m)});
+const lostEffectiveFor=uid=>lostPlayersData[uid]?.characterId||lostDummyCharacterId();
+function lostRefreshProfiles(){lostPlayerProfiles=Object.values(lostPlayersData).map(p=>({...p,id:p.uid})).sort((a,b)=>String(a.username).localeCompare(String(b.username)));lostRenderPlayerLocks()}
+function lostSavePlayers(){try{localStorage.lost_p2p_players=JSON.stringify(lostPlayersData)}catch(e){}lostRefreshProfiles()}
+function lostOnlineStatus(){lostSetRollStatus(lostHost?'HOSTING · '+lostConns.size+' online':'CONNECTED TO HOST')}
+function lostQueueCloudSync(){if(!lostHost||!admin)return;clearTimeout(lostBcastTimer);lostBcastTimer=setTimeout(()=>lostBroadcast({t:'state',state:lostCampaignState()}),150)}
+function lostApplyVitalDelta(id,delta){
+  const raw=lostRawCharacter(id);if(!raw||(raw.libraryId&&lostIsPrivateLibraryId(raw.libraryId)))return;
+  const c=raw.mirror?raw.sides[raw.side]:raw;c.hp??=[0,0];c.san??=[0,0];
+  for(const k of ['hp','san','shield']){const v=Math.trunc(Number(delta[k]))||0;if(!v)continue;
+    if(k==='shield')c.shield=Math.max(0,num(c.shield)+v);else c[k][0]=cl(num(c[k][0])+v,0,Math.max(0,num(c[k][1])))}
+  sv();render();
 }
-lostInitFirebase();
+function lostAdjustVital(id,key,delta){
+  if(!lostUser||!['hp','shield','san'].includes(key)||!Number.isInteger(delta)||!delta)return;
+  if(!admin&&(!assignedCharacterId||assignedCharacterId!==id)){alert('You can only change HP, shield and SAN for your assigned character.');return}
+  if(admin)lostApplyVitalDelta(id,{[key]:delta});else lostSend(lostConn,{t:'vital',id,delta:{[key]:delta}});
+}
+function lostSyncPlayerVitalDelta(before,after){
+  if(!lostUser||admin||!lostConn||!before||!after||!assignedCharacterId||before.id!==assignedCharacterId||after.id!==assignedCharacterId)return;
+  const a=A(before),b=A(after),delta={};for(const k of ['hp','san']){const d=num(b[k]?.[0])-num(a[k]?.[0]);if(d)delta[k]=d}
+  const s=num(b.shield)-num(a.shield);if(s)delta.shield=s;
+  if(Object.keys(delta).length)lostSend(lostConn,{t:'vital',id:after.id,delta});
+}
+function lostQueueAuthorVitals(){}
+function lostDeliver(ev){if(lostHost){lostRollHist.push(ev);if(lostRollHist.length>60)lostRollHist.shift();lostBroadcast({t:'roll',ev})}else lostSend(lostConn,{t:'roll',ev})}
+function lostMakeEv(type,who,title,extra){return{type,uid:lostUser.uid,actor:lostUserName(lostUser),who:String(who),title:String(title),clock:new Date().toLocaleTimeString('en-US',{hour12:false}),...extra}}
+function lostPublishRoll(who,title,r,ex,characterId){if(!lostUser)return;lostDeliver(lostMakeEv('roll',who,title,{characterId:String(characterId||''),r,ex}))}
+function lostPublishNotice(who,title,rows){if(!lostUser)return;const ev=lostMakeEv('notice',who,title,{rows});lostPaintRemoteNotice(ev);if(lostHost)lostDeliver(ev)}
+function lostAssignPlayer(button){
+  if(!admin)return;const uid=button.dataset.uid,characterId=$('#plchar-'+uid)?.value||'';if(!uid)return;
+  if(!characterId||!C.some(c=>c.id===characterId)){alert('Choose a valid character first.');return}
+  lostPlayersData[uid]={...lostPlayersData[uid],uid,characterId,characterName:A(C.find(c=>c.id===characterId)).name||characterId};
+  lostSavePlayers();lostSend(lostConns.get(uid)?.conn,{t:'assign',characterId});
+}
+function lostUnassignPlayer(button){
+  if(!admin)return;const uid=button.dataset.uid;if(!uid)return;const p=lostPlayersData[uid];
+  if(p){delete p.characterId;delete p.characterName}lostSavePlayers();lostSend(lostConns.get(uid)?.conn,{t:'assign',characterId:''});
+}
+function lostHostOnConn(conn){
+  let me=null;
+  conn.on('data',msg=>{
+    if(!msg||typeof msg!=='object')return;
+    if(msg.t==='hello'){
+      const name=String(msg.name||'').trim();if(!/^[a-zA-Z0-9_]{3,20}$/.test(name)){lostSend(conn,{t:'error',msg:'Invalid name.'});return}
+      const uid='u:'+name.toLowerCase(),old=lostConns.get(uid);if(old&&old.conn!==conn){try{old.conn.close()}catch(e){}}
+      me={uid,name,conn};lostConns.set(uid,me);lostPlayersData[uid]={...lostPlayersData[uid],uid,username:name};lostSavePlayers();
+      lostSend(conn,{t:'welcome',state:lostCampaignState(),assigned:lostPlayersData[uid].characterId||'',rolls:lostRollHist});lostOnlineStatus();return;
+    }
+    if(!me)return;
+    if(msg.t==='vital'&&msg.delta&&typeof msg.delta==='object'){
+      const asg=lostPlayersData[me.uid]?.characterId;if(!asg||asg!==msg.id)return;
+      const d={};for(const k of ['hp','san','shield'])if(Number.isInteger(msg.delta[k]))d[k]=msg.delta[k];lostApplyVitalDelta(msg.id,d);
+    }else if(msg.t==='roll'&&msg.ev&&msg.ev.type==='roll'){
+      const e=msg.ev,eff=lostEffectiveFor(me.uid);if(!eff||String(e.characterId)!==eff)return;
+      const ev={type:'roll',uid:me.uid,actor:me.name,who:String(e.who||'').slice(0,60),title:String(e.title||'').slice(0,80),characterId:eff,r:e.r,ex:Array.isArray(e.ex)?e.ex:[],clock:String(e.clock||'')};
+      lostRollHist.push(ev);if(lostRollHist.length>60)lostRollHist.shift();lostPaintRemoteRoll(ev);lostBroadcast({t:'roll',ev},conn);
+    }
+  });
+  conn.on('close',()=>{if(me&&lostConns.get(me.uid)?.conn===conn){lostConns.delete(me.uid);lostOnlineStatus()}});
+}
+function lostClientData(msg){
+  if(!msg||typeof msg!=='object')return;
+  if(msg.t==='welcome'){
+    assignedCharacterId=msg.assigned||'';lostSetLoggedInUI(lostUser,false);lostApplyCampaignState(msg.state);
+    $('#L').innerHTML='';(msg.rolls||[]).forEach(lostAppendHistory);if(!(msg.rolls||[]).length)$('#L').innerHTML='<div class="e0">— No rolls yet —</div>';
+    lostVitalsReady=true;lostOnlineStatus();render();
+  }else if(msg.t==='state')lostApplyCampaignState(msg.state);
+  else if(msg.t==='assign'){assignedCharacterId=msg.characterId||'';render()}
+  else if(msg.t==='roll'&&msg.ev)lostPaintRemoteRoll(msg.ev);
+  else if(msg.t==='error'){lostFail(msg.msg||'Rejected by the host.')}
+}
+function lostLeave(){
+  clearTimeout(lostBcastTimer);const p=lostPeer,c=lostConn;lostPeer=null;lostConn=null;
+  try{c&&c.close()}catch(e){}try{p&&p.destroy()}catch(e){}
+  lostConns.clear();lostHost=false;assignedCharacterId='';lostUser=null;lostPlayerProfiles=[];lostPlayersUnsub=null;lostSetLoggedOutUI();render();
+}
+function lostFail(msg){lostLeave();lostAuthMessage(msg)}
+function lostStartHost(room){
+  lostAuthMessage('Starting session…');const peer=lostPeer=new Peer(lostRoomId(room));
+  peer.on('open',()=>{lostHost=true;lostSetLoggedInUI(lostUser,true);lostPlayersUnsub=()=>{};lostCloudReady=true;lostRefreshProfiles();lostOnlineStatus();$('#L').innerHTML='<div class="e0">— No rolls recorded in this session —</div>';render()});
+  peer.on('connection',lostHostOnConn);
+  peer.on('error',e=>{console.error(e);if(!lostHost)lostFail(e.type==='unavailable-id'?'That room code is already in use (another host, or your last session has not expired yet — wait a minute or pick another code).':'Could not start the session: '+e.type);else lostSetRollStatus('NETWORK ERROR · '+e.type,true)});
+  peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
+}
+function lostStartJoin(room){
+  try{if(localStorage[KEY]&&!localStorage.lost_prejoin_backup)localStorage.lost_prejoin_backup=JSON.stringify({chars:localStorage[KEY],libs:localStorage.lost_libraries,enemies:localStorage.lost_enemies,battle:localStorage.lost_battle,loot:localStorage.lost_loot,pend:localStorage.lost_pend})}catch(e){}
+  lostAuthMessage('Connecting to the host…');const peer=lostPeer=new Peer();let done=false;
+  const timer=setTimeout(()=>{if(!done&&lostPeer===peer)lostFail('Could not reach the host. Check the room code and that the author has started the session.')},15000);
+  peer.on('open',()=>{const conn=lostConn=peer.connect(lostRoomId(room),{reliable:true});
+    conn.on('open',()=>{done=true;clearTimeout(timer);lostSend(conn,{t:'hello',name:lostUser.displayName})});
+    conn.on('data',lostClientData);
+    conn.on('close',()=>{if(lostConn===conn)lostFail('Disconnected from the host. Join again once the session is running.')});
+  });
+  peer.on('error',e=>{clearTimeout(timer);console.error(e);if(lostPeer===peer)lostFail(e.type==='peer-unavailable'?'No session found with that room code. Is the author online?':'Connection error: '+e.type)});
+}
+function lostAuthAction(action){
+  if(action==='logout'){lostLeave();lostAuthMessage('Disconnected.');return}
+  if(typeof Peer==='undefined'){lostAuthMessage('The connection library failed to load. Check your internet and reload.');return}
+  if(lostPeer)return;
+  const name=$('#auth-username').value.trim(),room=$('#auth-password').value.trim().toLowerCase();
+  if(!/^[a-zA-Z0-9_]{3,20}$/.test(name)){lostAuthMessage('Name must be 3–20 characters: letters, numbers or underscore.');return}
+  if(!/^[a-z0-9_-]{4,30}$/.test(room)){lostAuthMessage('Room code must be 4–30 characters: letters, numbers, - or _.');return}
+  try{localStorage.lost_p2p_name=name;localStorage.lost_p2p_room=room}catch(e){}
+  lostUser={uid:'u:'+name.toLowerCase(),displayName:name};
+  if(action==='host')lostStartHost(room);else lostStartJoin(room);
+}
+lostSetLoggedOutUI();
+try{$('#auth-username').value=localStorage.lost_p2p_name||'';$('#auth-password').value=localStorage.lost_p2p_room||''}catch(e){}
+</script></body></html>
+
 </script></body></html>
