@@ -1,6 +1,25 @@
-const lostHashId=()=>{try{return decodeURIComponent(location.hash.slice(1))}catch(e){return location.hash.slice(1)}},$=s=>document.querySelector(s),esc=t=>String(t??'').replace(/[&<>"]/g,c=>'&#'+c.charCodeAt()+';'),cl=(n,a,b)=>Math.max(a,Math.min(b,n)),num=v=>parseFloat(String(v).replace(',','.'))||0,J=o=>JSON.parse(JSON.stringify(o)),sg=v=>(v<0?'−':'+')+Math.abs(v),
-SK='STR DEX CON SPD INT LCK SAN'.split(' '),POOL=40,TI=['basica','diferenciada','unica','eclipse'],TN=['Basic','Special','Unique','Eclipse'],KEY='lost_chars_v4',WP=[],WF=[],
-EA=`fire_aspect|Fire aspect|1|Blood|Chance to apply FIRE.|Applies FIRE, criticals apply COMBUSTION.
+const lostHashId = () => {
+    try {
+      return decodeURIComponent(location.hash.slice(1));
+    } catch (e) {
+      return location.hash.slice(1);
+    }
+  },
+  $ = (s) => document.querySelector(s),
+  esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => "&#" + c.charCodeAt() + ";"),
+  cl = (n, a, b) => Math.max(a, Math.min(b, n)),
+  num = (v) => parseFloat(String(v).replace(",", ".")) || 0,
+  J = (o) => JSON.parse(JSON.stringify(o)),
+  sg = (v) => (v < 0 ? "−" : "+") + Math.abs(v),
+  SK = "STR DEX CON SPD INT LCK SAN".split(" "),
+  POOL = 40,
+  TI = ["basica", "diferenciada", "unica", "eclipse"],
+  TN = ["Basic", "Special", "Unique", "Eclipse"],
+  KEY = "lost_chars_v4",
+  WP = [],
+  WF = [],
+  EA =
+    `fire_aspect|Fire aspect|1|Blood|Chance to apply FIRE.|Applies FIRE, criticals apply COMBUSTION.
 bloody_stream|Bloody stream|1|Blood|Chance to apply BLEED.|Applies BLEED, bleeding enemies take EXTRA DAMAGE.
 hemotic_bypass|Hemotic Bypass|1|Blood|+1/4 of highest stat to weapon roll.|+1/2 of highest stat to weapon roll.
 noxious_thorn|Noxious Thorn|1|Blood|Chance to apply POISON.|Applies POISON, criticals apply WEAKNESS.
@@ -34,527 +53,2312 @@ cheats_true|Cheats: True|2|Code|Swaps damage roll with another weapon of same ca
 error_404|Error 404|2|Code|Critical failures heal 1d10 + 15.|Failed rolls heal 1d15 + 5.
 stagnant_power|Stagnant Power|3|Mystery|+1 hit die against primes of 8 elements.|+1 hit and +2 damage dice against primes.
 the_start|THE START|3|Epiphany|Temporarily changes weapon shape.|Completely changes weapon on action.
-finale|FINALE|3|???|Attacks increase damage taken by enemies.|Increases damage taken and gives +10% damage/turn.`.split('\n').map(l=>{const[id,n,t,e,a,b]=l.split('|');return{id,n,t,e,d:[a,b]}}),EL=EA.map(a=>[a.id,`[T${a.t} ${a.e}] ${a.n}`]);
-[["Light Melee","Knife|STR|1d4+2|1d6+4|1d12+8|1d20+12;Rapier|SPD|1d4+2|1d6+4|2d6+8|3d6+12;Gauntlets|STR|1d4+2|1d8+4|2d6+10|3d8+12;Shield|CON|1d4+1|1d6+2|2d4+6|2d6+10;Dual Claws|STR|1d4+2|1d8+6|2d8+10|2d12+16;Nunchaku|SPD|1d4+1|1d6+4|1d10+8|2d8+12;Hatchet|STR|1d4+2|1d8+6|2d8+10|3d8+16;Whip|SPD|1d4+1|1d8+2|1d12+6|2d8+10;Sword|STR|1d6+2|1d10+6|1d20+12|3d8+20;Spear|SPD|1d4+2|1d6+4|1d12+8|1d20+12;Energy Saber|STR|1d8+2|1d10+8|1d20+14|3d12+18;Yo-yo|SPD|1d4+1|1d6+4|1d10+8|2d8+10;Combat Syringe|STR|1d4+2|1d6+4|1d10+8|2d8+12"],["Heavy Melee","Greatsword|STR|1d8+2|2d6+6|3d6+14|3d12+16;Energy Sword|STR|2d4+2|3d4+6|3d8+12|3d10+22;Trident|CON|1d4+1|1d6+4|1d10+8|2d8+12;Halberd|CON|1d4+2|1d6+4|1d12+8|3d6+12;Scythe|STR|1d6+2|1d10+6|2d8+12|4d6+18;Axe / Mace|STR|1d6+2|1d10+6|2d10+12|3d8+20;Flail|STR|1d6+2|1d10+6|2d8+12|4d6+18;Warhammer|CON|1d4+2|1d8+4|3d4+8|3d6+14;Chainsaw|CON|1d4+2|1d8+4|3d4+8|4d4+14"],["Ranged Weapons","Pistol|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Hand Cannon|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Throwing Cards|LCK|1d6+0|1d12+0|2d12+0|2d20+0;Energy Blaster|DEX|1d6+2|1d12+6|3d6+12|4d6+20;Revolver|DEX|1d6+2|1d10+6|2d10+10|3d10+16;Submachine Gun|DEX|1d6+2|3d4+4|4d4+10|4d6+16;Flamethrower|DEX|1d6+2|3d4+4|4d4+12|4d6+18;Machine Gun|CON|1d6+1|1d10+2|2d8+6|3d8+10;Shotgun|DEX|1d8+2|2d8+4|2d12+12|3d12+18;Syringe Launcher|DEX|1d4+2|1d8+4|3d4+8|4d4+12"],["Long Range","Bow|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Crossbow|DEX|1d6+2|1d10+6|1d20+12|3d8+20;Assault Rifle|DEX|1d8+2|2d6+4|2d10+10|3d10+16;Plasma Rifle|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Grenade Launcher|CON|1d6+1|1d12+2|1d20+6|4d6+10;Bazooka|CON|1d6+1|2d6+2|2d12+4|4d8+8;Rocket Launcher|CON|1d6+1|2d4+4|4d4+6|4d6+10;Sniper Rifle|DEX|1d10+2|1d20+4|2d12+14|4d10+18"]].forEach(([c,s])=>{const l=s.split(';').map(x=>{const[n,st,...f]=x.split('|');return{n,s:st,f,c}});WP.push([c,l]);WF.push(...l)});
-let admin=false,C,sel,ed,son=1,AC,BT,EN,LOOT,PEND,TAB='main',LIBS=[],WORKSPACE='scene',activeLibrary='',assignedCharacterId='',editFromLibrary=false;
+finale|FINALE|3|???|Attacks increase damage taken by enemies.|Increases damage taken and gives +10% damage/turn.`
+      .split("\n")
+      .map((l) => {
+        const [id, n, t, e, a, b] = l.split("|");
+        return { id, n, t, e, d: [a, b] };
+      }),
+  EL = EA.map((a) => [a.id, `[T${a.t} ${a.e}] ${a.n}`]);
+[
+  [
+    "Light Melee",
+    "Knife|STR|1d4+2|1d6+4|1d12+8|1d20+12;Rapier|SPD|1d4+2|1d6+4|2d6+8|3d6+12;Gauntlets|STR|1d4+2|1d8+4|2d6+10|3d8+12;Shield|CON|1d4+1|1d6+2|2d4+6|2d6+10;Dual Claws|STR|1d4+2|1d8+6|2d8+10|2d12+16;Nunchaku|SPD|1d4+1|1d6+4|1d10+8|2d8+12;Hatchet|STR|1d4+2|1d8+6|2d8+10|3d8+16;Whip|SPD|1d4+1|1d8+2|1d12+6|2d8+10;Sword|STR|1d6+2|1d10+6|1d20+12|3d8+20;Spear|SPD|1d4+2|1d6+4|1d12+8|1d20+12;Energy Saber|STR|1d8+2|1d10+8|1d20+14|3d12+18;Yo-yo|SPD|1d4+1|1d6+4|1d10+8|2d8+10;Combat Syringe|STR|1d4+2|1d6+4|1d10+8|2d8+12",
+  ],
+  [
+    "Heavy Melee",
+    "Greatsword|STR|1d8+2|2d6+6|3d6+14|3d12+16;Energy Sword|STR|2d4+2|3d4+6|3d8+12|3d10+22;Trident|CON|1d4+1|1d6+4|1d10+8|2d8+12;Halberd|CON|1d4+2|1d6+4|1d12+8|3d6+12;Scythe|STR|1d6+2|1d10+6|2d8+12|4d6+18;Axe / Mace|STR|1d6+2|1d10+6|2d10+12|3d8+20;Flail|STR|1d6+2|1d10+6|2d8+12|4d6+18;Warhammer|CON|1d4+2|1d8+4|3d4+8|3d6+14;Chainsaw|CON|1d4+2|1d8+4|3d4+8|4d4+14",
+  ],
+  [
+    "Ranged Weapons",
+    "Pistol|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Hand Cannon|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Throwing Cards|LCK|1d6+0|1d12+0|2d12+0|2d20+0;Energy Blaster|DEX|1d6+2|1d12+6|3d6+12|4d6+20;Revolver|DEX|1d6+2|1d10+6|2d10+10|3d10+16;Submachine Gun|DEX|1d6+2|3d4+4|4d4+10|4d6+16;Flamethrower|DEX|1d6+2|3d4+4|4d4+12|4d6+18;Machine Gun|CON|1d6+1|1d10+2|2d8+6|3d8+10;Shotgun|DEX|1d8+2|2d8+4|2d12+12|3d12+18;Syringe Launcher|DEX|1d4+2|1d8+4|3d4+8|4d4+12",
+  ],
+  [
+    "Long Range",
+    "Bow|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Crossbow|DEX|1d6+2|1d10+6|1d20+12|3d8+20;Assault Rifle|DEX|1d8+2|2d6+4|2d10+10|3d10+16;Plasma Rifle|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Grenade Launcher|CON|1d6+1|1d12+2|1d20+6|4d6+10;Bazooka|CON|1d6+1|2d6+2|2d12+4|4d8+8;Rocket Launcher|CON|1d6+1|2d4+4|4d4+6|4d6+10;Sniper Rifle|DEX|1d10+2|1d20+4|2d12+14|4d10+18",
+  ],
+].forEach(([c, s]) => {
+  const l = s.split(";").map((x) => {
+    const [n, st, ...f] = x.split("|");
+    return { n, s: st, f, c };
+  });
+  WP.push([c, l]);
+  WF.push(...l);
+});
+let admin = false,
+  C,
+  sel,
+  ed,
+  son = 1,
+  AC,
+  BT,
+  EN,
+  LOOT,
+  PEND,
+  TAB = "main",
+  LIBS = [],
+  WORKSPACE = "scene",
+  activeLibrary = "",
+  assignedCharacterId = "",
+  editFromLibrary = false;
 /* P2P / session state (must exist before the first render) */
-let lostUser=null,lostRole=null,lostRoom='',lostPeer=null,lostConn=null,lostHost=false,lostConns=new Map(),lostRollHist=[],lostPlayersData={},lostBcastTimer=null,lostLastBcast='',lostPlayersUnsub=null,lostPlayerProfiles=[],lostCloudReady=false,lostApplyingCloud=false,lostVitalsReady=false,lostSource='default',lostStorageWarned=false;
-try{lostPlayersData=JSON.parse(localStorage.lost_p2p_players||'{}')||{}}catch(e){}
-const lostHadSaved=(()=>{try{return !!localStorage.getItem('lost_chars_v4')}catch(e){return false}})();
+let lostUser = null,
+  lostRole = null,
+  lostRoom = "",
+  lostPeer = null,
+  lostConn = null,
+  lostHost = false,
+  lostConns = new Map(),
+  lostRollHist = [],
+  lostPlayersData = {},
+  lostBcastTimer = null,
+  lostLastBcast = "",
+  lostPlayersUnsub = null,
+  lostPlayerProfiles = [],
+  lostCloudReady = false,
+  lostApplyingCloud = false,
+  lostVitalsReady = false,
+  lostSource = "default",
+  lostStorageWarned = false;
+try {
+  lostPlayersData = JSON.parse(localStorage.lost_p2p_players || "{}") || {};
+} catch (e) {}
+const lostHadSaved = (() => {
+  try {
+    return !!localStorage.getItem("lost_chars_v4");
+  } catch (e) {
+    return false;
+  }
+})();
 // Player-facing roster preferences are stored locally only; they never modify campaign data.
-let hiddenSceneCharacterIds=new Set();
-let librarySort='name-asc';try{librarySort=localStorage.getItem('lost_library_sort')||'name-asc'}catch(e){}
-let playerLocksCollapsed=false;try{playerLocksCollapsed=localStorage.getItem('lost_player_locks_collapsed')==='1'}catch(e){}
-function syncPlayerLocksPanel(){const box=document.getElementById('player-lock-content'),button=document.getElementById('player-lock-toggle');if(!box||!button)return;box.classList.toggle('hid',playerLocksCollapsed);button.textContent=playerLocksCollapsed?'SHOW':'HIDE';button.setAttribute('aria-expanded',String(!playerLocksCollapsed))}
-function togglePlayerLocksPanel(){playerLocksCollapsed=!playerLocksCollapsed;try{localStorage.setItem('lost_player_locks_collapsed',playerLocksCollapsed?'1':'0')}catch(e){}syncPlayerLocksPanel()}
-let cloudSyncHandler=null;function scheduleCloudSync(){if(cloudSyncHandler)cloudSyncHandler();}
-const wpn=()=>({name:'',customName:'',tier:'basica',charges:2,attr1:'',ch1:1,attr2:'',attr3:'',attr4:'',ch2:1,hitStat:'',hitFormula:'',damageStat:'',damageFormula:'',hitBonus:0,damageBonus:0,damageType:'',weaponRange:'',weaponNotes:''}),blank=n=>({name:n,hp:[0,0],san:[0,0],regen:0,shield:0,st:{},weapons:[wpn(),wpn()],actives:[],passives:[],inv:[],notes:''}),
-slug=n=>n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
-DEF=()=>['Jake Marlowe','Person Jaulo','Mr. Happy',0,'Beacon','Murphy L.','Rob Kyle','Ásgeirr'].map((n,i)=>n?{...blank(n),id:slug(n),order:i+1}:{id:'dyakier-reikyad',mirror:1,side:'A',order:i+1,sides:{A:blank('Dyakier Voss'),B:blank('Reikyad')}}),
-stv=(c,k)=>c.st?.[k]||0,left=c=>(c.pool??POOL)-SK.reduce((a,k)=>a+stv(c,k),0),
-A=c=>c?.mirror?{...c.sides[c.side],id:c.id,mirror:1,side:c.side,sides:c.sides,order:c.order,libraryId:c.libraryId||''}:c,cur=()=>A(C.find(x=>x.id==sel)),
-sv=()=>{if(lostUser&&!admin)return;try{localStorage[KEY]=JSON.stringify(C)}catch(e){if(!lostStorageWarned){lostStorageWarned=true;alert('Browser storage is full: use SAVE SESSION JSON as a backup and prefer image URLs over uploads.')}}scheduleCloudSync();},
-libsv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_libraries=JSON.stringify(LIBS);localStorage.lost_active_library=activeLibrary}catch(e){if(!lostStorageWarned){lostStorageWarned=true;alert('Browser storage is full: use SAVE SESSION JSON as a backup.')}}scheduleCloudSync();},
-sceneChars=()=>C.filter(x=>!x.libraryId),libraryChars=(id=activeLibrary)=>C.filter(x=>x.libraryId===id),bossSceneMultiplier=()=>Math.max(1,sceneChars().length+1),
-mth=c=>{if(c.mirror){Object.values(c.sides).forEach(side=>{side.libraryId=c.libraryId||'';mth(side)});return}c.st??={};c.fx??={};const m=c.mod=mods(c),ov=(k,d)=>c.ov?.[k]>''?num(c.ov[k]):d,baseH=Math.max(0,ov('hp',stv(c,'CON')*5+m.hpmax)),S=Math.max(0,ov('san',stv(c,'SAN')*3+m.sanmax)),hmRaw=Number(m.hpMultiplier),hm=c.ov?.hp>''?1:(Number.isFinite(hmRaw)&&hmRaw>0?Math.min(hmRaw,100):1),bossMult=(c.fx?.isBoss&&!c.libraryId?Math.max(1,sceneChars().length+1):1)*hm,oldMult=Math.max(1,num(c._bossHpMultiplier)||1),oldHp=Number(c.hp?.[0]??baseH),scaledHp=Math.abs(oldMult-bossMult)>1e-9?Math.round(oldHp/oldMult*bossMult):oldHp,H=Math.max(0,Math.round(baseH*bossMult));c._bossHpMultiplier=bossMult;c.regen=ov('regen',stv(c,'INT')+m.regen);c.hp=[cl(scaledHp,0,H),H];c.san=[cl(c.san?.[0]??S,0,S),S];c.imps??=[{},{},{},{}];c.weapons??=[wpn(),wpn()];c.weapons.forEach(w=>{w.charges=cl(Math.floor(num(w.charges??2)),1,4);w.ch1=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,w.charges))});c.slots??=9;c.actives??=[];c.passives??=[]},
-put=n=>{const i=C.findIndex(x=>x.id==n.id),before=i>=0?J(C[i]):null;if(i<0)C.push(n);else if(C[i].mirror){const{id,mirror,side,sides,order,libraryId,...r}=n;C[i].sides[C[i].side]=r;if(libraryId!==undefined)C[i].libraryId=libraryId}else C[i]=n;C.forEach(mth);if(before){const after=C.find(x=>x.id===n.id);if(admin)lostQueueAuthorVitals(before,after);else lostSyncPlayerVitalDelta(before,after)}sv();render()},
-mut=(fn,id=sel)=>{const n=J(A(C.find(x=>x.id==id)));fn(n);put(n)},all=fn=>{const before=new Map(sceneChars().map(c=>[c.id,J(c)]));sceneChars().forEach(c=>c.mirror?Object.values(c.sides).forEach(fn):fn(c));C.forEach(mth);if(admin)sceneChars().forEach(c=>lostQueueAuthorVitals(before.get(c.id),c));sv();render()},
-opts=(l,v)=>l.map(([k,t])=>`<option value="${esc(k)}"${k==v?' selected':''}>${esc(t)}</option>`).join(''),
-im=(c,t='1:1')=>c.img?`<img src="${esc(c.img)}" alt="" referrerpolicy="no-referrer" loading="lazy"${c.fit=='contain'?' style="object-fit:contain"':''}>`:`<span>${t}</span>`,
-sb=c=>c.mirror?['A','B'].map(s=>`<button class="b s${c.side==s?' on':''}" data-a="side" data-i="${c.id}" data-s="${s}">${s}</button>`).join(''):'',
-bar=(v,m,k)=>`<div class="lb"><span>${k=='hp'?'HEALTH':'SANITY'}</span><span>${v}/${m} ${k=='hp'?'HP':'SAN'}</span></div><div class="m ${k}"><i style="width:${m?cl(v/m*100,0,100):0}%"></i></div>`,
-no=t=>`<div class="mt">— ${t} —</div>`,
-hms=()=>new Date().toLocaleTimeString('en-US',{hour12:false});
-const ld=(k,d)=>{try{return JSON.parse(localStorage[k])||d}catch(e){return d}},bsv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_battle=JSON.stringify(BT)}catch(e){}scheduleCloudSync()},esv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_enemies=JSON.stringify(EN)}catch(e){}scheduleCloudSync()},lsv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_loot=JSON.stringify(LOOT)}catch(e){}scheduleCloudSync()};
-hiddenSceneCharacterIds=new Set(ld('lost_hidden_scene_characters',[]));
-function saveSceneViewPrefs(){try{localStorage.setItem('lost_hidden_scene_characters',JSON.stringify([...hiddenSceneCharacterIds]))}catch(e){console.warn('Could not save local character view preferences',e)}}
-function lostIsPrivateLibraryId(id,libraries=LIBS){return !!id&&!!libraries.find(lib=>lib.id===id&&lib.private===true)}
-function lostDummyCharacterId(){const found=(C||[]).find(raw=>!lostIsPrivateLibraryId(raw.libraryId)&&String(A(raw).name||'').trim().toLowerCase()==='dummy');return found?.id||''}
-function lostEffectiveCharacterId(){return assignedCharacterId||(!admin?lostDummyCharacterId():'')}
-const canRollCharacter=c=>admin|| (!!lostEffectiveCharacterId() && c?.id===lostEffectiveCharacterId());
+let hiddenSceneCharacterIds = new Set();
+let librarySort = "name-asc";
+try {
+  librarySort = localStorage.getItem("lost_library_sort") || "name-asc";
+} catch (e) {}
+let playerLocksCollapsed = false;
+try {
+  playerLocksCollapsed = localStorage.getItem("lost_player_locks_collapsed") === "1";
+} catch (e) {}
+function syncPlayerLocksPanel() {
+  const box = document.getElementById("player-lock-content"),
+    button = document.getElementById("player-lock-toggle");
+  if (!box || !button) return;
+  box.classList.toggle("hid", playerLocksCollapsed);
+  button.textContent = playerLocksCollapsed ? "SHOW" : "HIDE";
+  button.setAttribute("aria-expanded", String(!playerLocksCollapsed));
+}
+function togglePlayerLocksPanel() {
+  playerLocksCollapsed = !playerLocksCollapsed;
+  try {
+    localStorage.setItem("lost_player_locks_collapsed", playerLocksCollapsed ? "1" : "0");
+  } catch (e) {}
+  syncPlayerLocksPanel();
+}
+let cloudSyncHandler = null;
+function scheduleCloudSync() {
+  if (cloudSyncHandler) cloudSyncHandler();
+}
+const wpn = () => ({
+    name: "",
+    customName: "",
+    tier: "basica",
+    charges: 2,
+    attr1: "",
+    ch1: 1,
+    attr2: "",
+    attr3: "",
+    attr4: "",
+    ch2: 1,
+    hitStat: "",
+    hitFormula: "",
+    damageStat: "",
+    damageFormula: "",
+    hitBonus: 0,
+    damageBonus: 0,
+    damageType: "",
+    weaponRange: "",
+    weaponNotes: "",
+  }),
+  blank = (n) => ({
+    name: n,
+    hp: [0, 0],
+    san: [0, 0],
+    regen: 0,
+    shield: 0,
+    st: {},
+    weapons: [wpn(), wpn()],
+    actives: [],
+    passives: [],
+    inv: [],
+    notes: "",
+  }),
+  slug = (n) =>
+    n
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, ""),
+  DEF = () =>
+    [
+      "Jake Marlowe",
+      "Person Jaulo",
+      "Mr. Happy",
+      0,
+      "Beacon",
+      "Murphy L.",
+      "Rob Kyle",
+      "Ásgeirr",
+    ].map((n, i) =>
+      n
+        ? { ...blank(n), id: slug(n), order: i + 1 }
+        : {
+            id: "dyakier-reikyad",
+            mirror: 1,
+            side: "A",
+            order: i + 1,
+            sides: { A: blank("Dyakier Voss"), B: blank("Reikyad") },
+          },
+    ),
+  stv = (c, k) => c.st?.[k] || 0,
+  left = (c) => (c.pool ?? POOL) - SK.reduce((a, k) => a + stv(c, k), 0),
+  A = (c) =>
+    c?.mirror
+      ? {
+          ...c.sides[c.side],
+          id: c.id,
+          mirror: 1,
+          side: c.side,
+          sides: c.sides,
+          order: c.order,
+          libraryId: c.libraryId || "",
+        }
+      : c,
+  cur = () => A(C.find((x) => x.id == sel)),
+  sv = () => {
+    if (lostUser && !admin) return;
+    try {
+      localStorage[KEY] = JSON.stringify(C);
+    } catch (e) {
+      if (!lostStorageWarned) {
+        lostStorageWarned = true;
+        alert(
+          "Browser storage is full: use SAVE SESSION JSON as a backup and prefer image URLs over uploads.",
+        );
+      }
+    }
+    scheduleCloudSync();
+  },
+  libsv = () => {
+    if (lostUser && !admin) return;
+    try {
+      localStorage.lost_libraries = JSON.stringify(LIBS);
+      localStorage.lost_active_library = activeLibrary;
+    } catch (e) {
+      if (!lostStorageWarned) {
+        lostStorageWarned = true;
+        alert("Browser storage is full: use SAVE SESSION JSON as a backup.");
+      }
+    }
+    scheduleCloudSync();
+  },
+  sceneChars = () => C.filter((x) => !x.libraryId),
+  libraryChars = (id = activeLibrary) => C.filter((x) => x.libraryId === id),
+  bossSceneMultiplier = () => Math.max(1, sceneChars().length + 1),
+  mth = (c) => {
+    if (c.mirror) {
+      Object.values(c.sides).forEach((side) => {
+        side.libraryId = c.libraryId || "";
+        mth(side);
+      });
+      return;
+    }
+    c.st ??= {};
+    c.fx ??= {};
+    const m = (c.mod = mods(c)),
+      ov = (k, d) => (c.ov?.[k] > "" ? num(c.ov[k]) : d),
+      baseH = Math.max(0, ov("hp", stv(c, "CON") * 5 + m.hpmax)),
+      S = Math.max(0, ov("san", stv(c, "SAN") * 3 + m.sanmax)),
+      hmRaw = Number(m.hpMultiplier),
+      hm = c.ov?.hp > "" ? 1 : Number.isFinite(hmRaw) && hmRaw > 0 ? Math.min(hmRaw, 100) : 1,
+      bossMult = (c.fx?.isBoss && !c.libraryId ? Math.max(1, sceneChars().length + 1) : 1) * hm,
+      oldMult = Math.max(1, num(c._bossHpMultiplier) || 1),
+      oldHp = Number(c.hp?.[0] ?? baseH),
+      scaledHp =
+        Math.abs(oldMult - bossMult) > 1e-9 ? Math.round((oldHp / oldMult) * bossMult) : oldHp,
+      H = Math.max(0, Math.round(baseH * bossMult));
+    c._bossHpMultiplier = bossMult;
+    c.regen = ov("regen", stv(c, "INT") + m.regen);
+    c.hp = [cl(scaledHp, 0, H), H];
+    c.san = [cl(c.san?.[0] ?? S, 0, S), S];
+    c.imps ??= [{}, {}, {}, {}];
+    c.weapons ??= [wpn(), wpn()];
+    c.weapons.forEach((w) => {
+      w.charges = cl(Math.floor(num(w.charges ?? 2)), 1, 4);
+      w.ch1 = cl(Math.floor(num(w.ch1 ?? 1)), 1, Math.min(2, w.charges));
+    });
+    c.slots ??= 9;
+    c.actives ??= [];
+    c.passives ??= [];
+  },
+  put = (n) => {
+    const i = C.findIndex((x) => x.id == n.id),
+      before = i >= 0 ? J(C[i]) : null;
+    if (i < 0) C.push(n);
+    else if (C[i].mirror) {
+      const { id, mirror, side, sides, order, libraryId, ...r } = n;
+      C[i].sides[C[i].side] = r;
+      if (libraryId !== undefined) C[i].libraryId = libraryId;
+    } else C[i] = n;
+    C.forEach(mth);
+    if (before) {
+      const after = C.find((x) => x.id === n.id);
+      if (admin) lostQueueAuthorVitals(before, after);
+      else lostSyncPlayerVitalDelta(before, after);
+    }
+    sv();
+    render();
+  },
+  mut = (fn, id = sel) => {
+    const n = J(A(C.find((x) => x.id == id)));
+    fn(n);
+    put(n);
+  },
+  all = (fn) => {
+    const before = new Map(sceneChars().map((c) => [c.id, J(c)]));
+    sceneChars().forEach((c) => (c.mirror ? Object.values(c.sides).forEach(fn) : fn(c)));
+    C.forEach(mth);
+    if (admin) sceneChars().forEach((c) => lostQueueAuthorVitals(before.get(c.id), c));
+    sv();
+    render();
+  },
+  opts = (l, v) =>
+    l
+      .map(([k, t]) => `<option value="${esc(k)}"${k == v ? " selected" : ""}>${esc(t)}</option>`)
+      .join(""),
+  im = (c, t = "1:1") =>
+    c.img
+      ? `<img src="${esc(c.img)}" alt="" referrerpolicy="no-referrer" loading="lazy"${c.fit == "contain" ? ' style="object-fit:contain"' : ""}>`
+      : `<span>${t}</span>`,
+  sb = (c) =>
+    c.mirror
+      ? ["A", "B"]
+          .map(
+            (s) =>
+              `<button class="b s${c.side == s ? " on" : ""}" data-a="side" data-i="${c.id}" data-s="${s}">${s}</button>`,
+          )
+          .join("")
+      : "",
+  bar = (v, m, k) =>
+    `<div class="lb"><span>${k == "hp" ? "HEALTH" : "SANITY"}</span><span>${v}/${m} ${k == "hp" ? "HP" : "SAN"}</span></div><div class="m ${k}"><i style="width:${m ? cl((v / m) * 100, 0, 100) : 0}%"></i></div>`,
+  no = (t) => `<div class="mt">— ${t} —</div>`,
+  hms = () => new Date().toLocaleTimeString("en-US", { hour12: false });
+const ld = (k, d) => {
+    try {
+      return JSON.parse(localStorage[k]) || d;
+    } catch (e) {
+      return d;
+    }
+  },
+  bsv = () => {
+    if (lostUser && !admin) return;
+    try {
+      localStorage.lost_battle = JSON.stringify(BT);
+    } catch (e) {}
+    scheduleCloudSync();
+  },
+  esv = () => {
+    if (lostUser && !admin) return;
+    try {
+      localStorage.lost_enemies = JSON.stringify(EN);
+    } catch (e) {}
+    scheduleCloudSync();
+  },
+  lsv = () => {
+    if (lostUser && !admin) return;
+    try {
+      localStorage.lost_loot = JSON.stringify(LOOT);
+    } catch (e) {}
+    scheduleCloudSync();
+  };
+hiddenSceneCharacterIds = new Set(ld("lost_hidden_scene_characters", []));
+function saveSceneViewPrefs() {
+  try {
+    localStorage.setItem(
+      "lost_hidden_scene_characters",
+      JSON.stringify([...hiddenSceneCharacterIds]),
+    );
+  } catch (e) {
+    console.warn("Could not save local character view preferences", e);
+  }
+}
+function lostIsPrivateLibraryId(id, libraries = LIBS) {
+  return !!id && !!libraries.find((lib) => lib.id === id && lib.private === true);
+}
+function lostDummyCharacterId() {
+  const found = (C || []).find(
+    (raw) =>
+      !lostIsPrivateLibraryId(raw.libraryId) &&
+      String(A(raw).name || "")
+        .trim()
+        .toLowerCase() === "dummy",
+  );
+  return found?.id || "";
+}
+function lostEffectiveCharacterId() {
+  return assignedCharacterId || (!admin ? lostDummyCharacterId() : "");
+}
+const canRollCharacter = (c) =>
+  admin || (!!lostEffectiveCharacterId() && c?.id === lostEffectiveCharacterId());
 /* sound */
-const SN={click:['triangle',440,220,.04,.08],roll:['sawtooth',300,650,.12,.1],action:['square',523,659,.15,.08]};
-function ping(k){if(!son)return;try{AC??=new AudioContext;AC.resume();const[w,f,g,d,v]=SN[k],t=AC.currentTime,o=AC.createOscillator(),n=AC.createGain();o.type=w;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(g,t+d);n.gain.setValueAtTime(v,t);n.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(n).connect(AC.destination);o.start(t);o.stop(t+d+.01)}catch(e){}}
+const SN = {
+  click: ["triangle", 440, 220, 0.04, 0.08],
+  roll: ["sawtooth", 300, 650, 0.12, 0.1],
+  action: ["square", 523, 659, 0.15, 0.08],
+};
+function ping(k) {
+  if (!son) return;
+  try {
+    AC ??= new AudioContext();
+    AC.resume();
+    const [w, f, g, d, v] = SN[k],
+      t = AC.currentTime,
+      o = AC.createOscillator(),
+      n = AC.createGain();
+    o.type = w;
+    o.frequency.setValueAtTime(f, t);
+    o.frequency.exponentialRampToValueAtTime(g, t + d);
+    n.gain.setValueAtTime(v, t);
+    n.gain.exponentialRampToValueAtTime(0.001, t + d);
+    o.connect(n).connect(AC.destination);
+    o.start(t);
+    o.stop(t + d + 0.01);
+  } catch (e) {}
+}
 /* rolls */
-function parseRollFormula(value){const f=String(value??'').replace(/\s/g,'');const m=/^(\d{1,3})d(\d{1,5})((?:[+-]\d{1,5})*)$/i.exec(f);if(!m||f.length>50)return null;const n=Number(m[1]),z=Number(m[2]);if(!Number.isInteger(n)||n<1||n>100||!Number.isInteger(z)||z<2||z>10000)return null;const bonus=(m[3].match(/[+-]\d{1,5}/g)||[]).reduce((sum,term)=>sum+Number(term),0);return Number.isSafeInteger(bonus)?{f,n,z,b:bonus}:null}
-function randomInt(max){if(globalThis.crypto?.getRandomValues){const u=new Uint32Array(1),limit=Math.floor(0x100000000/max)*max;do{globalThis.crypto.getRandomValues(u)}while(u[0]>=limit);return u[0]%max}return Math.floor(Math.random()*max)}
-function R(value){const p=parseRollFormula(value||'1d20');if(!p)return null;const d=Array.from({length:p.n},()=>randomInt(p.z)+1),s=d.reduce((a,x)=>a+x,0);return{f:p.f,d,z:p.z,s,b:p.b,t:s+p.b,lo:p.n+p.b,hi:p.n*p.z+p.b}}
-function T(who,title,inner,log){const d=document.createElement('div'),L=$('#L'),B=$('#T');d.className='w';d.innerHTML=`<div class="tb"><span>⚄ ${esc(who)} · ${esc(title)}</span><button class="b s rd" data-a="x">✕</button></div><div class="pd">${inner}</div>`;B.append(d);while(B.children.length>4)B.firstChild.remove();setTimeout(()=>d.remove(),9000);L.querySelector('.e0')?.remove();L.insertAdjacentHTML('afterbegin',`<div class="lg"><b>[${hms()}] ${esc(who)}</b> ${esc(title)} ${log}</div>`);while(L.children.length>80)L.lastChild.remove()}
-function show(who,title,r,ex=[]){if(!r){alert('Invalid dice formula.');return}const e=ex.reduce((a,x)=>a+x[1],0),t=r.t+e,n=r.z==20&&r.d.length==1?r.d[0]:0,k=n==20?'cr':n==1?'fl':'',
-p=[`<b>${r.s}</b> dice`,r.b&&`<b>${sg(r.b)}</b> bonus`,...ex.map(([l,v])=>`<b>${sg(v)}</b> ${esc(l)}`)].filter(Boolean).join(' · ');
-T(who,title,`<div class="mt">${esc(r.f)} · range ${r.lo+e}–${r.hi+e}</div><div class="dc">${r.d.length}d${r.z} ${r.d.map(x=>`<i class="${x==r.z?'mx':x==1?'mn':''}">${x}</i>`).join('')}</div><div class="mt">${p}</div><div class="tot ${k}">= ${t}${n==20?' CRITICAL!':n==1?' FAILURE!':''}</div>`,
-`<code>${esc(r.f)}</code> [${r.d.join('+')}]=${r.s}${r.b?sg(r.b):''}${ex.map(x=>sg(x[1])).join('')} → <b class="o">${t}</b>`)}
+function parseRollFormula(value) {
+  const f = String(value ?? "").replace(/\s/g, "");
+  const m = /^(\d{1,3})d(\d{1,5})((?:[+-]\d{1,5})*)$/i.exec(f);
+  if (!m || f.length > 50) return null;
+  const n = Number(m[1]),
+    z = Number(m[2]);
+  if (!Number.isInteger(n) || n < 1 || n > 100 || !Number.isInteger(z) || z < 2 || z > 10000)
+    return null;
+  const bonus = (m[3].match(/[+-]\d{1,5}/g) || []).reduce((sum, term) => sum + Number(term), 0);
+  return Number.isSafeInteger(bonus) ? { f, n, z, b: bonus } : null;
+}
+function randomInt(max) {
+  if (globalThis.crypto?.getRandomValues) {
+    const u = new Uint32Array(1),
+      limit = Math.floor(0x100000000 / max) * max;
+    do {
+      globalThis.crypto.getRandomValues(u);
+    } while (u[0] >= limit);
+    return u[0] % max;
+  }
+  return Math.floor(Math.random() * max);
+}
+function R(value) {
+  const p = parseRollFormula(value || "1d20");
+  if (!p) return null;
+  const d = Array.from({ length: p.n }, () => randomInt(p.z) + 1),
+    s = d.reduce((a, x) => a + x, 0);
+  return { f: p.f, d, z: p.z, s, b: p.b, t: s + p.b, lo: p.n + p.b, hi: p.n * p.z + p.b };
+}
+function T(who, title, inner, log) {
+  const d = document.createElement("div"),
+    L = $("#L"),
+    B = $("#T");
+  d.className = "w";
+  d.innerHTML = `<div class="tb"><span>⚄ ${esc(who)} · ${esc(title)}</span><button class="b s rd" data-a="x">✕</button></div><div class="pd">${inner}</div>`;
+  B.append(d);
+  while (B.children.length > 4) B.firstChild.remove();
+  setTimeout(() => d.remove(), 9000);
+  L.querySelector(".e0")?.remove();
+  L.insertAdjacentHTML(
+    "afterbegin",
+    `<div class="lg"><b>[${hms()}] ${esc(who)}</b> ${esc(title)} ${log}</div>`,
+  );
+  while (L.children.length > 80) L.lastChild.remove();
+}
+function show(who, title, r, ex = []) {
+  if (!r) {
+    alert("Invalid dice formula.");
+    return;
+  }
+  const e = ex.reduce((a, x) => a + x[1], 0),
+    t = r.t + e,
+    n = r.z == 20 && r.d.length == 1 ? r.d[0] : 0,
+    k = n == 20 ? "cr" : n == 1 ? "fl" : "",
+    p = [
+      `<b>${r.s}</b> dice`,
+      r.b && `<b>${sg(r.b)}</b> bonus`,
+      ...ex.map(([l, v]) => `<b>${sg(v)}</b> ${esc(l)}`),
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  T(
+    who,
+    title,
+    `<div class="mt">${esc(r.f)} · range ${r.lo + e}–${r.hi + e}</div><div class="dc">${r.d.length}d${r.z} ${r.d.map((x) => `<i class="${x == r.z ? "mx" : x == 1 ? "mn" : ""}">${x}</i>`).join("")}</div><div class="mt">${p}</div><div class="tot ${k}">= ${t}${n == 20 ? " CRITICAL!" : n == 1 ? " FAILURE!" : ""}</div>`,
+    `<code>${esc(r.f)}</code> [${r.d.join("+")}]=${r.s}${r.b ? sg(r.b) : ""}${ex.map((x) => sg(x[1])).join("")} → <b class="o">${t}</b>`,
+  );
+}
 
 /* STATUS EFFECTS SYSTEM */
-const FX=[
-  ['bleeding','Bleed','BLD','♦','Remove 4% de HP por turno. Ao atingir 4 acúmulos, transforma-se em Hemorragia.',1,3],
-  ['hemorrhage','Hemorrhage','HMG','♦♦','Início da rodada: perde 20% do HP máximo em dano e sofre -10 em rolagens físicas.',0,0],
-  ['wet','Wet','WET','≈','Dobra o dano de Eletrocutado ou neutraliza Fogo a cada rodada.',0,0],
-  ['fire','Fire','FIR','▲','Remove 1-10% de HP por turno (1d10). Ao atingir 2 acúmulos, transforma-se em Combustão.',1,1],
-  ['combustion','Combustion','CST','✸','Perde 12-20% de HP por turno durante 2 rodadas.',1,2],
-  ['shocked','Shocked','SHK','↯','Perde 5% de HP e interrompe a regeneração de sanidade.',0,0],
-  ['poison','Poison','PSN','☠︎','Perde 5 de HP e recebe -1 de penalidade em todas as rolagens por acúmulo (Máx 10).',1,10],
-  ['shieldbreak','ShieldBreak','SBK','▽','Desativa o escudo completamente.',0,0],
-  ['trauma','Trauma','TRM','✖','Impede a regeneração de sanidade.',0,0],
-  ['stagger','Stun','STN','✱','Não age no seu turno, mas regenera sanidade normalmente.',0,0],
-  ['slowdown','Slowdown','SLW','↘','-5 de penalidade em rolagens de SPD.',0,0],
-  ['weak','Weak','WEA','▾','-5 de penalidade em rolagens de STR.',0,0],
-  ['confused','Confused','CFS','⁇','-5 de penalidade em rolagens de DEX.',0,0],
-  ['motivated','Motivated','MOT','✦','+25% de bônus na regeneração de sanidade por turno.',0,0],
-  ['lockedin','Locked-In','LKD','◎','Adiciona +5 de bônus nas rolagens de d20.',0,0],
-  ['charmed','Charmed','CHM','♡','Muda de lado para o time adversário.',0,0],
-  ['blind','Blind','BLN','◌','50% de chance de errar ataques.',0,0],
-  ['angry','Enraged','ANG','‼︎','Força os ataques contra quem infligiu o efeito.',0,0]
+const FX = [
+  [
+    "bleeding",
+    "Bleed",
+    "BLD",
+    "♦",
+    "Remove 4% de HP por turno. Ao atingir 4 acúmulos, transforma-se em Hemorragia.",
+    1,
+    3,
+  ],
+  [
+    "hemorrhage",
+    "Hemorrhage",
+    "HMG",
+    "♦♦",
+    "Início da rodada: perde 20% do HP máximo em dano e sofre -10 em rolagens físicas.",
+    0,
+    0,
+  ],
+  [
+    "wet",
+    "Wet",
+    "WET",
+    "≈",
+    "Dobra o dano de Eletrocutado ou neutraliza Fogo a cada rodada.",
+    0,
+    0,
+  ],
+  [
+    "fire",
+    "Fire",
+    "FIR",
+    "▲",
+    "Remove 1-10% de HP por turno (1d10). Ao atingir 2 acúmulos, transforma-se em Combustão.",
+    1,
+    1,
+  ],
+  ["combustion", "Combustion", "CST", "✸", "Perde 12-20% de HP por turno durante 2 rodadas.", 1, 2],
+  [
+    "shocked",
+    "Shocked",
+    "SHK",
+    "↯",
+    "Perde 5% de HP e interrompe a regeneração de sanidade.",
+    0,
+    0,
+  ],
+  [
+    "poison",
+    "Poison",
+    "PSN",
+    "☠︎",
+    "Perde 5 de HP e recebe -1 de penalidade em todas as rolagens por acúmulo (Máx 10).",
+    1,
+    10,
+  ],
+  ["shieldbreak", "ShieldBreak", "SBK", "▽", "Desativa o escudo completamente.", 0, 0],
+  ["trauma", "Trauma", "TRM", "✖", "Impede a regeneração de sanidade.", 0, 0],
+  ["stagger", "Stun", "STN", "✱", "Não age no seu turno, mas regenera sanidade normalmente.", 0, 0],
+  ["slowdown", "Slowdown", "SLW", "↘", "-5 de penalidade em rolagens de SPD.", 0, 0],
+  ["weak", "Weak", "WEA", "▾", "-5 de penalidade em rolagens de STR.", 0, 0],
+  ["confused", "Confused", "CFS", "⁇", "-5 de penalidade em rolagens de DEX.", 0, 0],
+  [
+    "motivated",
+    "Motivated",
+    "MOT",
+    "✦",
+    "+25% de bônus na regeneração de sanidade por turno.",
+    0,
+    0,
+  ],
+  ["lockedin", "Locked-In", "LKD", "◎", "Adiciona +5 de bônus nas rolagens de d20.", 0, 0],
+  ["charmed", "Charmed", "CHM", "♡", "Muda de lado para o time adversário.", 0, 0],
+  ["blind", "Blind", "BLN", "◌", "50% de chance de errar ataques.", 0, 0],
+  ["angry", "Enraged", "ANG", "‼︎", "Força os ataques contra quem infligiu o efeito.", 0, 0],
 ];
 
-function getFxVal(c,k){
-  if(!c.fx?.[k]) return 0;
-  return typeof c.fx[k]==='number' ? c.fx[k] : (c.fx[k]?1:0);
+function getFxVal(c, k) {
+  if (!c.fx?.[k]) return 0;
+  return typeof c.fx[k] === "number" ? c.fx[k] : c.fx[k] ? 1 : 0;
 }
-
 
 // Weapon customization (local character data only)
-function weaponConfig(w){
-  const base=WF.find(x=>x.n==w?.name),ti=Math.max(0,TI.indexOf(w?.tier));
-  const hitStat=SK.includes(w?.hitStat)?w.hitStat:(base?.s||'STR');
-  const damageFormula=String(w?.damageFormula||'').trim()||(base?.f?.[ti]||'');
-  const name=String(w?.customName||'').trim()||(base?.n||w?.name||'Custom weapon');
-  return {base,ti,hitStat,damageFormula,name,hasWeapon:!!(base||String(w?.customName||'').trim()||w?.damageFormula||w?.hitFormula)};
+function weaponConfig(w) {
+  const base = WF.find((x) => x.n == w?.name),
+    ti = Math.max(0, TI.indexOf(w?.tier));
+  const hitStat = SK.includes(w?.hitStat) ? w.hitStat : base?.s || "STR";
+  const damageFormula = String(w?.damageFormula || "").trim() || base?.f?.[ti] || "";
+  const name = String(w?.customName || "").trim() || base?.n || w?.name || "Custom weapon";
+  return {
+    base,
+    ti,
+    hitStat,
+    damageFormula,
+    name,
+    hasWeapon: !!(base || String(w?.customName || "").trim() || w?.damageFormula || w?.hitFormula),
+  };
 }
-function validWeaponFormula(value){return !!parseRollFormula(value);}
-
-function rf(c,k){
-  if(c.ro?.[k])return c.ro[k]; // rolagem manual
-  const b=c.fx?.lockedin?5:0,p=getFxVal(c,'poison'),m=c.mod||{},totalB=(stv(c,k)||0)+b-p+(m.roll||0)+(m.stat?.[k]||0);
-  return '1d20'+(totalB?sg(totalB):'');
+function validWeaponFormula(value) {
+  return !!parseRollFormula(value);
 }
 
-const fxe=(c,k)=>{
-  const list=[];
-  const p=getFxVal(c,'poison');
-  if(p) list.push([`Poison (${p}x)`, -p]);
-  if(k=='SPD'&&c.fx?.slowdown) list.push(['Slowdown',-5]);
-  if(k=='STR'&&c.fx?.weak) list.push(['Weak',-5]);
-  if(k=='DEX'&&c.fx?.confused) list.push(['Confused',-5]);
-  if(c.fx?.hemorrhage && (k=='STR'||k=='DEX'||k=='SPD'||k=='CON')) list.push(['Hemorrhage (Physical)',-10]);
+function rf(c, k) {
+  if (c.ro?.[k]) return c.ro[k]; // rolagem manual
+  const b = c.fx?.lockedin ? 5 : 0,
+    p = getFxVal(c, "poison"),
+    m = c.mod || {},
+    totalB = (stv(c, k) || 0) + b - p + (m.roll || 0) + (m.stat?.[k] || 0);
+  return "1d20" + (totalB ? sg(totalB) : "");
+}
+
+const fxe = (c, k) => {
+  const list = [];
+  const p = getFxVal(c, "poison");
+  if (p) list.push([`Poison (${p}x)`, -p]);
+  if (k == "SPD" && c.fx?.slowdown) list.push(["Slowdown", -5]);
+  if (k == "STR" && c.fx?.weak) list.push(["Weak", -5]);
+  if (k == "DEX" && c.fx?.confused) list.push(["Confused", -5]);
+  if (c.fx?.hemorrhage && (k == "STR" || k == "DEX" || k == "SPD" || k == "CON"))
+    list.push(["Hemorrhage (Physical)", -10]);
   return list;
 };
 
-const fxc=c=>FX.filter(([k])=>getFxVal(c,k)>0).map(([k,n,abbr,i,d,hasStk])=>{
-  const v=getFxVal(c,k);
-  const label=hasStk?`${abbr.toUpperCase()} (${v})`:`${abbr.toUpperCase()}`;
-  return `<span class="chip" title="${esc(n)}: ${esc(d)}">${i} ${label}</span>`;
-}).join('');
+const fxc = (c) =>
+  FX.filter(([k]) => getFxVal(c, k) > 0)
+    .map(([k, n, abbr, i, d, hasStk]) => {
+      const v = getFxVal(c, k);
+      const label = hasStk ? `${abbr.toUpperCase()} (${v})` : `${abbr.toUpperCase()}`;
+      return `<span class="chip" title="${esc(n)}: ${esc(d)}">${i} ${label}</span>`;
+    })
+    .join("");
 
-const MANUAL_FX=FX.filter(([k])=>k!=='hemorrhage'&&k!=='combustion');
+const MANUAL_FX = FX.filter(([k]) => k !== "hemorrhage" && k !== "combustion");
 
-const fxv=c=>(admin?`<div class="fx-grid">${MANUAL_FX.map(([k,n,abbr,i,d,hasStk,maxStk])=>{
-  const v=getFxVal(c,k);
-  const active=v>0;
-  if(k==='bleeding'){
-    const isHmg=!!c.fx?.hemorrhage;
-    return `<div class="fx-card${isHmg||active?' active':''}"><div class="fx-head"><span>${i} ${isHmg?'Hemorrhage':n}</span><span class="o">${isHmg?'HMG':v>0?v:''}</span></div><div class="mt">${esc(isHmg?'Perde 20% do HP máx + penalidade física':d)}</div><div class="fx-controls"><button class="b s${isHmg||active?' on':''}" data-a="fx_set" data-k="bleeding" data-v="${isHmg||active?0:1}">${isHmg?'Clear':active?'Clear':'Apply'}</button>${!isHmg?`<button class="b s" data-a="fx_add" data-k="bleeding" data-d="-1" data-m="3">-</button><button class="b s" data-a="fx_add" data-k="bleeding" data-d="1" data-m="3">+</button>`:''}</div></div>`;
-  }
-  if(k==='fire'){
-    const isComb=getFxVal(c,'combustion')>0;
-    return `<div class="fx-card${isComb||active?' active':''}"><div class="fx-head"><span>${i} ${isComb?'Combustion':n}</span><span class="o">${isComb?`CST (${c.fx.combustion})`:v>0?v:''}</span></div><div class="mt">${esc(isComb?'12-20% de dano de HP por turno':d)}</div><div class="fx-controls"><button class="b s${isComb||active?' on':''}" data-a="fx_set" data-k="fire" data-v="${isComb||active?0:1}">${isComb?'Clear':active?'Clear':'Apply'}</button>${!isComb?`<button class="b s" data-a="fx_add" data-k="fire" data-d="-1" data-m="1">-</button><button class="b s" data-a="fx_add" data-k="fire" data-d="1" data-m="1">+</button>`:''}</div></div>`;
-  }
-  if(hasStk){
-    return `<div class="fx-card${active?' active':''}"><div class="fx-head"><span>${i} ${n}</span><span class="o">${v>0?v:''}</span></div><div class="mt">${esc(d)}</div><div class="fx-controls"><button class="b s${active?' on':''}" data-a="fx_set" data-k="${k}" data-v="${active?0:1}">${active?'Clear':'Apply'}</button>${active?`<button class="b s" data-a="fx_add" data-k="${k}" data-d="-1" data-m="${maxStk}">-</button><button class="b s" data-a="fx_add" data-k="${k}" data-d="1" data-m="${maxStk}">+</button>`:''}</div></div>`;
-  }
-  return `<div class="fx-card${active?' active':''}"><div class="fx-head"><span>${i} ${n}</span></div><div class="mt">${esc(d)}</div><div class="fx-controls"><button class="b s${active?' on':''}" data-a="fx_toggle" data-k="${k}">${active?'Active':'Toggle'}</button></div></div>`;
-}).join('')}</div>`:'')+(FX.filter(([k])=>getFxVal(c,k)>0).map(([k,n,abbr,i,d,hasStk])=>{
-  const v=getFxVal(c,k);
-  return `<div class="mt">${i} <b class="o">${n}${hasStk?` [x${v}]`:''}</b>: ${esc(d)}</div>`;
-}).join('')||(admin?'':no('No active status effects')));
+const fxv = (c) =>
+  (admin
+    ? `<div class="fx-grid">${MANUAL_FX.map(([k, n, abbr, i, d, hasStk, maxStk]) => {
+        const v = getFxVal(c, k);
+        const active = v > 0;
+        if (k === "bleeding") {
+          const isHmg = !!c.fx?.hemorrhage;
+          return `<div class="fx-card${isHmg || active ? " active" : ""}"><div class="fx-head"><span>${i} ${isHmg ? "Hemorrhage" : n}</span><span class="o">${isHmg ? "HMG" : v > 0 ? v : ""}</span></div><div class="mt">${esc(isHmg ? "Perde 20% do HP máx + penalidade física" : d)}</div><div class="fx-controls"><button class="b s${isHmg || active ? " on" : ""}" data-a="fx_set" data-k="bleeding" data-v="${isHmg || active ? 0 : 1}">${isHmg ? "Clear" : active ? "Clear" : "Apply"}</button>${!isHmg ? `<button class="b s" data-a="fx_add" data-k="bleeding" data-d="-1" data-m="3">-</button><button class="b s" data-a="fx_add" data-k="bleeding" data-d="1" data-m="3">+</button>` : ""}</div></div>`;
+        }
+        if (k === "fire") {
+          const isComb = getFxVal(c, "combustion") > 0;
+          return `<div class="fx-card${isComb || active ? " active" : ""}"><div class="fx-head"><span>${i} ${isComb ? "Combustion" : n}</span><span class="o">${isComb ? `CST (${c.fx.combustion})` : v > 0 ? v : ""}</span></div><div class="mt">${esc(isComb ? "12-20% de dano de HP por turno" : d)}</div><div class="fx-controls"><button class="b s${isComb || active ? " on" : ""}" data-a="fx_set" data-k="fire" data-v="${isComb || active ? 0 : 1}">${isComb ? "Clear" : active ? "Clear" : "Apply"}</button>${!isComb ? `<button class="b s" data-a="fx_add" data-k="fire" data-d="-1" data-m="1">-</button><button class="b s" data-a="fx_add" data-k="fire" data-d="1" data-m="1">+</button>` : ""}</div></div>`;
+        }
+        if (hasStk) {
+          return `<div class="fx-card${active ? " active" : ""}"><div class="fx-head"><span>${i} ${n}</span><span class="o">${v > 0 ? v : ""}</span></div><div class="mt">${esc(d)}</div><div class="fx-controls"><button class="b s${active ? " on" : ""}" data-a="fx_set" data-k="${k}" data-v="${active ? 0 : 1}">${active ? "Clear" : "Apply"}</button>${active ? `<button class="b s" data-a="fx_add" data-k="${k}" data-d="-1" data-m="${maxStk}">-</button><button class="b s" data-a="fx_add" data-k="${k}" data-d="1" data-m="${maxStk}">+</button>` : ""}</div></div>`;
+        }
+        return `<div class="fx-card${active ? " active" : ""}"><div class="fx-head"><span>${i} ${n}</span></div><div class="mt">${esc(d)}</div><div class="fx-controls"><button class="b s${active ? " on" : ""}" data-a="fx_toggle" data-k="${k}">${active ? "Active" : "Toggle"}</button></div></div>`;
+      }).join("")}</div>`
+    : "") +
+  (FX.filter(([k]) => getFxVal(c, k) > 0)
+    .map(([k, n, abbr, i, d, hasStk]) => {
+      const v = getFxVal(c, k);
+      return `<div class="mt">${i} <b class="o">${n}${hasStk ? ` [x${v}]` : ""}</b>: ${esc(d)}</div>`;
+    })
+    .join("") || (admin ? "" : no("No active status effects")));
 
-const hb=(c,w)=>{const charges=cl(Math.floor(num(w.charges??2)),1,4),charge=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,charges)),slots=charges-charge+1,idx=Array.from({length:slots},(_,i)=>w['attr'+(i+1)]).findIndex(x=>x=='hemotic_bypass'),v=idx<0?0:Math.floor(Math.max(...SK.map(s=>stv(c,s)))/(idx==0&&charge>1?2:4));return v?[['Hemotic Bypass',v]]:[]};
+const hb = (c, w) => {
+  const charges = cl(Math.floor(num(w.charges ?? 2)), 1, 4),
+    charge = cl(Math.floor(num(w.ch1 ?? 1)), 1, Math.min(2, charges)),
+    slots = charges - charge + 1,
+    idx = Array.from({ length: slots }, (_, i) => w["attr" + (i + 1)]).findIndex(
+      (x) => x == "hemotic_bypass",
+    ),
+    v =
+      idx < 0
+        ? 0
+        : Math.floor(Math.max(...SK.map((s) => stv(c, s))) / (idx == 0 && charge > 1 ? 2 : 4));
+  return v ? [["Hemotic Bypass", v]] : [];
+};
 
 /* Shared vitals controls. Players can edit only their assigned character; author can edit all. */
-function lostCanEditVitals(id){return !!lostUser&&(admin||!!assignedCharacterId&&assignedCharacterId===id)}
-function lostVitalsControls(c,compact=false){if((c.libraryId&&lostIsPrivateLibraryId(c.libraryId))||!lostCanEditVitals(c.id))return '';const groups=[['hp','HP'],['shield','SHIELD'],['san','SAN']];return `<div class="row" style="gap:3px;${compact?'margin-top:4px;':''}">${groups.map(([k,label])=>`<span class="mt" style="margin-left:3px">${label}</span><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="-1" title="${label} −1">−</button><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="1" title="${label} +1">+</button>`).join('')}</div>`}
+function lostCanEditVitals(id) {
+  return !!lostUser && (admin || (!!assignedCharacterId && assignedCharacterId === id));
+}
+function lostVitalsControls(c, compact = false) {
+  if ((c.libraryId && lostIsPrivateLibraryId(c.libraryId)) || !lostCanEditVitals(c.id)) return "";
+  const groups = [
+    ["hp", "HP"],
+    ["shield", "SHIELD"],
+    ["san", "SAN"],
+  ];
+  return `<div class="row" style="gap:3px;${compact ? "margin-top:4px;" : ""}">${groups.map(([k, label]) => `<span class="mt" style="margin-left:3px">${label}</span><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="-1" title="${label} −1">−</button><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="1" title="${label} +1">+</button>`).join("")}</div>`;
+}
 
 /* screens */
-const card=r=>{const c=A(r),where=r.libraryId?`<span class="chip">${esc(LIBS.find(x=>x.id==r.libraryId)?.name||'LIBRARY')}</span>`:'';return`<div class="w card${BT.on&&BT.order[BT.i]?.id==c.id?' now':''}" data-id="${c.id}"><div class="tb"><span class="row" style="gap:4px">${c.mirror?'DYAKIER / REIKYAD':esc(c.name.toUpperCase())}${sb(c)}</span><span class="row">${where}<span class="${c.fx?.shieldbreak?'grey chip':'o'}">${c.shield?'▽'+c.shield:''}</span><button class="b s" data-a="hidecard" data-i="${c.id}" title="Hide this card on this device only">HIDE</button></span></div><div class="pd cd"><div class="th">${im(c)}</div><div class="in"><div class="nm">${esc(c.name)}</div>${c.fx?.isBoss?`<span class="chip o">BOSS · ${c.libraryId?'BASE HP':`${bossSceneMultiplier()}× HP`}</span>`:''}${bar(...c.hp,'hp')}${bar(...c.san,'sn')}<span class="chip">REGEN ${c.regen}/TR</span>${typeof lostVitalsControls==='function'?lostVitalsControls(c,true):''}${fxc(c)}${c.last?`<div class="lb"><span>LAST</span><span>${esc(c.last)}</span></div>`:''}</div></div>${admin?`<div class="pd row" style="padding-top:0"><button class="b s${r.libraryId?' am':''}" data-a="${r.libraryId?'deploy':'store'}" data-i="${r.id}">${r.libraryId?'＋ ADD TO SCENE':'▣ HIDE TO LIBRARY'}</button></div>`:''}</div>`};
-function workspaceTools(){
-  const isLibraryScene=WORKSPACE==='library-scene'&&!!LIBS.find(x=>x.id===activeLibrary)&&(!libraryIsPrivate(activeLibrary)||admin);
-  const shown=isLibraryScene?libraryChars(activeLibrary):sceneChars();
-  const playerCharId=lostEffectiveCharacterId(),assigned=C?.find(x=>x.id===playerCharId),assignedName=assigned?A(assigned).name:'';
-  const hiddenCount=shown.filter(x=>hiddenSceneCharacterIds.has(x.id)).length;
-  const library=LIBS.find(x=>x.id===activeLibrary);
-  const sceneLabel=isLibraryScene?`LIBRARY SCENE · ${esc(library?.name||'Library')} · DISPLAY ONLY`:`${sceneChars().length}/9 characters currently active`;
-  return `<span class="mt">${sceneLabel}</span>${activeLibrary?`<button class="b s am" data-a="togglelibraryscene">${isLibraryScene?'HIDE LIBRARY SCENE':'OPEN LIBRARY AS SCENE'}</button>`:''}${isLibraryScene?'<button class="b s" data-a="workspace">RETURN TO MAIN SCENE</button>':''}${hiddenCount?`<button class="b s am" data-a="showhidden">SHOW HIDDEN (${hiddenCount})</button>`:''}${!isLibraryScene&&!admin&&playerCharId?(assigned?`<span class="chip o">${assignedCharacterId?'LOCKED TO':'DEFAULT CHARACTER'} · ${esc(assignedName)}</span><button class="b s am" data-a="mycharacter">OPEN MY CHARACTER</button>`:'<span class="chip pz">DEFAULT / ASSIGNED CHARACTER NOT FOUND</span>'):''}${!isLibraryScene&&!admin&&!assignedCharacterId&&!playerCharId?'<span class="chip pz">NO DEFAULT CHARACTER · ASK THE AUTHOR TO ADD A CHARACTER NAMED DUMMY</span>':''}${!isLibraryScene&&admin?'<button class="b s am" data-a="new">+ NEW CHARACTER</button>':''}`;
+const card = (r) => {
+  const c = A(r),
+    where = r.libraryId
+      ? `<span class="chip">${esc(LIBS.find((x) => x.id == r.libraryId)?.name || "LIBRARY")}</span>`
+      : "";
+  return `<div class="w card${BT.on && BT.order[BT.i]?.id == c.id ? " now" : ""}" data-id="${c.id}"><div class="tb"><span class="row" style="gap:4px">${c.mirror ? "DYAKIER / REIKYAD" : esc(c.name.toUpperCase())}${sb(c)}</span><span class="row">${where}<span class="${c.fx?.shieldbreak ? "grey chip" : "o"}">${c.shield ? "▽" + c.shield : ""}</span><button class="b s" data-a="hidecard" data-i="${c.id}" title="Hide this card on this device only">HIDE</button></span></div><div class="pd cd"><div class="th">${im(c)}</div><div class="in"><div class="nm">${esc(c.name)}</div>${c.fx?.isBoss ? `<span class="chip o">BOSS · ${c.libraryId ? "BASE HP" : `${bossSceneMultiplier()}× HP`}</span>` : ""}${bar(...c.hp, "hp")}${bar(...c.san, "sn")}<span class="chip">REGEN ${c.regen}/TR</span>${typeof lostVitalsControls === "function" ? lostVitalsControls(c, true) : ""}${fxc(c)}${c.last ? `<div class="lb"><span>LAST</span><span>${esc(c.last)}</span></div>` : ""}</div></div>${admin ? `<div class="pd row" style="padding-top:0"><button class="b s${r.libraryId ? " am" : ""}" data-a="${r.libraryId ? "deploy" : "store"}" data-i="${r.id}">${r.libraryId ? "＋ ADD TO SCENE" : "▣ HIDE TO LIBRARY"}</button></div>` : ""}</div>`;
+};
+function workspaceTools() {
+  const isLibraryScene =
+    WORKSPACE === "library-scene" &&
+    !!LIBS.find((x) => x.id === activeLibrary) &&
+    (!libraryIsPrivate(activeLibrary) || admin);
+  const shown = isLibraryScene ? libraryChars(activeLibrary) : sceneChars();
+  const playerCharId = lostEffectiveCharacterId(),
+    assigned = C?.find((x) => x.id === playerCharId),
+    assignedName = assigned ? A(assigned).name : "";
+  const hiddenCount = shown.filter((x) => hiddenSceneCharacterIds.has(x.id)).length;
+  const library = LIBS.find((x) => x.id === activeLibrary);
+  const sceneLabel = isLibraryScene
+    ? `LIBRARY SCENE · ${esc(library?.name || "Library")} · DISPLAY ONLY`
+    : `${sceneChars().length}/9 characters currently active`;
+  return `<span class="mt">${sceneLabel}</span>${activeLibrary ? `<button class="b s am" data-a="togglelibraryscene">${isLibraryScene ? "HIDE LIBRARY SCENE" : "OPEN LIBRARY AS SCENE"}</button>` : ""}${isLibraryScene ? '<button class="b s" data-a="workspace">RETURN TO MAIN SCENE</button>' : ""}${hiddenCount ? `<button class="b s am" data-a="showhidden">SHOW HIDDEN (${hiddenCount})</button>` : ""}${!isLibraryScene && !admin && playerCharId ? (assigned ? `<span class="chip o">${assignedCharacterId ? "LOCKED TO" : "DEFAULT CHARACTER"} · ${esc(assignedName)}</span><button class="b s am" data-a="mycharacter">OPEN MY CHARACTER</button>` : '<span class="chip pz">DEFAULT / ASSIGNED CHARACTER NOT FOUND</span>') : ""}${!isLibraryScene && !admin && !assignedCharacterId && !playerCharId ? '<span class="chip pz">NO DEFAULT CHARACTER · ASK THE AUTHOR TO ADD A CHARACTER NAMED DUMMY</span>' : ""}${!isLibraryScene && admin ? '<button class="b s am" data-a="new">+ NEW CHARACTER</button>' : ""}`;
 }
-function libraryIsPrivate(id){return lostIsPrivateLibraryId(id)}
-function renderSidebars(){
-  const ec=$('#enemy-content');
-  $('#enemyCount').textContent=String(EN.length);
-  ec.innerHTML=(admin?'<div class="side-tools"><button class="b s am" data-a="enadd">+ ENEMY</button><button class="b s" data-a="roll">⚄ INITIATIVE</button></div>':'')+
-    (EN.map((e,i)=>`<div class="side-enemy"><div class="side-enemy-head"><b>☠ ${esc(e.n||'Enemy '+(i+1))}</b>${admin?`<button class="b s rd" data-a="endel" data-i="${i}">✕</button>`:'<span class="chip">ENEMY</span>'}</div>
-    <label>INITIATIVE</label>${admin?`<input data-en="${i}" data-k="f" value="${esc(e.f||'1d20')}" placeholder="1d20+3">`:`<div class="mt">${esc(e.f||'1d20')}</div>`}
-    <label>HP</label>${admin?`<div class="row"><input type="number" data-en="${i}" data-k="hp" value="${num(e.hp)}" title="Current HP"><span>/</span><input type="number" data-en="${i}" data-k="hpMax" value="${num(e.hpMax)}" title="Maximum HP"></div>`:`<div class="mt">${num(e.hp)}/${num(e.hpMax)} HP</div>`}
-    ${admin?`<label>DESCRIPTION / NOTES</label><textarea data-en="${i}" data-k="d" rows="2">${esc(e.d||'')}</textarea>`:e.d?`<div class="mt" style="margin-top:5px">${esc(e.d)}</div>`:''}</div>`).join('')||'<div class="side-empty">No enemies added yet.</div>');
-  const lc=$('#library-content');
-  const visibleLibraries=admin?LIBS:LIBS.filter(x=>!x.private);
-  if(!visibleLibraries.some(x=>x.id===activeLibrary))activeLibrary=visibleLibraries.find(x=>x.id==='main-party')?.id||visibleLibraries[0]?.id||'';
-  $('#libraryCount').textContent=`${visibleLibraries.length} librar${visibleLibraries.length===1?'y':'ies'}`;
-  const pick=visibleLibraries.length?`<select id="libraryPick">${opts(visibleLibraries.map(x=>[x.id,(x.private?'🔒 ':'')+x.name]),activeLibrary)}</select>`:'<div class="side-empty">No public character libraries.</div>';
-  const sortControl=activeLibrary?`<label class="mt" for="librarySort">SORT CHARACTERS</label><select id="librarySort">${opts([['name-asc','NAME · A TO Z'],['name-desc','NAME · Z TO A'],['hp-desc','HIGHEST HP'],['hp-asc','LOWEST HP'],['manual','MANUAL ORDER']],librarySort)}</select>`:'';
-  const activeLib=LIBS.find(x=>x.id===activeLibrary);
-  const controls=admin?`<div class="side-tools"><button class="b s am" data-a="newlib">+ LIBRARY</button>${activeLibrary?`<button class="b s" data-a="renamelib">RENAME</button><button class="b s" data-a="togglelibprivacy">${activeLib?.private?'MAKE PUBLIC':'MAKE PRIVATE'}</button><button class="b s rd" data-a="deletelib">DELETE</button><button class="b s am" data-a="newlibchar">+ CHARACTER</button>`:''}</div>`:'';
-  const sortedEntries=activeLibrary?libraryChars().slice().sort((ra,rb)=>{const a=A(ra),b=A(rb);if(librarySort==='name-desc')return String(b.name||'').localeCompare(String(a.name||''));if(librarySort==='hp-desc')return num(b.hp?.[1])-num(a.hp?.[1])||String(a.name||'').localeCompare(String(b.name||''));if(librarySort==='hp-asc')return num(a.hp?.[1])-num(b.hp?.[1])||String(a.name||'').localeCompare(String(b.name||''));if(librarySort==='manual')return num(ra.order)-num(rb.order);return String(a.name||'').localeCompare(String(b.name||''))}):[];
-  const entries=activeLibrary?sortedEntries.map(r=>{const c=A(r),status=libraryIsPrivate(activeLibrary)?'<span class="chip pz">PRIVATE</span>':'<span class="chip">OPEN CHARACTER</span>';return `<div class="library-entry" data-open-libchar="${esc(r.id)}" role="button" tabindex="0" aria-label="Open ${esc(c.name||'character')}"><div class="library-entry-head"><b>${esc(c.name||'Unnamed character')}</b>${status}</div><div class="mt">${c.mirror?'Dyakier / Reikyad':`HP ${c.hp?.[0]??0}/${c.hp?.[1]??0}`}</div>${admin?`<div class="row" style="gap:4px"><button class="b s" data-a="editlibchar" data-i="${r.id}">✎ EDIT</button><button class="b s am" data-a="deploy" data-i="${r.id}">＋ ADD TO SCENE</button></div>`:''}</div>`}).join(''):'<div class="side-empty">Select or create a library.</div>';
-  const privacyNote=admin&&activeLib?.private?'<div class="player-lock-hint">PRIVATE LIBRARY · kept in this author browser and excluded from the shared player campaign.</div>':'';
-  lc.innerHTML=pick+sortControl+controls+privacyNote+entries;
+function libraryIsPrivate(id) {
+  return lostIsPrivateLibraryId(id);
 }
-function enemyCard(e,i){return `<div class="w enemy-card"><div class="tb"><b>☠ ${esc(e.n||'Enemy '+(i+1))}</b><span class="row"><span class="chip">ENEMY</span>${admin?`<button class="b s rd" data-a="endel" data-i="${i}">✕ DELETE</button>`:''}</span></div><div class="pd"><div class="r3"><div><label>NAME</label>${admin?`<input data-en="${i}" data-k="n" value="${esc(e.n||'')}" placeholder="Enemy name">`:`<b>${esc(e.n||'Enemy')}</b>`}</div><div><label>INITIATIVE DICE</label>${admin?`<input data-en="${i}" data-k="f" value="${esc(e.f||'1d20')}" placeholder="1d20+3">`:`<b>${esc(e.f||'1d20')}</b>`}</div><div><label>HP</label>${admin?`<div class="row"><input type="number" data-en="${i}" data-k="hp" value="${num(e.hp)}" title="Current HP" style="min-width:0"><span>/</span><input type="number" data-en="${i}" data-k="hpMax" value="${num(e.hpMax)}" title="Maximum HP" style="min-width:0"></div>`:`<b>${num(e.hp)}/${num(e.hpMax)} HP</b>`}</div></div><div><label>DESCRIPTION / NOTES</label>${admin?`<textarea data-en="${i}" data-k="d" rows="2" placeholder="Enemy details…">${esc(e.d||'')}</textarea>`:`<div class="mt">${esc(e.d||'—')}</div>`}</div></div></div>`}
-function normalizeEnemies(list){return (Array.isArray(list)?list:[]).map((e,i)=>{if(typeof e==='string')e={n:e};e=e&&typeof e==='object'?e:{};return{id:e.id||'enemy-'+(i+1),n:e.n||'Enemy '+(i+1),f:e.f||'1d20',hp:e.hp??100,hpMax:e.hpMax??e.hp??100,d:e.d||''}})}
-function renderPublicInitiative(){
-  const el=$('#shared-initiative');
-  if(!el)return;
-  const order=Array.isArray(BT?.order)?BT.order:[];
-  if(!order.length){el.innerHTML='';el.classList.add('hid');return}
-  const current=BT.on?order[BT.i]:null;
-  const rows=order.map((o,i)=>{
-    const dice=Array.isArray(o.d)?o.d.map(v=>Number(v)||0):[];
-    const bonus=Number(o.b)||0;
-    const active=!!BT.on&&i===Number(BT.i);
-    return `<div class="ini${active?' now':''}"><b>${Number(o.t)||0}</b><span>${active?'► ':''}${i+1}. ${esc(o.n||'Combatant')}${o.id?(o.p?' <small>(acts first)</small>':''):' <small>(enemy)</small>'}</span><small>${dice.length?'['+dice.join('+')+']':''}${bonus?sg(bonus):''}</small></div>`;
-  }).join('');
-  el.innerHTML=`<div class="tb"><span>⚔︎ SHARED INITIATIVE</span><span class="chip">${BT.on?`ROUND ${Number(BT.round)||1}`:'ROLL COMPLETE'}</span></div><div class="pd"><div class="mt">${BT.on?`Current turn: <b>${esc(current?.n||'—')}</b> · Turn ${Number(BT.i)+1}/${order.length}`:'Latest initiative results · visible to all players'}</div><h3>INITIATIVE ORDER</h3>${rows}</div>`;
-  el.classList.remove('hid');
+function renderSidebars() {
+  const ec = $("#enemy-content");
+  $("#enemyCount").textContent = String(EN.length);
+  ec.innerHTML =
+    (admin
+      ? '<div class="side-tools"><button class="b s am" data-a="enadd">+ ENEMY</button><button class="b s" data-a="roll">⚄ INITIATIVE</button></div>'
+      : "") +
+    (EN.map(
+      (
+        e,
+        i,
+      ) => `<div class="side-enemy"><div class="side-enemy-head"><b>☠ ${esc(e.n || "Enemy " + (i + 1))}</b>${admin ? `<button class="b s rd" data-a="endel" data-i="${i}">✕</button>` : '<span class="chip">ENEMY</span>'}</div>
+    <label>INITIATIVE</label>${admin ? `<input data-en="${i}" data-k="f" value="${esc(e.f || "1d20")}" placeholder="1d20+3">` : `<div class="mt">${esc(e.f || "1d20")}</div>`}
+    <label>HP</label>${admin ? `<div class="row"><input type="number" data-en="${i}" data-k="hp" value="${num(e.hp)}" title="Current HP"><span>/</span><input type="number" data-en="${i}" data-k="hpMax" value="${num(e.hpMax)}" title="Maximum HP"></div>` : `<div class="mt">${num(e.hp)}/${num(e.hpMax)} HP</div>`}
+    ${admin ? `<label>DESCRIPTION / NOTES</label><textarea data-en="${i}" data-k="d" rows="2">${esc(e.d || "")}</textarea>` : e.d ? `<div class="mt" style="margin-top:5px">${esc(e.d)}</div>` : ""}</div>`,
+    ).join("") || '<div class="side-empty">No enemies added yet.</div>');
+  const lc = $("#library-content");
+  const visibleLibraries = admin ? LIBS : LIBS.filter((x) => !x.private);
+  if (!visibleLibraries.some((x) => x.id === activeLibrary))
+    activeLibrary =
+      visibleLibraries.find((x) => x.id === "main-party")?.id || visibleLibraries[0]?.id || "";
+  $("#libraryCount").textContent =
+    `${visibleLibraries.length} librar${visibleLibraries.length === 1 ? "y" : "ies"}`;
+  const pick = visibleLibraries.length
+    ? `<select id="libraryPick">${opts(
+        visibleLibraries.map((x) => [x.id, (x.private ? "🔒 " : "") + x.name]),
+        activeLibrary,
+      )}</select>`
+    : '<div class="side-empty">No public character libraries.</div>';
+  const sortControl = activeLibrary
+    ? `<label class="mt" for="librarySort">SORT CHARACTERS</label><select id="librarySort">${opts(
+        [
+          ["name-asc", "NAME · A TO Z"],
+          ["name-desc", "NAME · Z TO A"],
+          ["hp-desc", "HIGHEST HP"],
+          ["hp-asc", "LOWEST HP"],
+          ["manual", "MANUAL ORDER"],
+        ],
+        librarySort,
+      )}</select>`
+    : "";
+  const activeLib = LIBS.find((x) => x.id === activeLibrary);
+  const controls = admin
+    ? `<div class="side-tools"><button class="b s am" data-a="newlib">+ LIBRARY</button>${activeLibrary ? `<button class="b s" data-a="renamelib">RENAME</button><button class="b s" data-a="togglelibprivacy">${activeLib?.private ? "MAKE PUBLIC" : "MAKE PRIVATE"}</button><button class="b s rd" data-a="deletelib">DELETE</button><button class="b s am" data-a="newlibchar">+ CHARACTER</button>` : ""}</div>`
+    : "";
+  const sortedEntries = activeLibrary
+    ? libraryChars()
+        .slice()
+        .sort((ra, rb) => {
+          const a = A(ra),
+            b = A(rb);
+          if (librarySort === "name-desc")
+            return String(b.name || "").localeCompare(String(a.name || ""));
+          if (librarySort === "hp-desc")
+            return (
+              num(b.hp?.[1]) - num(a.hp?.[1]) ||
+              String(a.name || "").localeCompare(String(b.name || ""))
+            );
+          if (librarySort === "hp-asc")
+            return (
+              num(a.hp?.[1]) - num(b.hp?.[1]) ||
+              String(a.name || "").localeCompare(String(b.name || ""))
+            );
+          if (librarySort === "manual") return num(ra.order) - num(rb.order);
+          return String(a.name || "").localeCompare(String(b.name || ""));
+        })
+    : [];
+  const entries = activeLibrary
+    ? sortedEntries
+        .map((r) => {
+          const c = A(r),
+            status = libraryIsPrivate(activeLibrary)
+              ? '<span class="chip pz">PRIVATE</span>'
+              : '<span class="chip">OPEN CHARACTER</span>';
+          return `<div class="library-entry" data-open-libchar="${esc(r.id)}" role="button" tabindex="0" aria-label="Open ${esc(c.name || "character")}"><div class="library-entry-head"><b>${esc(c.name || "Unnamed character")}</b>${status}</div><div class="mt">${c.mirror ? "Dyakier / Reikyad" : `HP ${c.hp?.[0] ?? 0}/${c.hp?.[1] ?? 0}`}</div>${admin ? `<div class="row" style="gap:4px"><button class="b s" data-a="editlibchar" data-i="${r.id}">✎ EDIT</button><button class="b s am" data-a="deploy" data-i="${r.id}">＋ ADD TO SCENE</button></div>` : ""}</div>`;
+        })
+        .join("")
+    : '<div class="side-empty">Select or create a library.</div>';
+  const privacyNote =
+    admin && activeLib?.private
+      ? '<div class="player-lock-hint">PRIVATE LIBRARY · kept in this author browser and excluded from the shared player campaign.</div>'
+      : "";
+  lc.innerHTML = pick + sortControl + controls + privacyNote + entries;
+}
+function enemyCard(e, i) {
+  return `<div class="w enemy-card"><div class="tb"><b>☠ ${esc(e.n || "Enemy " + (i + 1))}</b><span class="row"><span class="chip">ENEMY</span>${admin ? `<button class="b s rd" data-a="endel" data-i="${i}">✕ DELETE</button>` : ""}</span></div><div class="pd"><div class="r3"><div><label>NAME</label>${admin ? `<input data-en="${i}" data-k="n" value="${esc(e.n || "")}" placeholder="Enemy name">` : `<b>${esc(e.n || "Enemy")}</b>`}</div><div><label>INITIATIVE DICE</label>${admin ? `<input data-en="${i}" data-k="f" value="${esc(e.f || "1d20")}" placeholder="1d20+3">` : `<b>${esc(e.f || "1d20")}</b>`}</div><div><label>HP</label>${admin ? `<div class="row"><input type="number" data-en="${i}" data-k="hp" value="${num(e.hp)}" title="Current HP" style="min-width:0"><span>/</span><input type="number" data-en="${i}" data-k="hpMax" value="${num(e.hpMax)}" title="Maximum HP" style="min-width:0"></div>` : `<b>${num(e.hp)}/${num(e.hpMax)} HP</b>`}</div></div><div><label>DESCRIPTION / NOTES</label>${admin ? `<textarea data-en="${i}" data-k="d" rows="2" placeholder="Enemy details…">${esc(e.d || "")}</textarea>` : `<div class="mt">${esc(e.d || "—")}</div>`}</div></div></div>`;
+}
+function normalizeEnemies(list) {
+  return (Array.isArray(list) ? list : []).map((e, i) => {
+    if (typeof e === "string") e = { n: e };
+    e = e && typeof e === "object" ? e : {};
+    return {
+      id: e.id || "enemy-" + (i + 1),
+      n: e.n || "Enemy " + (i + 1),
+      f: e.f || "1d20",
+      hp: e.hp ?? 100,
+      hpMax: e.hpMax ?? e.hp ?? 100,
+      d: e.d || "",
+    };
+  });
+}
+function renderPublicInitiative() {
+  const el = $("#shared-initiative");
+  if (!el) return;
+  const order = Array.isArray(BT?.order) ? BT.order : [];
+  if (!order.length) {
+    el.innerHTML = "";
+    el.classList.add("hid");
+    return;
+  }
+  const current = BT.on ? order[BT.i] : null;
+  const rows = order
+    .map((o, i) => {
+      const dice = Array.isArray(o.d) ? o.d.map((v) => Number(v) || 0) : [];
+      const bonus = Number(o.b) || 0;
+      const active = !!BT.on && i === Number(BT.i);
+      return `<div class="ini${active ? " now" : ""}"><b>${Number(o.t) || 0}</b><span>${active ? "► " : ""}${i + 1}. ${esc(o.n || "Combatant")}${o.id ? (o.p ? " <small>(acts first)</small>" : "") : " <small>(enemy)</small>"}</span><small>${dice.length ? "[" + dice.join("+") + "]" : ""}${bonus ? sg(bonus) : ""}</small></div>`;
+    })
+    .join("");
+  el.innerHTML = `<div class="tb"><span>⚔︎ SHARED INITIATIVE</span><span class="chip">${BT.on ? `ROUND ${Number(BT.round) || 1}` : "ROLL COMPLETE"}</span></div><div class="pd"><div class="mt">${BT.on ? `Current turn: <b>${esc(current?.n || "—")}</b> · Turn ${Number(BT.i) + 1}/${order.length}` : "Latest initiative results · visible to all players"}</div><h3>INITIATIVE ORDER</h3>${rows}</div>`;
+  el.classList.remove("hid");
 }
 
-function render(){
-  sel=C.find(x=>x.id==lostHashId())?.id;
-  C.sort((a,b)=>(a.order||0)-(b.order||0));
-  document.body.classList.toggle('in-battle',!!BT.on);
-  const rdBadge=$('#rd-badge');
-  const hasInitiative=Array.isArray(BT.order)&&BT.order.length>0;
-  rdBadge.classList.toggle('hid',!BT.on&&!hasInitiative);
-  rdBadge.querySelector('span:first-child').textContent=BT.on?'ROUND':'INIT';
-  $('#rd-num').textContent=BT.on?BT.round:(BT.order?.length||0);
+function render() {
+  sel = C.find((x) => x.id == lostHashId())?.id;
+  C.sort((a, b) => (a.order || 0) - (b.order || 0));
+  document.body.classList.toggle("in-battle", !!BT.on);
+  const rdBadge = $("#rd-badge");
+  const hasInitiative = Array.isArray(BT.order) && BT.order.length > 0;
+  rdBadge.classList.toggle("hid", !BT.on && !hasInitiative);
+  rdBadge.querySelector("span:first-child").textContent = BT.on ? "ROUND" : "INIT";
+  $("#rd-num").textContent = BT.on ? BT.round : BT.order?.length || 0;
   renderSidebars();
-  const libraryScene=WORKSPACE==='library-scene'&&!!LIBS.find(x=>x.id===activeLibrary)&&(!libraryIsPrivate(activeLibrary)||admin);
-  const displayChars=libraryScene?libraryChars(activeLibrary):sceneChars();
-  $('#workspace-title').textContent=libraryScene?`▤ LIBRARY SCENE · ${LIBS.find(x=>x.id===activeLibrary)?.name||'Library'}`:'▦ MAIN SCENE';
-  $('#workspaceCount').textContent=libraryScene?`${displayChars.length} display characters · not in combat`:`${sceneChars().length} active characters`;
-  $('#workspace-tools').innerHTML=workspaceTools();
+  const libraryScene =
+    WORKSPACE === "library-scene" &&
+    !!LIBS.find((x) => x.id === activeLibrary) &&
+    (!libraryIsPrivate(activeLibrary) || admin);
+  const displayChars = libraryScene ? libraryChars(activeLibrary) : sceneChars();
+  $("#workspace-title").textContent = libraryScene
+    ? `▤ LIBRARY SCENE · ${LIBS.find((x) => x.id === activeLibrary)?.name || "Library"}`
+    : "▦ MAIN SCENE";
+  $("#workspaceCount").textContent = libraryScene
+    ? `${displayChars.length} display characters · not in combat`
+    : `${sceneChars().length} active characters`;
+  $("#workspace-tools").innerHTML = workspaceTools();
   renderPublicInitiative();
-  const allScene=displayChars,list=allScene.filter(r=>!hiddenSceneCharacterIds.has(r.id));
-  const emptyText=libraryScene?'This library scene is empty. Add characters using the library panel.':'The main scene is empty. Add a character from the Main Party library on the right.';
-  $('#g').innerHTML=list.map(card).join('')+(!libraryScene&&admin&&list.length<9?'<div class="w card add" data-new="1">+ NEW CHARACTER</div>':'')||(allScene.length&&hiddenSceneCharacterIds.size?'<div class="w pd"><div class="mt">All character cards in this view are hidden on this device. Use SHOW HIDDEN to restore them.</div></div>':`<div class="w pd"><div class="mt">${emptyText}</div></div>`);
-  const w=$('#who2');w.innerHTML=opts(sceneChars().map(r=>[r.id,A(r).name]),w.value);
-  document.body.classList.toggle('full',!!sel||!!ed);
-  bchip();ovUI();
-  if(!ed)sel?view(cur()):$('#v').classList.add('hid');
+  const allScene = displayChars,
+    list = allScene.filter((r) => !hiddenSceneCharacterIds.has(r.id));
+  const emptyText = libraryScene
+    ? "This library scene is empty. Add characters using the library panel."
+    : "The main scene is empty. Add a character from the Main Party library on the right.";
+  $("#g").innerHTML =
+    list.map(card).join("") +
+      (!libraryScene && admin && list.length < 9
+        ? '<div class="w card add" data-new="1">+ NEW CHARACTER</div>'
+        : "") ||
+    (allScene.length && hiddenSceneCharacterIds.size
+      ? '<div class="w pd"><div class="mt">All character cards in this view are hidden on this device. Use SHOW HIDDEN to restore them.</div></div>'
+      : `<div class="w pd"><div class="mt">${emptyText}</div></div>`);
+  const w = $("#who2");
+  w.innerHTML = opts(
+    sceneChars().map((r) => [r.id, A(r).name]),
+    w.value,
+  );
+  document.body.classList.toggle("full", !!sel || !!ed);
+  bchip();
+  ovUI();
+  if (!ed) sel ? view(cur()) : $("#v").classList.add("hid");
 }
-function wc(c,w,i,canRoll=true){
-  const cfg=weaponConfig(w),o=cfg.base,ti=cfg.ti,name=cfg.name,f=cfg.damageFormula,hitStat=cfg.hitStat,
-    preview=f?R(f):null,charges=cl(Math.floor(num(w.charges??2)),1,4),charge=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,charges)),slots=charges-charge+1,
-    at=(id,n,l)=>{const a=EA.find(x=>x.id==id);return a?`<div class="at"><b>${l}: ${esc(a.n)} (${esc(a.e)}) [Charge ${n}/2]</b><div>${esc(a.d[n-1])}</div></div>`:''},
-    attrs=Array.from({length:slots},(_,j)=>{const n=j+1;return`<div class="row" style="margin-top:2px"><select data-f="attr${n}" data-i="${i}" style="flex:1"><option value="">— ATTRIBUTE ${n} —</option>${opts(EL,w['attr'+n])}</select>${n==1?`<select data-f="ch1" data-i="${i}" style="width:80px">${opts(charges>=2?[[1,'Charge 1'],[2,'Charge 2']]:[[1,'Charge 1']],charge)}</select>`:''}</div>`}).join(''),
-    statOptions=[['','DEFAULT / NONE'],...SK.map(k=>[k,k])];
-  return `<div class="wb"><div class="row sp"><b class="o">WEAPON ${i+1}</b><span class="row">${cfg.hasWeapon?`<span class="chip">${charges} CHARGES</span>${canRoll?`<button class="b s" data-a="rw" data-i="${i}" data-m="a">◎ HIT (${esc(hitStat)})</button>${f&&preview?`<button class="b s rd" data-a="rw" data-i="${i}" data-m="d">✸ DAMAGE ${esc(f)} (${preview.lo}–${preview.hi})</button>`:f?'<span class="pz">INVALID DAMAGE FORMULA</span>':''}`:''}`:''}${admin&&c.weapons.length>1?`<button class="b s rd" data-a="delw" data-i="${i}">✕</button>`:''}</span></div>
-${admin?`<div class="row"><select data-f="name" data-i="${i}" style="flex:1"><option value="">— BASE WEAPON / TEMPLATE —</option>${WP.map(([n,l])=>`<optgroup label="${n}">${opts(l.map(x=>[x.n,`${x.n} (${x.s})`]),w.name)}</optgroup>`).join('')}</select><select data-f="tier" data-i="${i}" style="width:110px">${opts(TI.map((t,j)=>[t,TN[j]]),w.tier)}</select><span class="mt">CHARGES</span><input type="number" min="1" max="4" step="1" data-f="charges" data-i="${i}" value="${charges}" title="Weapon charge capacity (1–4)" style="width:48px"></div>
-<div class="row"><input data-f="customName" data-i="${i}" value="${esc(w.customName||'')}" placeholder="Custom display name (optional)" style="flex:1"></div>
+function wc(c, w, i, canRoll = true) {
+  const cfg = weaponConfig(w),
+    o = cfg.base,
+    ti = cfg.ti,
+    name = cfg.name,
+    f = cfg.damageFormula,
+    hitStat = cfg.hitStat,
+    preview = f ? R(f) : null,
+    charges = cl(Math.floor(num(w.charges ?? 2)), 1, 4),
+    charge = cl(Math.floor(num(w.ch1 ?? 1)), 1, Math.min(2, charges)),
+    slots = charges - charge + 1,
+    at = (id, n, l) => {
+      const a = EA.find((x) => x.id == id);
+      return a
+        ? `<div class="at"><b>${l}: ${esc(a.n)} (${esc(a.e)}) [Charge ${n}/2]</b><div>${esc(a.d[n - 1])}</div></div>`
+        : "";
+    },
+    attrs = Array.from({ length: slots }, (_, j) => {
+      const n = j + 1;
+      return `<div class="row" style="margin-top:2px"><select data-f="attr${n}" data-i="${i}" style="flex:1"><option value="">— ATTRIBUTE ${n} —</option>${opts(EL, w["attr" + n])}</select>${
+        n == 1
+          ? `<select data-f="ch1" data-i="${i}" style="width:80px">${opts(
+              charges >= 2
+                ? [
+                    [1, "Charge 1"],
+                    [2, "Charge 2"],
+                  ]
+                : [[1, "Charge 1"]],
+              charge,
+            )}</select>`
+          : ""
+      }</div>`;
+    }).join(""),
+    statOptions = [["", "DEFAULT / NONE"], ...SK.map((k) => [k, k])];
+  return `<div class="wb"><div class="row sp"><b class="o">WEAPON ${i + 1}</b><span class="row">${cfg.hasWeapon ? `<span class="chip">${charges} CHARGES</span>${canRoll ? `<button class="b s" data-a="rw" data-i="${i}" data-m="a">◎ HIT (${esc(hitStat)})</button>${f && preview ? `<button class="b s rd" data-a="rw" data-i="${i}" data-m="d">✸ DAMAGE ${esc(f)} (${preview.lo}–${preview.hi})</button>` : f ? '<span class="pz">INVALID DAMAGE FORMULA</span>' : ""}` : ""}` : ""}${admin && c.weapons.length > 1 ? `<button class="b s rd" data-a="delw" data-i="${i}">✕</button>` : ""}</span></div>
+${
+  admin
+    ? `<div class="row"><select data-f="name" data-i="${i}" style="flex:1"><option value="">— BASE WEAPON / TEMPLATE —</option>${WP.map(
+        ([n, l]) =>
+          `<optgroup label="${n}">${opts(
+            l.map((x) => [x.n, `${x.n} (${x.s})`]),
+            w.name,
+          )}</optgroup>`,
+      ).join("")}</select><select data-f="tier" data-i="${i}" style="width:110px">${opts(
+        TI.map((t, j) => [t, TN[j]]),
+        w.tier,
+      )}</select><span class="mt">CHARGES</span><input type="number" min="1" max="4" step="1" data-f="charges" data-i="${i}" value="${charges}" title="Weapon charge capacity (1–4)" style="width:48px"></div>
+<div class="row"><input data-f="customName" data-i="${i}" value="${esc(w.customName || "")}" placeholder="Custom display name (optional)" style="flex:1"></div>
 <details class="weapon-advanced" style="margin-top:5px"><summary class="b s" style="display:inline-block;cursor:pointer">⚙ ADVANCED WEAPON CUSTOMIZATION</summary><div class="ab" style="margin-top:6px">
-  <div class="r3"><div><label>HIT ROLL STAT</label><select data-f="hitStat" data-i="${i}">${opts([['','DEFAULT'],...SK.map(k=>[k,k])],w.hitStat||'')}</select></div><div><label>DAMAGE STAT</label><select data-f="damageStat" data-i="${i}">${opts(statOptions,w.damageStat||'')}</select></div><div><label>HIT BONUS</label><input type="number" data-f="hitBonus" data-i="${i}" value="${num(w.hitBonus)}"></div></div>
-  <label>HIT FORMULA OVERRIDE <span class="mt">(blank = 1d20 using hit stat)</span></label><input data-f="hitFormula" data-i="${i}" value="${esc(w.hitFormula||'')}" placeholder="e.g. 2d20+4">
-  <label>DAMAGE FORMULA OVERRIDE <span class="mt">(blank = selected tier formula)</span></label><input data-f="damageFormula" data-i="${i}" value="${esc(w.damageFormula||'')}" placeholder="e.g. 3d8+12">
-  <div class="r3"><div><label>DAMAGE BONUS</label><input type="number" data-f="damageBonus" data-i="${i}" value="${num(w.damageBonus)}"></div><div><label>DAMAGE TYPE</label><input data-f="damageType" data-i="${i}" value="${esc(w.damageType||'')}" placeholder="Physical, fire…"></div><div><label>RANGE</label><input data-f="weaponRange" data-i="${i}" value="${esc(w.weaponRange||'')}" placeholder="Melee, 5 tiles…"></div></div>
-  <label>WEAPON NOTES / SPECIAL RULES</label><textarea data-f="weaponNotes" data-i="${i}" rows="2" placeholder="Special effects, limitations, properties…">${esc(w.weaponNotes||'')}</textarea>
-  <div class="mt">Formula format: NdS+B (examples: 1d20+5, 2d8+3). Bonuses and selected stats are added separately.</div></div></details>${cfg.hasWeapon?attrs:''}`
-:cfg.hasWeapon?`<b>${esc(name)}</b> <span class="chip">${TN[ti]}</span> <span class="chip">${charges} CHARGES</span><div class="mt">${o?.c?esc(o.c)+' | ':''}HIT: ${esc(w.hitFormula||`1d20 · ${hitStat}`)} | DAMAGE: <b class="o">${esc(f||'Not configured')}</b>${w.damageType?` · ${esc(w.damageType)}`:''}${w.weaponRange?` · ${esc(w.weaponRange)}`:''}</div>${w.weaponNotes?`<div class="mt">${esc(w.weaponNotes)}</div>`:''}`:no('No weapon equipped')}
-${cfg.hasWeapon?Array.from({length:slots},(_,j)=>at(w['attr'+(j+1)],j==0?charge:1,`ATTRIBUTE ${j+1}`)).join(''):''}</div>`}
+  <div class="r3"><div><label>HIT ROLL STAT</label><select data-f="hitStat" data-i="${i}">${opts([["", "DEFAULT"], ...SK.map((k) => [k, k])], w.hitStat || "")}</select></div><div><label>DAMAGE STAT</label><select data-f="damageStat" data-i="${i}">${opts(statOptions, w.damageStat || "")}</select></div><div><label>HIT BONUS</label><input type="number" data-f="hitBonus" data-i="${i}" value="${num(w.hitBonus)}"></div></div>
+  <label>HIT FORMULA OVERRIDE <span class="mt">(blank = 1d20 using hit stat)</span></label><input data-f="hitFormula" data-i="${i}" value="${esc(w.hitFormula || "")}" placeholder="e.g. 2d20+4">
+  <label>DAMAGE FORMULA OVERRIDE <span class="mt">(blank = selected tier formula)</span></label><input data-f="damageFormula" data-i="${i}" value="${esc(w.damageFormula || "")}" placeholder="e.g. 3d8+12">
+  <div class="r3"><div><label>DAMAGE BONUS</label><input type="number" data-f="damageBonus" data-i="${i}" value="${num(w.damageBonus)}"></div><div><label>DAMAGE TYPE</label><input data-f="damageType" data-i="${i}" value="${esc(w.damageType || "")}" placeholder="Physical, fire…"></div><div><label>RANGE</label><input data-f="weaponRange" data-i="${i}" value="${esc(w.weaponRange || "")}" placeholder="Melee, 5 tiles…"></div></div>
+  <label>WEAPON NOTES / SPECIAL RULES</label><textarea data-f="weaponNotes" data-i="${i}" rows="2" placeholder="Special effects, limitations, properties…">${esc(w.weaponNotes || "")}</textarea>
+  <div class="mt">Formula format: NdS+B (examples: 1d20+5, 2d8+3). Bonuses and selected stats are added separately.</div></div></details>${cfg.hasWeapon ? attrs : ""}`
+    : cfg.hasWeapon
+      ? `<b>${esc(name)}</b> <span class="chip">${TN[ti]}</span> <span class="chip">${charges} CHARGES</span><div class="mt">${o?.c ? esc(o.c) + " | " : ""}HIT: ${esc(w.hitFormula || `1d20 · ${hitStat}`)} | DAMAGE: <b class="o">${esc(f || "Not configured")}</b>${w.damageType ? ` · ${esc(w.damageType)}` : ""}${w.weaponRange ? ` · ${esc(w.weaponRange)}` : ""}</div>${w.weaponNotes ? `<div class="mt">${esc(w.weaponNotes)}</div>` : ""}`
+      : no("No weapon equipped")
+}
+${cfg.hasWeapon ? Array.from({ length: slots }, (_, j) => at(w["attr" + (j + 1)], j == 0 ? charge : 1, `ATTRIBUTE ${j + 1}`)).join("") : ""}</div>`;
+}
 
+function view(c) {
+  const [a, b] = [c.hp, c.san],
+    canRoll = canRollCharacter(c);
+  $("#v").innerHTML =
+    `<div class="tb"><span>▸ ${esc(c.name)}${c.fx?.poison ? ` <span class="pz">−${getFxVal(c, "poison")} Poison</span>` : ""}</span><span class="row">${sb(c)}${admin ? '<button class="b s" data-a="edit">EDIT</button>' : ""}<button class="b s" data-a="close">CLOSE</button></span></div>
+<div class="pd sh"><div><div class="im">${im(c, "NO IMAGE")}${admin && c.img ? `<button class="b s" data-a="fit" style="position:absolute;bottom:4px;left:4px" title="Fill crops edges; Full shows complete artwork">${c.fit == "contain" ? "▣ FULL" : "▢ FILL"}</button>` : ""}${admin ? '<label class="b s" style="position:absolute;bottom:4px;right:4px;margin:0;cursor:pointer">CHANGE<input type="file" accept="image/*" id="upl" hidden></label>' : ""}</div>${characterIdentity(c)}${sigs(c)}</div>
+<div class="two"><div>${bar(...a, "hp")}${bar(...b, "sn")}<span class="chip">REGEN ${c.regen} SAN/TR</span>${c.mod?.initiativeFirst ? '<span class="chip o">ACTS FIRST</span>' : ""}${
+      c.mod?.hpMultiplier && c.mod.hpMultiplier !== 1 && !(c.ov?.hp > "")
+        ? `<span class="chip o">HP ×${esc(
+            Number(c.mod.hpMultiplier)
+              .toFixed(2)
+              .replace(/\.?0+$/, ""),
+          )}</span>`
+        : ""
+    }<span class="${c.fx?.shieldbreak ? "grey chip" : "chip o"}">SHIELD ${c.shield || 0}</span>${typeof lostVitalsControls === "function" ? lostVitalsControls(c) : ""}
+${c.fx?.isBoss ? `<span class="chip o">BOSS · ${c.libraryId ? "BASE HP" : bossSceneMultiplier() + "× HP"}</span>` : ""}${admin ? `<div class="row" style="margin-top:4px;gap:2px"><button class="b s ${c.fx?.isBoss ? "on" : ""}" data-a="fx_toggle" data-k="isBoss" style="margin-left:auto">♛ BOSS</button></div>` : ""}
+<h3>BASE ATTRIBUTES · ${left(c)}/${c.pool ?? POOL} PTS${admin ? ` <input type="number" data-pool value="${c.pool ?? POOL}" title="Stat cap for this character" style="width:58px;display:inline">` : ""}</h3><table>${SK.map((k) => `<tr><th>${k}</th><td>${admin ? `<button class="b s" data-a="st" data-k="${k}" data-d="-1">−</button> <b>${stv(c, k)}</b> <button class="b s" data-a="st" data-k="${k}" data-d="1">+</button>` : `<b>${stv(c, k)}</b>`}</td><td>${canRoll ? `<button class="b s" data-a="rs" data-k="${k}">⚄ ${rf(c, k)}</button>` : ""}${admin ? ` <input data-ro="${k}" value="${esc(c.ro?.[k] || "")}" placeholder="manual roll" title="Overrides the automatic roll" style="width:92px;padding:1px 4px">` : ""}</td></tr>`).join("")}</table><h3>EFFECTS</h3>${fxv(c)}${admin ? ovw(c) : ""}</div>
+<div>${tabs()}${
+      TAB == "imp"
+        ? impUI(c)
+        : `<div class="row sp"><h3 style="flex:1">EQUIPPED WEAPONS</h3>${admin ? '<button class="b s am" data-a="addw">+ WEAPON</button>' : ""}</div>${c.weapons.map((w, i) => wc(c, w, i, canRoll)).join("")}
+<h3>ACTIVE SKILLS</h3>${c.actives.map((a, i) => `<div class="ab"><div class="row sp"><b>${esc(a.n)}</b><span class="row">${admin ? `<input type="number" data-ac="${i}" data-k="c" value="${a.c}" title="SAN price" style="width:54px;padding:1px 4px"><input data-ac="${i}" data-k="r" value="${esc(a.r || "")}" placeholder="dice" title="Optional dice roll, e.g. 2d6+3" style="width:80px;padding:1px 4px">` : `<span class="chip o" style="margin:0">${a.c} SAN</span>${a.r ? `<span class="chip" style="margin:0">${esc(a.r)}</span>` : ""}`}${canRoll ? `<button class="b s am" data-a="ua" data-i="${i}">USE</button>` : ""}</span></div>${a.d ? `<div class="mt">${esc(a.d)}</div>` : ""}</div>`).join("") || no("No active skills")}
+<h3>PASSIVE SKILLS</h3>${c.passives.map((p, i) => (p?._lostMeta ? "" : `<div class="ab"><div class="row sp"><b class="o">${esc(p.n)}</b>${admin ? `<button class="b s${p.off ? "" : " on"}" data-a="ptoff" data-i="${i}">${p.off ? "OFF" : "ON"}</button>` : p.off ? '<span class="mt">OFF</span>' : ""}</div><div class="mt">${esc(p.d || "—")}</div><div>${(p.tags || []).map((g, j) => `<span class="chip${p.off ? " grey" : " o"}">${esc(TL[g.t] || g.t)} ${sg(num(g.v))}${admin ? ` <button class="b s rd" data-a="ptdel" data-i="${i}" data-j="${j}" style="padding:0 4px">✕</button>` : ""}</span>`).join("")}</div>${admin ? `<div class="row" style="margin-top:4px"><select id="pt${i}" style="width:auto;flex:1">${opts(TG, "roll")}</select><input id="pv${i}" type="number" value="1" style="width:56px"><button class="b s am" data-a="ptadd" data-i="${i}">+ TAG</button></div><textarea data-pc="${i}" rows="2" placeholder="Custom JS, applied live: m.roll+=1; m.stat.STR+=2; m.hpmax+=10; m.sanmax+=5; m.regen+=1; m.dmg+=2; m.hpMultiplier=1.15 (×max HP); m.initiativeFirst=true (acts first)  (c = character copy)" style="margin-top:4px;font:10px monospace">${esc(p.code || "")}</textarea>${p.err ? `<div class="pz">Code error: ${esc(p.err)}</div>` : ""}` : ""}</div>`)).join("") || no("No passive skills")}
+<div class="row sp"><h3 style="flex:1">INVENTORY · <span class="${(c.inv || []).length > c.slots ? "pz" : "o"}">${(c.inv || []).length}/${c.slots}</span></h3>${admin ? `<span class="row" style="gap:2px"><span class="mt">SLOTS:</span><button class="b s" data-a="slot" data-d="-1">−</button><b>${c.slots}</b><button class="b s" data-a="slot" data-d="1">+</button><button class="b s rd" data-a="wipeinv">⌧ CLEAR</button></span>` : ""}</div><div class="inv">${invHtml(c)}</div><h3>NOTES</h3><pre>${esc(c.notes || "—")}</pre>`
+    }</div></div></div>`;
+  $("#v").classList.remove("hid");
+}
 
-function view(c){const[a,b]=[c.hp,c.san],canRoll=canRollCharacter(c);$('#v').innerHTML=`<div class="tb"><span>▸ ${esc(c.name)}${c.fx?.poison?` <span class="pz">−${getFxVal(c,'poison')} Poison</span>`:''}</span><span class="row">${sb(c)}${admin?'<button class="b s" data-a="edit">EDIT</button>':''}<button class="b s" data-a="close">CLOSE</button></span></div>
-<div class="pd sh"><div><div class="im">${im(c,'NO IMAGE')}${admin&&c.img?`<button class="b s" data-a="fit" style="position:absolute;bottom:4px;left:4px" title="Fill crops edges; Full shows complete artwork">${c.fit=='contain'?'▣ FULL':'▢ FILL'}</button>`:''}${admin?'<label class="b s" style="position:absolute;bottom:4px;right:4px;margin:0;cursor:pointer">CHANGE<input type="file" accept="image/*" id="upl" hidden></label>':''}</div>${characterIdentity(c)}${sigs(c)}</div>
-<div class="two"><div>${bar(...a,'hp')}${bar(...b,'sn')}<span class="chip">REGEN ${c.regen} SAN/TR</span>${c.mod?.initiativeFirst?'<span class="chip o">ACTS FIRST</span>':''}${c.mod?.hpMultiplier&&c.mod.hpMultiplier!==1&&!(c.ov?.hp>'')?`<span class="chip o">HP ×${esc(Number(c.mod.hpMultiplier).toFixed(2).replace(/\.?0+$/,''))}</span>`:''}<span class="${c.fx?.shieldbreak?'grey chip':'chip o'}">SHIELD ${c.shield||0}</span>${typeof lostVitalsControls==='function'?lostVitalsControls(c):''}
-${c.fx?.isBoss?`<span class="chip o">BOSS · ${c.libraryId?'BASE HP':bossSceneMultiplier()+'× HP'}</span>`:''}${admin?`<div class="row" style="margin-top:4px;gap:2px"><button class="b s ${c.fx?.isBoss?'on':''}" data-a="fx_toggle" data-k="isBoss" style="margin-left:auto">♛ BOSS</button></div>`:''}
-<h3>BASE ATTRIBUTES · ${left(c)}/${c.pool??POOL} PTS${admin?` <input type="number" data-pool value="${c.pool??POOL}" title="Stat cap for this character" style="width:58px;display:inline">`:''}</h3><table>${SK.map(k=>`<tr><th>${k}</th><td>${admin?`<button class="b s" data-a="st" data-k="${k}" data-d="-1">−</button> <b>${stv(c,k)}</b> <button class="b s" data-a="st" data-k="${k}" data-d="1">+</button>`:`<b>${stv(c,k)}</b>`}</td><td>${canRoll?`<button class="b s" data-a="rs" data-k="${k}">⚄ ${rf(c,k)}</button>`:''}${admin?` <input data-ro="${k}" value="${esc(c.ro?.[k]||'')}" placeholder="manual roll" title="Overrides the automatic roll" style="width:92px;padding:1px 4px">`:''}</td></tr>`).join('')}</table><h3>EFFECTS</h3>${fxv(c)}${admin?ovw(c):''}</div>
-<div>${tabs()}${TAB=='imp'?impUI(c):`<div class="row sp"><h3 style="flex:1">EQUIPPED WEAPONS</h3>${admin?'<button class="b s am" data-a="addw">+ WEAPON</button>':''}</div>${c.weapons.map((w,i)=>wc(c,w,i,canRoll)).join('')}
-<h3>ACTIVE SKILLS</h3>${c.actives.map((a,i)=>`<div class="ab"><div class="row sp"><b>${esc(a.n)}</b><span class="row">${admin?`<input type="number" data-ac="${i}" data-k="c" value="${a.c}" title="SAN price" style="width:54px;padding:1px 4px"><input data-ac="${i}" data-k="r" value="${esc(a.r||'')}" placeholder="dice" title="Optional dice roll, e.g. 2d6+3" style="width:80px;padding:1px 4px">`:`<span class="chip o" style="margin:0">${a.c} SAN</span>${a.r?`<span class="chip" style="margin:0">${esc(a.r)}</span>`:''}`}${canRoll?`<button class="b s am" data-a="ua" data-i="${i}">USE</button>`:''}</span></div>${a.d?`<div class="mt">${esc(a.d)}</div>`:''}</div>`).join('')||no('No active skills')}
-<h3>PASSIVE SKILLS</h3>${c.passives.map((p,i)=>p?._lostMeta?'':`<div class="ab"><div class="row sp"><b class="o">${esc(p.n)}</b>${admin?`<button class="b s${p.off?'':' on'}" data-a="ptoff" data-i="${i}">${p.off?'OFF':'ON'}</button>`:p.off?'<span class="mt">OFF</span>':''}</div><div class="mt">${esc(p.d||'—')}</div><div>${(p.tags||[]).map((g,j)=>`<span class="chip${p.off?' grey':' o'}">${esc(TL[g.t]||g.t)} ${sg(num(g.v))}${admin?` <button class="b s rd" data-a="ptdel" data-i="${i}" data-j="${j}" style="padding:0 4px">✕</button>`:''}</span>`).join('')}</div>${admin?`<div class="row" style="margin-top:4px"><select id="pt${i}" style="width:auto;flex:1">${opts(TG,'roll')}</select><input id="pv${i}" type="number" value="1" style="width:56px"><button class="b s am" data-a="ptadd" data-i="${i}">+ TAG</button></div><textarea data-pc="${i}" rows="2" placeholder="Custom JS, applied live: m.roll+=1; m.stat.STR+=2; m.hpmax+=10; m.sanmax+=5; m.regen+=1; m.dmg+=2; m.hpMultiplier=1.15 (×max HP); m.initiativeFirst=true (acts first)  (c = character copy)" style="margin-top:4px;font:10px monospace">${esc(p.code||'')}</textarea>${p.err?`<div class="pz">Code error: ${esc(p.err)}</div>`:''}`:''}</div>`).join('')||no('No passive skills')}
-<div class="row sp"><h3 style="flex:1">INVENTORY · <span class="${(c.inv||[]).length>c.slots?'pz':'o'}">${(c.inv||[]).length}/${c.slots}</span></h3>${admin?`<span class="row" style="gap:2px"><span class="mt">SLOTS:</span><button class="b s" data-a="slot" data-d="-1">−</button><b>${c.slots}</b><button class="b s" data-a="slot" data-d="1">+</button><button class="b s rd" data-a="wipeinv">⌧ CLEAR</button></span>`:''}</div><div class="inv">${invHtml(c)}</div><h3>NOTES</h3><pre>${esc(c.notes||'—')}</pre>`}</div></div></div>`;$('#v').classList.remove('hid')}
+function form() {
+  const c = ed,
+    L = (k, t) =>
+      `<h3>${t}</h3><div class="wi"><div class="row"><input id="${k}n" placeholder="Name" style="flex:2">${k == "actives" ? '<input id="activesc" type="number" placeholder="SAN Cost" style="flex:1"><input id="activesr" placeholder="Dice (optional) 2d6+3" style="flex:1">' : ""}<button class="b am s" data-a="addl" data-k="${k}">+ ADD</button></div><input id="${k}d" placeholder="Description/Effect" style="margin-top:4px"></div>${c[k].map((x, i) => (x?._lostMeta ? "" : `<div class="ab row sp"><span><b>${esc(x.n)}</b>${k == "actives" ? ` (${x.c} SAN)` : ""}: ${esc(x.d || "")}</span><button class="b s rd" data-a="dell" data-k="${k}" data-i="${i}">✕</button></div>`)).join("")}`;
+  const currentImageIsUrl = typeof c.img === "string" && /^https?:\/\//i.test(c.img);
+  $("#v").innerHTML =
+    `<div class="tb"><span>EDIT · ${esc(c.name || "NEW CHARACTER")}</span></div><div class="pd"><label>NAME</label><input id="fn" value="${esc(c.name)}"><div class="r3" style="margin-top:6px"><div><label>CLASS</label><input id="fclass" value="${esc(c.className ?? characterMeta(c, "class"))}" placeholder="Player class"></div><div><label>SPECIALTY</label><input id="fspecialty" value="${esc(c.specialty ?? characterMeta(c, "specialty"))}" placeholder="Character specialty"></div></div><div class="ab" style="margin-top:6px"><label>SPECIALTY INFO</label><textarea id="fspecialtyInfo" rows="3" placeholder="Extra specialty rules / description…">${esc(c.specialtyInfo ?? characterMeta(c, "specialtyInfo"))}</textarea></div><div class="ab" style="margin-top:8px"><label>CHARACTER IMAGE · IMGUR URL</label><input id="fimg" type="url" value="${currentImageIsUrl ? esc(c.img) : ""}" placeholder="https://i.imgur.com/example.png"><div class="mt">Paste a direct image link (preferably https://i.imgur.com/...png or .jpg). Leave blank to keep an existing uploaded image. The link must point directly to the image, not an Imgur gallery page.</div><label style="display:flex;align-items:center;gap:6px"><input id="fimg-clear" type="checkbox" style="width:auto"> Remove current image</label></div><div class="r3"><div><label>CURRENT HP (max ${c.hp[1]} = CON×5)</label><input id="fh" type="number" value="${c.hp[0]}"></div><div><label>CURRENT SAN (max ${c.san[1]} = SAN×3)</label><input id="fs" type="number" value="${c.san[0]}"></div><div><label>SHIELD</label><input id="fe" type="number" value="${c.shield}"></div></div>${L("actives", "ACTIVE SKILLS")}${L("passives", "PASSIVE SKILLS")}
+<div class="row sp"><label style="margin:0">INVENTORY (one per line)</label><button class="b s rd" data-a="clrforminv">⌧ CLEAR INVENTORY</button></div><textarea id="fi" rows="2">${esc((c.inv || []).join("\n"))}</textarea><label>NOTES</label><textarea id="fo" rows="3">${esc(c.notes || "")}</textarea><div class="row" style="margin-top:10px"><button class="b am" data-a="save">SAVE</button><button class="b" data-a="cancel">CANCEL</button>${c.id ? '<button class="b rd" data-a="del">DELETE</button>' : ""}</div></div>`;
+  document.body.classList.add("full");
+  $("#v").classList.remove("hid");
+}
 
-function form(){const c=ed,L=(k,t)=>`<h3>${t}</h3><div class="wi"><div class="row"><input id="${k}n" placeholder="Name" style="flex:2">${k=='actives'?'<input id="activesc" type="number" placeholder="SAN Cost" style="flex:1"><input id="activesr" placeholder="Dice (optional) 2d6+3" style="flex:1">':''}<button class="b am s" data-a="addl" data-k="${k}">+ ADD</button></div><input id="${k}d" placeholder="Description/Effect" style="margin-top:4px"></div>${c[k].map((x,i)=>x?._lostMeta?'':`<div class="ab row sp"><span><b>${esc(x.n)}</b>${k=='actives'?` (${x.c} SAN)`:''}: ${esc(x.d||'')}</span><button class="b s rd" data-a="dell" data-k="${k}" data-i="${i}">✕</button></div>`).join('')}`;
-const currentImageIsUrl=typeof c.img==='string'&&/^https?:\/\//i.test(c.img);
-$('#v').innerHTML=`<div class="tb"><span>EDIT · ${esc(c.name||'NEW CHARACTER')}</span></div><div class="pd"><label>NAME</label><input id="fn" value="${esc(c.name)}"><div class="r3" style="margin-top:6px"><div><label>CLASS</label><input id="fclass" value="${esc(c.className??characterMeta(c,'class'))}" placeholder="Player class"></div><div><label>SPECIALTY</label><input id="fspecialty" value="${esc(c.specialty??characterMeta(c,'specialty'))}" placeholder="Character specialty"></div></div><div class="ab" style="margin-top:6px"><label>SPECIALTY INFO</label><textarea id="fspecialtyInfo" rows="3" placeholder="Extra specialty rules / description…">${esc(c.specialtyInfo??characterMeta(c,'specialtyInfo'))}</textarea></div><div class="ab" style="margin-top:8px"><label>CHARACTER IMAGE · IMGUR URL</label><input id="fimg" type="url" value="${currentImageIsUrl?esc(c.img):''}" placeholder="https://i.imgur.com/example.png"><div class="mt">Paste a direct image link (preferably https://i.imgur.com/...png or .jpg). Leave blank to keep an existing uploaded image. The link must point directly to the image, not an Imgur gallery page.</div><label style="display:flex;align-items:center;gap:6px"><input id="fimg-clear" type="checkbox" style="width:auto"> Remove current image</label></div><div class="r3"><div><label>CURRENT HP (max ${c.hp[1]} = CON×5)</label><input id="fh" type="number" value="${c.hp[0]}"></div><div><label>CURRENT SAN (max ${c.san[1]} = SAN×3)</label><input id="fs" type="number" value="${c.san[0]}"></div><div><label>SHIELD</label><input id="fe" type="number" value="${c.shield}"></div></div>${L('actives','ACTIVE SKILLS')}${L('passives','PASSIVE SKILLS')}
-<div class="row sp"><label style="margin:0">INVENTORY (one per line)</label><button class="b s rd" data-a="clrforminv">⌧ CLEAR INVENTORY</button></div><textarea id="fi" rows="2">${esc((c.inv||[]).join('\n'))}</textarea><label>NOTES</label><textarea id="fo" rows="3">${esc(c.notes||'')}</textarea><div class="row" style="margin-top:10px"><button class="b am" data-a="save">SAVE</button><button class="b" data-a="cancel">CANCEL</button>${c.id?'<button class="b rd" data-a="del">DELETE</button>':''}</div></div>`;document.body.classList.add('full');$('#v').classList.remove('hid')}
-
-const grab=()=>{if(!$('#fn'))return;const imageUrl=$('#fimg')?.value.trim();Object.assign(ed,{name:$('#fn').value.trim(),shield:num($('#fe').value),inv:$('#fi').value.split('\n').map(s=>s.trim()).filter(Boolean),notes:$('#fo').value,className:$('#fclass')?.value||'',specialty:$('#fspecialty')?.value||'',specialtyInfo:$('#fspecialtyInfo')?.value||''});if($('#fimg-clear')?.checked)ed.img='';else if(imageUrl)ed.img=imageUrl;ed.hp[0]=num($('#fh').value);ed.san[0]=num($('#fs').value)},
-img=f=>new Promise(r=>{const i=new Image;i.onload=()=>{const k=Math.min(1,256/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.72))};i.src=URL.createObjectURL(f)});
+const grab = () => {
+    if (!$("#fn")) return;
+    const imageUrl = $("#fimg")?.value.trim();
+    Object.assign(ed, {
+      name: $("#fn").value.trim(),
+      shield: num($("#fe").value),
+      inv: $("#fi")
+        .value.split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      notes: $("#fo").value,
+      className: $("#fclass")?.value || "",
+      specialty: $("#fspecialty")?.value || "",
+      specialtyInfo: $("#fspecialtyInfo")?.value || "",
+    });
+    if ($("#fimg-clear")?.checked) ed.img = "";
+    else if (imageUrl) ed.img = imageUrl;
+    ed.hp[0] = num($("#fh").value);
+    ed.san[0] = num($("#fs").value);
+  },
+  img = (f) =>
+    new Promise((r) => {
+      const i = new Image();
+      i.onload = () => {
+        const k = Math.min(1, 256 / Math.max(i.width, i.height)),
+          c = document.createElement("canvas");
+        c.width = i.width * k;
+        c.height = i.height * k;
+        c.getContext("2d").drawImage(i, 0, 0, c.width, c.height);
+        r(c.toDataURL("image/jpeg", 0.72));
+      };
+      i.src = URL.createObjectURL(f);
+    });
 
 /* BATTLE: turn effects, configurable initiative, loot */
-const tick=(n,o)=>{const f=n.fx||{},w=[];let hpDmg=0, isBoss=!!f.isBoss;
+const tick = (n, o) => {
+    const f = n.fx || {},
+      w = [];
+    let hpDmg = 0,
+      isBoss = !!f.isBoss;
 
-// Auto-trigger Hemorrhage se Bleeding >= 4
-if(getFxVal(n,'bleeding')>=4) f.hemorrhage=true;
-if(getFxVal(n,'fire')>=2){ f.combustion=2; f.fire=0; }
+    // Auto-trigger Hemorrhage se Bleeding >= 4
+    if (getFxVal(n, "bleeding") >= 4) f.hemorrhage = true;
+    if (getFxVal(n, "fire") >= 2) {
+      f.combustion = 2;
+      f.fire = 0;
+    }
 
-// 1. Hemorrhage vs Bleeding (Hemorrhage ignora Bleeding)
-if(f.hemorrhage){
-  const pct = isBoss ? 10 : 20;
-  const d = Math.ceil(n.hp[1] * pct / 100);
-  hpDmg += d; w.push(`Hemorrhage −${d} HP (${pct}%) [-10 Physical]`);
-} else {
-  const bStk=getFxVal(n,'bleeding');
-  if(bStk>0){
-    const pct = (isBoss ? 2 : 4) * bStk;
-    const d = Math.ceil(n.hp[1] * pct / 100);
-    hpDmg += d; w.push(`Bleed [${bStk}x] −${d} HP (${pct}%)`);
+    // 1. Hemorrhage vs Bleeding (Hemorrhage ignora Bleeding)
+    if (f.hemorrhage) {
+      const pct = isBoss ? 10 : 20;
+      const d = Math.ceil((n.hp[1] * pct) / 100);
+      hpDmg += d;
+      w.push(`Hemorrhage −${d} HP (${pct}%) [-10 Physical]`);
+    } else {
+      const bStk = getFxVal(n, "bleeding");
+      if (bStk > 0) {
+        const pct = (isBoss ? 2 : 4) * bStk;
+        const d = Math.ceil((n.hp[1] * pct) / 100);
+        hpDmg += d;
+        w.push(`Bleed [${bStk}x] −${d} HP (${pct}%)`);
+      }
+    }
+
+    // 2. Combustion vs Fire (Combustion ignora Fire)
+    const comb = getFxVal(n, "combustion");
+    if (comb > 0) {
+      const roll = 12 + ((Math.random() * 8) | 0); // 12-20%
+      const pct = isBoss ? roll / 2 : roll;
+      const d = Math.ceil((n.hp[1] * pct) / 100);
+      hpDmg += d;
+      w.push(`Combustion −${d} HP (${pct.toFixed(1)}%)`);
+      n.fx.combustion = comb - 1;
+    } else if (f.fire) {
+      if (f.wet) {
+        w.push("Fire neutralized by Wet!");
+      } else {
+        const roll = (1 + Math.random() * 10) | 0; // 1-10%
+        const pct = isBoss ? roll / 2 : roll;
+        const d = Math.ceil((n.hp[1] * pct) / 100);
+        hpDmg += d;
+        w.push(`Fire −${d} HP (${pct.toFixed(1)}%)`);
+      }
+    }
+
+    // 3. Shocked (5% HP, cancela regen)
+    if (f.shocked) {
+      const pct = f.wet ? 10 : 5; // Wet dobra Shocked
+      const d = Math.ceil((n.hp[1] * pct) / 100);
+      hpDmg += d;
+      w.push(`Shocked −${d} HP (${pct}%${f.wet ? " [Wet x2]" : ""})`);
+    }
+
+    // 4. Poison (-5 HP fixo por turno)
+    const pStk = getFxVal(n, "poison");
+    if (pStk > 0) {
+      const d = 5;
+      hpDmg += d;
+      w.push(`Poison −${d} HP [-${pStk} Rolls]`);
+    }
+
+    // 5. Sanity Regen (Trauma / Shocked cancelam; Motivated +25%)
+    const blockSan = f.trauma || f.shocked;
+    let sanRegen = 0;
+    if (!blockSan) {
+      const baseReg = num(n.regen);
+      sanRegen = Math.ceil(baseReg * (f.motivated ? 1.25 : 1));
+    }
+
+    // Aplicação
+    n.hp[0] = Math.max(0, n.hp[0] - hpDmg);
+    n.san[0] = cl(n.san[0] + sanRegen, 0, n.san[1]);
+
+    if (hpDmg || blockSan || sanRegen || w.length) {
+      o.push(
+        `<div><b>${esc(n.name)}</b>: ${hpDmg ? `−${hpDmg} HP (${w.join(", ")}) ` : ""}${blockSan ? "[SAN blocked]" : `+${sanRegen} SAN`}</div>`,
+      );
+    }
+  },
+  ir = (r, ex) => {
+    const e = ex.reduce((a, x) => a + x[1], 0);
+    return { t: r.t + e, d: r.d, b: r.b + e };
+  },
+  SYM = ["○", "◆", "★", "✹"],
+  S5 = [...SYM, "✕"],
+  QC = ["#cbd5e1", "#60a5fa", "#c084fc", "#fbbf24"],
+  pt = (e, x) => {
+    e.textContent = x;
+    e.style.color = QC[SYM.indexOf(x)] || "#6b7280";
+  },
+  LK = {
+    base: 30,
+    per: 1.5,
+    w: [
+      [60, -1.2],
+      [28, 0.4],
+      [10, 0.6],
+      [2, 0.2],
+    ],
+  };
+function lk(c) {
+  const s = stv(c, "LCK"),
+    w = LK.w.map(([a, b]) => Math.max(0, a + b * s)),
+    t = w.reduce((a, b) => a + b, 0) || 1;
+  return { p: cl(LK.base + s * LK.per, 0, 95), w: w.map((x) => (x / t) * 100) };
+}
+function bturn() {
+  const o = [];
+  all((n) => tick(n, o));
+  o.length &&
+    T(
+      "Table",
+      "End of Round " + BT.round,
+      `<div class="mt">${o.join("")}</div>`,
+      `Effects applied to ${o.length} character(s)`,
+    );
+}
+function bchip() {
+  const e = $("#bch"),
+    order = Array.isArray(BT.order) ? BT.order : [],
+    x = BT.on ? order[BT.i] : null;
+  const has = !!x || order.length > 0;
+  e.classList.toggle("hid", !has);
+  if (has) e.textContent = x ? `⚔︎ R${BT.round} · ${x.n}` : `⚔︎ INITIATIVE READY · ${order.length}`;
+}
+function bpanel() {
+  const b = BT,
+    x = b.on && b.order[b.i],
+    c = x?.id && C.find((k) => k.id == x.id),
+    st = c && A(c).fx?.stagger;
+  if (!admin) {
+    const enemyView = EN.length
+      ? `<h3>ENEMIES</h3>${EN.map((e) => `<div class="ini"><span>☠ ${esc(e.n || "Enemy")}</span><small>${num(e.hp)}/${num(e.hpMax)} HP</small></div>`).join("")}`
+      : '<div class="mt">No enemies listed.</div>';
+    const orderView = b.order.length
+      ? `<h3>INITIATIVE ORDER</h3>${b.order.map((o, i) => `<div class="ini${b.on && i == b.i ? " now" : ""}"><b>${Number(o.t) || 0}</b><span>${b.on && i == b.i ? "► " : ""}${i + 1}. ${esc(o.n || "Combatant")}${o.id ? (o.p ? " <small>(acts first)</small>" : "") : " <small>(enemy)</small>"}</span><small>[${(Array.isArray(o.d) ? o.d : []).join("+")}]${o.b ? sg(o.b) : ""}</small></div>`).join("")}`
+      : '<div class="mt">Initiative has not been rolled yet.</div>';
+    $("#bp").innerHTML =
+      `${b.on ? `<div class="wi"><div class="tot">ROUND ${Number(b.round) || 1} · TURN OF ${esc(x ? x.n : "—")}</div><div class="mt">Turn ${Number(b.i) + 1}/${b.order.length}${st ? " · ✱ STUNNED: cannot act" : ""}</div></div>` : ""}${orderView}${enemyView}`;
+    return;
+  }
+  $("#bp").innerHTML =
+    `<h3>ENEMIES (name · dice)</h3>${EN.map((e, i) => `<div class="row" style="margin-bottom:4px"><input data-en="${i}" data-k="n" value="${esc(e.n)}" placeholder="Name" style="flex:2"><input data-en="${i}" data-k="f" value="${esc(e.f)}" placeholder="eg: 2d10+3" style="flex:1"><button class="b s rd" data-a="endel" data-i="${i}">✕</button></div>`).join("")}
+<div class="row"><button class="b s am" data-a="enadd">+ ENEMY</button><button class="b" data-a="roll">⚄ ROLL INITIATIVE</button><button class="b am" data-a="bstart">⚔︎ ${b.on ? "RESTART" : "START"} BATTLE</button></div>
+${b.on ? `<div class="wi" style="margin-top:8px"><div class="tot">ROUND ${b.round} · TURN OF ${esc(x ? x.n : "—")}</div><div class="mt">Turn ${b.i + 1}/${b.order.length} · ${b.n} total turns${st ? " · ✱ STUNNED: cannot act" : ""}</div><div class="row" style="margin-top:6px"><button class="b am" data-a="bnext">► NEXT TURN</button><button class="b rd" data-a="bend">⚑ END BATTLE</button></div></div>` : ""}
+${b.order.length ? "<h3>INITIATIVE ORDER</h3>" + b.order.map((o, i) => `<div class="ini${b.on && i == b.i ? " now" : ""}"><b>${o.t}</b><span>${b.on && i == b.i ? "► " : ""}${i + 1}. ${esc(o.n)}${o.id ? (o.p ? " <small>(acts first)</small>" : "") : " <small>(enemy)</small>"}</span><small>[${o.d.join("+")}]${o.b ? sg(o.b) : ""}</small><button class="b s rd" data-a="brm" data-i="${i}">✕</button></div>`).join("") : ""}`;
+}
+function lootUI() {
+  $("#lp").innerHTML =
+    `<h3>ITEM TABLE (one per line — empty by default)</h3><div class="two">${TI.map((q, i) => `<div><label><span style="color:${QC[i]}">${SYM[i]}</span> ${TN[i].toUpperCase()}</label><textarea data-lq="${q}" rows="3" placeholder="Item…">${esc(LOOT[q].join("\n"))}</textarea></div>`).join("")}</div>
+<div class="row sp"><h3 style="flex:1">SPIN PER CHARACTER (chance based on LCK)</h3><button class="b am s" data-a="lspinall">⟳ SPIN ALL</button></div>${sceneChars()
+      .map((x) => {
+        const c = A(x),
+          l = lk(c);
+        return `<div class="ab" data-s="${c.id}"><div class="row sp"><b>${esc(c.name)}</b><span class="mt">LCK ${stv(c, "LCK")} · item ${l.p.toFixed(0)}% · ${SYM.map((s, i) => `<span style="color:${QC[i]}">${s}</span>` + l.w[i].toFixed(0) + "%").join(" ")}</span></div><div class="rl"><i>?</i><i>?</i><i>?</i></div><div class="row sp"><span class="mt res">—</span><button class="b s am" data-a="lspin" data-i="${c.id}">⟳ SPIN</button></div></div>`;
+      })
+      .join("")}`;
+  $("#lt").classList.remove("hid");
+}
+function spin(id) {
+  const el = document.querySelector(`[data-s="${id}"]`),
+    r = C.find((x) => x.id == id);
+  if (!el || !r || el.dataset.done) return;
+  el.dataset.done = 1;
+  el.querySelector("button").disabled = true;
+  ping("roll");
+  const c = A(r),
+    l = lk(c),
+    win = Math.random() * 100 < l.p;
+  let q = -1;
+  if (win) {
+    let k = Math.random() * 100;
+    q = l.w.findIndex((x) => (k -= x) < 0);
+    if (q < 0) q = 0;
+  }
+  let f;
+  if (win) f = [SYM[q], SYM[q], SYM[q]];
+  else
+    do {
+      f = [0, 1, 2].map(() => S5[(Math.random() * 5) | 0]);
+    } while (f[0] == f[1] && f[1] == f[2]);
+  [...el.querySelectorAll(".rl i")].forEach((e, i) => {
+    e.classList.add("sp");
+    const t = setInterval(() => pt(e, S5[(Math.random() * 5) | 0]), 70);
+    setTimeout(
+      () => {
+        clearInterval(t);
+        e.classList.remove("sp");
+        pt(e, f[i]);
+        ping("click");
+        if (i == 2) fim();
+      },
+      900 + i * 450,
+    );
+  });
+  function fim() {
+    const rs = el.querySelector(".res");
+    if (!win) {
+      rs.textContent = "∅ Nothing this time";
+      return;
+    }
+    const p = LOOT[TI[q]],
+      it = p.length ? p[(Math.random() * p.length) | 0] : "Item " + TN[q] + " (TBD)";
+    rs.innerHTML = `<b class="o">✧ <span style="color:${QC[q]}">${SYM[q]}</span> ${TN[q]}: ${esc(it)}</b>`;
+    if (!gain(id, `[${TN[q]}] ${it}`))
+      rs.innerHTML += ' <span class="pz">▣ full — decide fate</span>';
   }
 }
 
-// 2. Combustion vs Fire (Combustion ignora Fire)
-const comb=getFxVal(n,'combustion');
-if(comb>0){
-  const roll = 12 + (Math.random()*8|0); // 12-20%
-  const pct = isBoss ? roll/2 : roll;
-  const d = Math.ceil(n.hp[1] * pct / 100);
-  hpDmg += d; w.push(`Combustion −${d} HP (${pct.toFixed(1)}%)`);
-  n.fx.combustion = comb - 1;
-} else if(f.fire){
-  if(f.wet){
-    w.push('Fire neutralized by Wet!');
-  } else {
-    const roll = (1 + Math.random()*10|0); // 1-10%
-    const pct = isBoss ? roll/2 : roll;
-    const d = Math.ceil(n.hp[1] * pct / 100);
-    hpDmg += d; w.push(`Fire −${d} HP (${pct.toFixed(1)}%)`);
+const psv = () => {
+    if (lostUser && !admin) return;
+    try {
+      localStorage.lost_pend = JSON.stringify(PEND);
+    } catch (e) {}
+    scheduleCloudSync();
+  },
+  slotsOf = (c) => c.slots ?? 9,
+  invHtml = (c) => {
+    const v = c.inv || [],
+      n = Math.max(slotsOf(c), v.length);
+    return Array.from({ length: n }, (_, i) =>
+      i < v.length
+        ? `<div class="sl${i >= slotsOf(c) ? " ov" : ""}"><span>${esc(v[i])}</span>${admin ? `<button class="b s rd" data-a="rmi" data-i="${i}">✕</button>` : ""}</div>`
+        : '<div class="sl e">empty</div>',
+    ).join("");
+  };
+function gain(id, item) {
+  const c = A(C.find((x) => x.id == id));
+  if (!c) return 0;
+  if ((c.inv || []).length < slotsOf(c)) {
+    mut((n) => (n.inv ||= []).push(item), id);
+    return 1;
   }
+  PEND.push({ id, item });
+  psv();
+  ovUI();
+  return 0;
 }
-
-// 3. Shocked (5% HP, cancela regen)
-if(f.shocked){
-  const pct = f.wet ? 10 : 5; // Wet dobra Shocked
-  const d = Math.ceil(n.hp[1] * pct / 100);
-  hpDmg += d; w.push(`Shocked −${d} HP (${pct}%${f.wet?' [Wet x2]':''})`);
+function ovUI() {
+  const p = PEND[0],
+    m = $("#ov"),
+    r = p && C.find((x) => x.id == p.id);
+  if (!p || !admin || !r) {
+    m.classList.add("hid");
+    return;
+  }
+  const c = A(r),
+    o = sceneChars()
+      .map(A)
+      .filter((x) => x.id != c.id),
+    full = (x) => (x.inv || []).length >= slotsOf(x);
+  m.innerHTML = `<div class="w" style="max-width:520px;width:100%;max-height:90vh;overflow:auto"><div class="tb"><span>▣ INVENTORY FULL · ${esc(c.name)} (${c.inv.length}/${slotsOf(c)})</span><span class="mt">${PEND.length} pending</span></div><div class="pd"><div class="tot" style="font-size:22px">${esc(p.item)}</div><div class="mt">No free slots. Swap for an item to throw away, give to another player, or discard.</div>
+<h3>⇄ SWAP — drop current item</h3>${c.inv.map((x, i) => `<div class="ab row sp"><span>${esc(x)}</span><button class="b s rd" data-a="ovswap" data-i="${i}">drop</button></div>`).join("")}
+<h3>↦ GIVE NEW ITEM TO</h3><div class="row"><select id="ovto" style="flex:1">${o.map((x) => `<option value="${x.id}"${full(x) ? " disabled" : ""}>${esc(x.name)} (${(x.inv || []).length}/${slotsOf(x)})${full(x) ? " · full" : ""}</option>`).join("")}</select><button class="b am" data-a="ovgive">GIVE</button></div>
+<h3>⌧ DISCARD</h3><button class="b rd" data-a="ovdrop">Discard new item</button></div></div>`;
+  m.classList.remove("hid");
 }
-
-// 4. Poison (-5 HP fixo por turno)
-const pStk=getFxVal(n,'poison');
-if(pStk>0){
-  const d = 5;
-  hpDmg += d; w.push(`Poison −${d} HP [-${pStk} Rolls]`);
-}
-
-// 5. Sanity Regen (Trauma / Shocked cancelam; Motivated +25%)
-const blockSan = f.trauma || f.shocked;
-let sanRegen = 0;
-if(!blockSan){
-  const baseReg = num(n.regen);
-  sanRegen = Math.ceil(baseReg * (f.motivated ? 1.25 : 1));
-}
-
-// Aplicação
-n.hp[0] = Math.max(0, n.hp[0] - hpDmg);
-n.san[0] = cl(n.san[0] + sanRegen, 0, n.san[1]);
-
-if(hpDmg || blockSan || sanRegen || w.length){
-  o.push(`<div><b>${esc(n.name)}</b>: ${hpDmg?`−${hpDmg} HP (${w.join(', ')}) `:''}${blockSan?'[SAN blocked]':`+${sanRegen} SAN`}</div>`);
-}},
-ir=(r,ex)=>{const e=ex.reduce((a,x)=>a+x[1],0);return{t:r.t+e,d:r.d,b:r.b+e}},
-SYM=['○','◆','★','✹'],S5=[...SYM,'✕'],QC=['#cbd5e1','#60a5fa','#c084fc','#fbbf24'],pt=(e,x)=>{e.textContent=x;e.style.color=QC[SYM.indexOf(x)]||'#6b7280'},LK={base:30,per:1.5,w:[[60,-1.2],[28,.4],[10,.6],[2,.2]]};
-function lk(c){const s=stv(c,'LCK'),w=LK.w.map(([a,b])=>Math.max(0,a+b*s)),t=w.reduce((a,b)=>a+b,0)||1;return{p:cl(LK.base+s*LK.per,0,95),w:w.map(x=>x/t*100)}}
-function bturn(){const o=[];all(n=>tick(n,o));o.length&&T('Table','End of Round '+BT.round,`<div class="mt">${o.join('')}</div>`,`Effects applied to ${o.length} character(s)`)}
-function bchip(){const e=$('#bch'),order=Array.isArray(BT.order)?BT.order:[],x=BT.on?order[BT.i]:null;const has=!!x||order.length>0;e.classList.toggle('hid',!has);if(has)e.textContent=x?`⚔︎ R${BT.round} · ${x.n}`:`⚔︎ INITIATIVE READY · ${order.length}`;}
-function bpanel(){const b=BT,x=b.on&&b.order[b.i],c=x?.id&&C.find(k=>k.id==x.id),st=c&&A(c).fx?.stagger;
-if(!admin){
-  const enemyView=EN.length?`<h3>ENEMIES</h3>${EN.map(e=>`<div class="ini"><span>☠ ${esc(e.n||'Enemy')}</span><small>${num(e.hp)}/${num(e.hpMax)} HP</small></div>`).join('')}`:'<div class="mt">No enemies listed.</div>';
-  const orderView=b.order.length?`<h3>INITIATIVE ORDER</h3>${b.order.map((o,i)=>`<div class="ini${b.on&&i==b.i?' now':''}"><b>${Number(o.t)||0}</b><span>${b.on&&i==b.i?'► ':''}${i+1}. ${esc(o.n||'Combatant')}${o.id?(o.p?' <small>(acts first)</small>':''):' <small>(enemy)</small>'}</span><small>[${(Array.isArray(o.d)?o.d:[]).join('+')}]${o.b?sg(o.b):''}</small></div>`).join('')}`:'<div class="mt">Initiative has not been rolled yet.</div>';
-  $('#bp').innerHTML=`${b.on?`<div class="wi"><div class="tot">ROUND ${Number(b.round)||1} · TURN OF ${esc(x?x.n:'—')}</div><div class="mt">Turn ${Number(b.i)+1}/${b.order.length}${st?' · ✱ STUNNED: cannot act':''}</div></div>`:''}${orderView}${enemyView}`;
-  return;
-}
-$('#bp').innerHTML=`<h3>ENEMIES (name · dice)</h3>${EN.map((e,i)=>`<div class="row" style="margin-bottom:4px"><input data-en="${i}" data-k="n" value="${esc(e.n)}" placeholder="Name" style="flex:2"><input data-en="${i}" data-k="f" value="${esc(e.f)}" placeholder="eg: 2d10+3" style="flex:1"><button class="b s rd" data-a="endel" data-i="${i}">✕</button></div>`).join('')}
-<div class="row"><button class="b s am" data-a="enadd">+ ENEMY</button><button class="b" data-a="roll">⚄ ROLL INITIATIVE</button><button class="b am" data-a="bstart">⚔︎ ${b.on?'RESTART':'START'} BATTLE</button></div>
-${b.on?`<div class="wi" style="margin-top:8px"><div class="tot">ROUND ${b.round} · TURN OF ${esc(x?x.n:'—')}</div><div class="mt">Turn ${b.i+1}/${b.order.length} · ${b.n} total turns${st?' · ✱ STUNNED: cannot act':''}</div><div class="row" style="margin-top:6px"><button class="b am" data-a="bnext">► NEXT TURN</button><button class="b rd" data-a="bend">⚑ END BATTLE</button></div></div>`:''}
-${b.order.length?'<h3>INITIATIVE ORDER</h3>'+b.order.map((o,i)=>`<div class="ini${b.on&&i==b.i?' now':''}"><b>${o.t}</b><span>${b.on&&i==b.i?'► ':''}${i+1}. ${esc(o.n)}${o.id?(o.p?' <small>(acts first)</small>':''):' <small>(enemy)</small>'}</span><small>[${o.d.join('+')}]${o.b?sg(o.b):''}</small><button class="b s rd" data-a="brm" data-i="${i}">✕</button></div>`).join(''):''}`}
-function lootUI(){$('#lp').innerHTML=`<h3>ITEM TABLE (one per line — empty by default)</h3><div class="two">${TI.map((q,i)=>`<div><label><span style="color:${QC[i]}">${SYM[i]}</span> ${TN[i].toUpperCase()}</label><textarea data-lq="${q}" rows="3" placeholder="Item…">${esc(LOOT[q].join('\n'))}</textarea></div>`).join('')}</div>
-<div class="row sp"><h3 style="flex:1">SPIN PER CHARACTER (chance based on LCK)</h3><button class="b am s" data-a="lspinall">⟳ SPIN ALL</button></div>${sceneChars().map(x=>{const c=A(x),l=lk(c);return`<div class="ab" data-s="${c.id}"><div class="row sp"><b>${esc(c.name)}</b><span class="mt">LCK ${stv(c,'LCK')} · item ${l.p.toFixed(0)}% · ${SYM.map((s,i)=>`<span style="color:${QC[i]}">${s}</span>`+l.w[i].toFixed(0)+'%').join(' ')}</span></div><div class="rl"><i>?</i><i>?</i><i>?</i></div><div class="row sp"><span class="mt res">—</span><button class="b s am" data-a="lspin" data-i="${c.id}">⟳ SPIN</button></div></div>`}).join('')}`;$('#lt').classList.remove('hid')}
-function spin(id){const el=document.querySelector(`[data-s="${id}"]`),r=C.find(x=>x.id==id);if(!el||!r||el.dataset.done)return;el.dataset.done=1;el.querySelector('button').disabled=true;ping('roll');
-const c=A(r),l=lk(c),win=Math.random()*100<l.p;let q=-1;if(win){let k=Math.random()*100;q=l.w.findIndex(x=>(k-=x)<0);if(q<0)q=0}
-let f;if(win)f=[SYM[q],SYM[q],SYM[q]];else do{f=[0,1,2].map(()=>S5[Math.random()*5|0])}while(f[0]==f[1]&&f[1]==f[2]);
-[...el.querySelectorAll('.rl i')].forEach((e,i)=>{e.classList.add('sp');const t=setInterval(()=>pt(e,S5[Math.random()*5|0]),70);setTimeout(()=>{clearInterval(t);e.classList.remove('sp');pt(e,f[i]);ping('click');if(i==2)fim()},900+i*450)});
-function fim(){const rs=el.querySelector('.res');if(!win){rs.textContent='∅ Nothing this time';return}const p=LOOT[TI[q]],it=p.length?p[Math.random()*p.length|0]:'Item '+TN[q]+' (TBD)';rs.innerHTML=`<b class="o">✧ <span style="color:${QC[q]}">${SYM[q]}</span> ${TN[q]}: ${esc(it)}</b>`;if(!gain(id,`[${TN[q]}] ${it}`))rs.innerHTML+=' <span class="pz">▣ full — decide fate</span>'}}
-
-const psv=()=>{if(lostUser&&!admin)return;try{localStorage.lost_pend=JSON.stringify(PEND)}catch(e){}scheduleCloudSync()},slotsOf=c=>c.slots??9,
-invHtml=c=>{const v=c.inv||[],n=Math.max(slotsOf(c),v.length);return Array.from({length:n},(_,i)=>i<v.length?`<div class="sl${i>=slotsOf(c)?' ov':''}"><span>${esc(v[i])}</span>${admin?`<button class="b s rd" data-a="rmi" data-i="${i}">✕</button>`:''}</div>`:'<div class="sl e">empty</div>').join('')};
-function gain(id,item){const c=A(C.find(x=>x.id==id));if(!c)return 0;if((c.inv||[]).length<slotsOf(c)){mut(n=>(n.inv||=[]).push(item),id);return 1}PEND.push({id,item});psv();ovUI();return 0}
-function ovUI(){const p=PEND[0],m=$('#ov'),r=p&&C.find(x=>x.id==p.id);if(!p||!admin||!r){m.classList.add('hid');return}const c=A(r),o=sceneChars().map(A).filter(x=>x.id!=c.id),full=x=>(x.inv||[]).length>=slotsOf(x);
-m.innerHTML=`<div class="w" style="max-width:520px;width:100%;max-height:90vh;overflow:auto"><div class="tb"><span>▣ INVENTORY FULL · ${esc(c.name)} (${c.inv.length}/${slotsOf(c)})</span><span class="mt">${PEND.length} pending</span></div><div class="pd"><div class="tot" style="font-size:22px">${esc(p.item)}</div><div class="mt">No free slots. Swap for an item to throw away, give to another player, or discard.</div>
-<h3>⇄ SWAP — drop current item</h3>${c.inv.map((x,i)=>`<div class="ab row sp"><span>${esc(x)}</span><button class="b s rd" data-a="ovswap" data-i="${i}">drop</button></div>`).join('')}
-<h3>↦ GIVE NEW ITEM TO</h3><div class="row"><select id="ovto" style="flex:1">${o.map(x=>`<option value="${x.id}"${full(x)?' disabled':''}>${esc(x.name)} (${(x.inv||[]).length}/${slotsOf(x)})${full(x)?' · full':''}</option>`).join('')}</select><button class="b am" data-a="ovgive">GIVE</button></div>
-<h3>⌧ DISCARD</h3><button class="b rd" data-a="ovdrop">Discard new item</button></div></div>`;m.classList.remove('hid')}
 
 /* actions: XP = public, XA = author only */
 /* EXTRAS: assinaturas, implantes, passivas com efeito, ajustes manuais */
-const TG=[['roll','All rolls'],...SK.map(k=>['stat:'+k,k+' rolls']),['hpmax','Max HP'],['sanmax','Max SAN'],['regen','SAN regen'],['dmg','Weapon damage']],TL=Object.fromEntries(TG),
-mods=c=>{const m={roll:0,hpmax:0,sanmax:0,regen:0,dmg:0,hpMultiplier:1,initiativeFirst:false,stat:Object.fromEntries(SK.map(k=>[k,0]))};
-(c.passives||[]).forEach(p=>{if(p.off||p._lostMeta)return;delete p.err;(p.tags||[]).forEach(g=>{const v=num(g.v);g.t.startsWith('stat:')?m.stat[g.t.slice(5)]+=v:m[g.t]+=v});if(p.code)try{new Function('c','m',p.code)(J(c),m)}catch(e){p.err=e.message}});return m},
-SGN=[['a','Active Signature'],['p','Passive Signature'],['r','Risk']],
-LOST_META_CLASS='__LOST_CLASS_META__',LOST_META_SPECIALTY='__LOST_SPECIALTY_META__',LOST_META_SPECIALTY_INFO='__LOST_SPECIALTY_INFO_META__',
-characterMeta=(c,key)=>(c.passives||[]).find(p=>p&&p._lostMeta===key)?.d||'',
-setCharacterMeta=(c,key,value)=>{c.passives??=[];const marker=key==='class'?LOST_META_CLASS:key==='specialtyInfo'?LOST_META_SPECIALTY_INFO:LOST_META_SPECIALTY;let p=c.passives.find(x=>x&&x._lostMeta===key);if(String(value||'').trim()){if(!p){p={n:marker,d:'',_lostMeta:key};c.passives.push(p)}p.d=String(value).trim()}else c.passives=c.passives.filter(x=>!x||x._lostMeta!==key)},
-characterIdentity=c=>{const clz=characterMeta(c,'class'),specialty=characterMeta(c,'specialty'),info=characterMeta(c,'specialtyInfo');if(!admin&&!clz&&!specialty&&!info)return '';return `<div class="class-specialty"><div><span>CLASS</span><b>${esc(clz||'—')}</b></div><div><span>SPECIALTY</span><b>${esc(specialty||'—')}</b></div></div>${info?`<div class="specialty-info"><span>SPECIALTY INFO</span><div>${esc(info)}</div></div>`:''}`},
-sigs=c=>'<div class="sg" style="margin-top:8px">'+SGN.map(([k,t])=>{const v=c.sig?.[k]||'',title=c.sigTitle?.[k]||'',rk=k=='r';return admin?`<label>${t} TITLE</label><input data-sgt="${k}" value="${esc(title)}" placeholder="${t} title" style="margin-top:2px"><label>${t} DESCRIPTION</label><textarea data-sg="${k}" rows="2"${rk?' style="border-color:#7f1d1d"':''}>${esc(v)}</textarea>`:title||v?`<div class="at"${rk?' style="border-color:#ef4444"':''}><b>${esc(title||t)}</b>${v?`<div>${esc(v)}</div>`:''}</div>`:''}).join('')+'</div>',
-tabs=()=>`<div class="row" style="margin-bottom:6px">${[['main','MAIN'],['imp','IMPLANTS']].map(([k,t])=>`<button class="b${TAB==k?' on':''}" data-a="tab" data-k="${k}">${t}</button>`).join('')}</div>`,
-impUI=c=>`<h3>IMPLANTS · 4 SLOTS</h3><div class="imps">${[0,1,2,3].map(i=>{const m=(c.imps||[])[i]||{};return`<div class="ab"><div class="im" style="max-width:none">${m.img?`<img src="${esc(m.img)}" alt="">`:`<span>SLOT ${i+1}</span>`}${admin?`<label class="b s" style="position:absolute;bottom:4px;right:4px;margin:0;cursor:pointer">IMG<input type="file" accept="image/*" data-imp="${i}" hidden></label>`:''}</div>${admin?`<input data-ip="${i}" data-k="n" value="${esc(m.n||'')}" placeholder="Implant name" style="margin-top:4px"><textarea data-ip="${i}" data-k="d" rows="5" placeholder="Description…" style="margin-top:4px">${esc(m.d||'')}</textarea>`:`<b class="o" style="display:block;margin-top:4px">${esc(m.n||'—')}</b><div class="mt">${esc(m.d||'')}</div>`}</div>`}).join('')}</div>`,
-ovw=c=>`<h3>MANUAL OVERRIDES <span class="mt">(blank = automatic)</span></h3><div class="r3">${[['hp','MAX HP'],['san','MAX SAN'],['regen','SAN REGEN']].map(([k,l])=>`<div><label>${l}</label><input type="number" data-ov="${k}" value="${esc(c.ov?.[k]??'')}" placeholder="auto"></div>`).join('')}</div>`;
-const XP={vital:t=>lostAdjustVital(t.dataset.i,t.dataset.k,+t.dataset.d),x:t=>t.closest('.w').remove(),clr:()=>$('#L').innerHTML='<div class="e0">— No rolls recorded in this session —</div>',snd:t=>{son=!son;t.textContent=son?'♪ SOUND: ON':'⊘ SOUND: OFF'},hidecard:t=>{const id=t.dataset.i;if(!id)return;hiddenSceneCharacterIds.add(id);saveSceneViewPrefs();render()},showhidden:()=>{hiddenSceneCharacterIds.clear();saveSceneViewPrefs();render()},
-close:()=>location.hash='',mycharacter:()=>{const id=lostEffectiveCharacterId();if(id)location.hash=id},workspace:t=>{WORKSPACE='scene';try{localStorage.setItem('lost_workspace_view',WORKSPACE)}catch(e){}render()},togglelibraryscene:()=>{WORKSPACE=WORKSPACE==='library-scene'?'scene':'library-scene';try{localStorage.setItem('lost_workspace_view',WORKSPACE)}catch(e){}render()},tab:t=>{TAB=t.dataset.k;render()},side:t=>{C.find(x=>x.id==t.dataset.i).side=t.dataset.s;sv();render()},cancel:()=>{ed=null;editFromLibrary=false;render()},initx:()=>$('#ib').classList.add('hid'),lootx:()=>$('#lt').classList.add('hid'),
-gear:()=>{},
-rs:t=>{const c=cur();if(!canRollCharacter(c)){alert('You can only roll as your assigned character.');return}ping('roll');show(c.name,t.dataset.k+' Check',R(rf(c,t.dataset.k)),fxe(c,t.dataset.k))},
-rw:t=>{const c=cur();if(!canRollCharacter(c)){alert('You can only roll as your assigned character.');return}const w=c.weapons[t.dataset.i],cfg=weaponConfig(w),d=t.dataset.m=='d';if(!cfg.hasWeapon)return;if(d&&!cfg.damageFormula){alert('Set a damage formula for this weapon first.');return}const stat=d?(w.damageStat||''):cfg.hitStat,formula=d?cfg.damageFormula:(String(w.hitFormula||'').trim()||rf(c,cfg.hitStat)),ex=[...hb(c,w),...fxe(c,stat)];if(!d&&num(w.hitBonus))ex.push(['Weapon hit bonus',num(w.hitBonus)]);if(d&&w.damageStat){const v=stv(c,w.damageStat)+(c.mod?.stat?.[w.damageStat]||0);if(v)ex.push([`${w.damageStat} damage`,v])}if(d&&num(w.damageBonus))ex.push(['Weapon damage bonus',num(w.damageBonus)]);if(d&&c.mod?.dmg)ex.push(['Passives (dmg)',c.mod.dmg]);const roll=R(formula);if(!roll){alert('Invalid dice formula. Use NdS+B (e.g. 2d6+3).');return}ping('roll');show(c.name,`${d?'Damage':'Hit'} · ${cfg.name} (${TN[cfg.ti]})`,roll,ex)},
-ua:t=>{const c=cur();if(!canRollCharacter(c)){alert('You can only use skills as your assigned character.');return}ping('action');const a=c.actives[t.dataset.i];mut(n=>n.san[0]=Math.max(0,n.san[0]-num(a.c)));T(c.name,'Active: '+a.n,`<div class="mt">Cost: ${a.c} SAN</div><div class="tot">${Math.max(0,c.san[0]-num(a.c))} SAN remaining</div>`,`cost ${a.c} SAN`);a.r&&show(c.name,'Active · '+a.n,R(a.r))}},
-XA={toggleplayerlockspanel:()=>togglePlayerLocksPanel(),edit:()=>{editFromLibrary=!!cur()?.libraryId;ed=J(cur());form()},editlibchar:t=>{const raw=C.find(x=>x.id===t.dataset.i);if(!raw)return;if(location.hash)history.replaceState(null,'',location.pathname+location.search);sel=null;editFromLibrary=true;ed=J(A(raw));ed.libraryId=raw.libraryId||'';form()},assignplayer:t=>lostAssignPlayer(t),addplayer:()=>lostAddPlayer(),unlockplayer:t=>lostUnassignPlayer(t),
-ptadd:t=>mut(n=>{const i=t.dataset.i;(n.passives[i].tags||=[]).push({t:$('#pt'+i).value,v:num($('#pv'+i).value)})}),
-ptdel:t=>mut(n=>{n.passives[t.dataset.i].tags.splice(+t.dataset.j,1)}),ptoff:t=>mut(n=>{const p=n.passives[t.dataset.i];p.off=!p.off}),new:()=>{ed={...blank(''),id:'',order:C.length+1};form()},newlibchar:()=>{if(!activeLibrary)return;ed={...blank(''),id:'',order:C.length+1,libraryId:activeLibrary};form()},
-newlib:()=>{const name=prompt('Library name','Character Library');if(!name?.trim())return;const makePrivate=confirm('Make this library PRIVATE? Private libraries are kept only in this author browser and excluded from the shared player campaign.');let id=slug(name)||'library-'+Date.now();if(LIBS.some(x=>x.id===id))id+='-'+Date.now();LIBS.push({id,name:name.trim(),private:makePrivate});activeLibrary=id;WORKSPACE='scene';libsv();render()},
-togglelibprivacy:()=>{const lib=LIBS.find(x=>x.id===activeLibrary);if(!lib)return;const next=!lib.private;if(next){const ids=new Set(C.filter(c=>c.libraryId===lib.id).map(c=>c.id));const assigned=lostPlayerProfiles.filter(p=>p.characterId&&ids.has(p.characterId));if(assigned.length){alert('This library contains characters assigned to players: '+assigned.map(p=>'@'+(p.username||p.uid)).join(', ')+'. Reassign those players before making this library private.');return}if(!confirm('Make this library private? Its characters will stop being sent to the shared player campaign and will remain stored only in this author browser. Export a JSON backup first if you want another copy.'))return}lib.private=next;libsv();render()},
-renamelib:()=>{const lib=LIBS.find(x=>x.id===activeLibrary);if(!lib)return;const name=prompt('Rename library',lib.name);if(!name?.trim())return;lib.name=name.trim();libsv();render()},
-deletelib:()=>{const lib=LIBS.find(x=>x.id===activeLibrary);if(!lib||!confirm(`Delete library "${lib.name}"? Its characters will be returned to the main scene.`))return;C.forEach(c=>{if(c.libraryId===lib.id)c.libraryId=''});LIBS=LIBS.filter(x=>x.id!==lib.id);C.forEach(mth);activeLibrary=LIBS.find(x=>x.id==='main-party')?.id||LIBS[0]?.id||'';sv();libsv();render()},
-store:t=>{const c=C.find(x=>x.id===(t.dataset.i||sel));if(!c)return;let id=activeLibrary;if(!LIBS.some(x=>x.id===id)){const name=prompt('Create a library to store this character in','Character Library');if(!name?.trim())return;id=slug(name)||'library-'+Date.now();if(LIBS.some(x=>x.id===id))id+='-'+Date.now();LIBS.push({id,name:name.trim()});activeLibrary=id;libsv()}c.libraryId=id;C.forEach(mth);sv();if(sel===c.id)location.hash='';render()},
-deploy:t=>{const c=C.find(x=>x.id===(t.dataset.i||sel));if(!c)return;c.libraryId='';C.forEach(mth);sv();WORKSPACE='scene';if(sel===c.id)location.hash='';render()},
-addw:()=>mut(n=>n.weapons.push(wpn())),delw:t=>mut(n=>n.weapons.splice(t.dataset.i,1)),
-slot:t=>mut(n=>{n.slots=Math.max(1,(n.slots??9)+ +t.dataset.d)}),rmi:t=>mut(n=>{n.inv.splice(+t.dataset.i,1)}),fit:()=>mut(n=>{n.fit=n.fit=='contain'?'cover':'contain'}),
-ovswap:t=>{const p=PEND.shift(),c=A(C.find(x=>x.id==p.id)),out=c.inv[+t.dataset.i];mut(n=>{n.inv.splice(+t.dataset.i,1);n.inv.push(p.item)},p.id);psv();T(c.name,'Inventory',`<div class="mt">Dropped <b>${esc(out)}</b> and kept <b>${esc(p.item)}</b></div>`,'swapped item');ovUI()},
-ovgive:()=>{const p=PEND[0],to=$('#ovto')?.value;if(!p||!to)return;PEND.shift();const a=A(C.find(x=>x.id==p.id)),b=A(C.find(x=>x.id==to));gain(to,p.item);psv();T(a.name,'Inventory',`<div class="mt">Gave <b>${esc(p.item)}</b> to <b>${esc(b.name)}</b></div>`,'gave item');ovUI()},
-ovdrop:()=>{const p=PEND.shift();psv();T(A(C.find(x=>x.id==p.id)).name,'Inventory',`<div class="mt">Discarded <b>${esc(p.item)}</b></div>`,'discarded item');ovUI()},
-wipeinv:()=>{if(confirm('Clear inventory for this character?'))mut(n=>n.inv=[])},
-clrforminv:()=>{if($('#fi'))$('#fi').value=''},
-sh:t=>mut(n=>n.shield=Math.max(0,(n.shield||0)+ +t.dataset.d)),st:t=>{const k=t.dataset.k,d=+t.dataset.d;mut(n=>{const v=stv(n,k)+d;if(v>=0&&(d<0||left(n)>0))n.st[k]=v})},
-addl:t=>{grab();const k=t.dataset.k,n=$('#'+k+'n').value.trim();if(n)ed[k].push(k=='actives'?{n,c:num($('#activesc').value),d:$('#activesd').value.trim(),r:$('#activesr').value.trim()}:{n,d:$('#passivesd').value.trim()});form()},
-dell:t=>{grab();ed[t.dataset.k].splice(t.dataset.i,1);form()},
-save:()=>{grab();if(!ed.name)return alert('Enter name.');if(ed.img){try{const u=new URL(ed.img);if(u.protocol!=='https:')throw new Error('Use an HTTPS image URL.');const h=u.hostname.toLowerCase();if((h==='imgur.com'||h==='www.imgur.com')&&!/\.(png|jpe?g|gif|webp|avif)$/i.test(u.pathname))throw new Error('This looks like an Imgur page, not a direct image. Copy the image address (i.imgur.com/...png or .jpg) and try again.');ed.img=u.href}catch(e){alert(e.message||'Enter a valid direct image URL.');return}}setCharacterMeta(ed,'class',ed.className||'');setCharacterMeta(ed,'specialty',ed.specialty||'');setCharacterMeta(ed,'specialtyInfo',ed.specialtyInfo||'');delete ed.className;delete ed.specialty;delete ed.specialtyInfo;ed.id||=slug(ed.name)||'pj'+Date.now();const n=ed,returnToLibrary=editFromLibrary;ed=null;editFromLibrary=false;WORKSPACE=returnToLibrary&&n.libraryId?'library-scene':n.libraryId?'libraries':'scene';mth(n);put(n);if(returnToLibrary){if(location.hash)history.replaceState(null,'',location.pathname+location.search);render()}else location.hash=n.id},
-del:()=>{const id=ed?.id||sel,raw=C.find(x=>x.id===id),name=raw?A(raw).name:'this character';if(!raw)return;if(!confirm('Delete '+name+'?'))return;ed=null;editFromLibrary=false;if(location.hash)history.replaceState(null,'',location.pathname+location.search);C=C.filter(x=>x.id!==id);C.forEach(mth);sv();render()},
-zero:t=>{const k=t.dataset.k;all(n=>{if(k!='san')n.hp[0]=0;if(k!='hp')n.san[0]=0})},
-fx_toggle:t=>mut(n=>{n.fx[t.dataset.k]=!n.fx[t.dataset.k]}),
-fx_set:t=>mut(n=>{
-  const k=t.dataset.k, v=+t.dataset.v;
-  if(k==='bleeding' && v===0){ n.fx.bleeding=0; delete n.fx.hemorrhage; }
-  else if(k==='fire' && v===0){ n.fx.fire=0; delete n.fx.combustion; }
-  else { n.fx[k]=v; }
-}),
-fx_add:t=>mut(n=>{const k=t.dataset.k,d=+t.dataset.d,m=+t.dataset.m,v=cl((getFxVal(n,k)||0)+d,0,m);
-if(k==='bleeding'){
-  if(getFxVal(n,'bleeding')+d >= 4){ n.fx.hemorrhage=true; n.fx.bleeding=0; }
-  else { delete n.fx.hemorrhage; n.fx.bleeding=v; }
-} else if(k==='fire'){
-  if(getFxVal(n,'fire')+d >= 2){ n.fx.combustion=2; n.fx.fire=0; }
-  else { delete n.fx.combustion; n.fx.fire=v; }
-} else { n.fx[k]=v; }
-}),
+const TG = [
+    ["roll", "All rolls"],
+    ...SK.map((k) => ["stat:" + k, k + " rolls"]),
+    ["hpmax", "Max HP"],
+    ["sanmax", "Max SAN"],
+    ["regen", "SAN regen"],
+    ["dmg", "Weapon damage"],
+  ],
+  TL = Object.fromEntries(TG),
+  mods = (c) => {
+    const m = {
+      roll: 0,
+      hpmax: 0,
+      sanmax: 0,
+      regen: 0,
+      dmg: 0,
+      hpMultiplier: 1,
+      initiativeFirst: false,
+      stat: Object.fromEntries(SK.map((k) => [k, 0])),
+    };
+    (c.passives || []).forEach((p) => {
+      if (p.off || p._lostMeta) return;
+      delete p.err;
+      (p.tags || []).forEach((g) => {
+        const v = num(g.v);
+        g.t.startsWith("stat:") ? (m.stat[g.t.slice(5)] += v) : (m[g.t] += v);
+      });
+      if (p.code)
+        try {
+          new Function("c", "m", p.code)(J(c), m);
+        } catch (e) {
+          p.err = e.message;
+        }
+    });
+    return m;
+  },
+  SGN = [
+    ["a", "Active Signature"],
+    ["p", "Passive Signature"],
+    ["r", "Risk"],
+  ],
+  LOST_META_CLASS = "__LOST_CLASS_META__",
+  LOST_META_SPECIALTY = "__LOST_SPECIALTY_META__",
+  LOST_META_SPECIALTY_INFO = "__LOST_SPECIALTY_INFO_META__",
+  characterMeta = (c, key) => (c.passives || []).find((p) => p && p._lostMeta === key)?.d || "",
+  setCharacterMeta = (c, key, value) => {
+    c.passives ??= [];
+    const marker =
+      key === "class"
+        ? LOST_META_CLASS
+        : key === "specialtyInfo"
+          ? LOST_META_SPECIALTY_INFO
+          : LOST_META_SPECIALTY;
+    let p = c.passives.find((x) => x && x._lostMeta === key);
+    if (String(value || "").trim()) {
+      if (!p) {
+        p = { n: marker, d: "", _lostMeta: key };
+        c.passives.push(p);
+      }
+      p.d = String(value).trim();
+    } else c.passives = c.passives.filter((x) => !x || x._lostMeta !== key);
+  },
+  characterIdentity = (c) => {
+    const clz = characterMeta(c, "class"),
+      specialty = characterMeta(c, "specialty"),
+      info = characterMeta(c, "specialtyInfo");
+    if (!admin && !clz && !specialty && !info) return "";
+    return `<div class="class-specialty"><div><span>CLASS</span><b>${esc(clz || "—")}</b></div><div><span>SPECIALTY</span><b>${esc(specialty || "—")}</b></div></div>${info ? `<div class="specialty-info"><span>SPECIALTY INFO</span><div>${esc(info)}</div></div>` : ""}`;
+  },
+  sigs = (c) =>
+    '<div class="sg" style="margin-top:8px">' +
+    SGN.map(([k, t]) => {
+      const v = c.sig?.[k] || "",
+        title = c.sigTitle?.[k] || "",
+        rk = k == "r";
+      return admin
+        ? `<label>${t} TITLE</label><input data-sgt="${k}" value="${esc(title)}" placeholder="${t} title" style="margin-top:2px"><label>${t} DESCRIPTION</label><textarea data-sg="${k}" rows="2"${rk ? ' style="border-color:#7f1d1d"' : ""}>${esc(v)}</textarea>`
+        : title || v
+          ? `<div class="at"${rk ? ' style="border-color:#ef4444"' : ""}><b>${esc(title || t)}</b>${v ? `<div>${esc(v)}</div>` : ""}</div>`
+          : "";
+    }).join("") +
+    "</div>",
+  tabs = () =>
+    `<div class="row" style="margin-bottom:6px">${[
+      ["main", "MAIN"],
+      ["imp", "IMPLANTS"],
+    ]
+      .map(
+        ([k, t]) =>
+          `<button class="b${TAB == k ? " on" : ""}" data-a="tab" data-k="${k}">${t}</button>`,
+      )
+      .join("")}</div>`,
+  impUI = (c) =>
+    `<h3>IMPLANTS · 4 SLOTS</h3><div class="imps">${[0, 1, 2, 3]
+      .map((i) => {
+        const m = (c.imps || [])[i] || {};
+        return `<div class="ab"><div class="im" style="max-width:none">${m.img ? `<img src="${esc(m.img)}" alt="">` : `<span>SLOT ${i + 1}</span>`}${admin ? `<label class="b s" style="position:absolute;bottom:4px;right:4px;margin:0;cursor:pointer">IMG<input type="file" accept="image/*" data-imp="${i}" hidden></label>` : ""}</div>${admin ? `<input data-ip="${i}" data-k="n" value="${esc(m.n || "")}" placeholder="Implant name" style="margin-top:4px"><textarea data-ip="${i}" data-k="d" rows="5" placeholder="Description…" style="margin-top:4px">${esc(m.d || "")}</textarea>` : `<b class="o" style="display:block;margin-top:4px">${esc(m.n || "—")}</b><div class="mt">${esc(m.d || "")}</div>`}</div>`;
+      })
+      .join("")}</div>`,
+  ovw = (c) =>
+    `<h3>MANUAL OVERRIDES <span class="mt">(blank = automatic)</span></h3><div class="r3">${[
+      ["hp", "MAX HP"],
+      ["san", "MAX SAN"],
+      ["regen", "SAN REGEN"],
+    ]
+      .map(
+        ([k, l]) =>
+          `<div><label>${l}</label><input type="number" data-ov="${k}" value="${esc(c.ov?.[k] ?? "")}" placeholder="auto"></div>`,
+      )
+      .join("")}</div>`;
+const XP = {
+    vital: (t) => lostAdjustVital(t.dataset.i, t.dataset.k, +t.dataset.d),
+    x: (t) => t.closest(".w").remove(),
+    clr: () => ($("#L").innerHTML = '<div class="e0">— No rolls recorded in this session —</div>'),
+    snd: (t) => {
+      son = !son;
+      t.textContent = son ? "♪ SOUND: ON" : "⊘ SOUND: OFF";
+    },
+    hidecard: (t) => {
+      const id = t.dataset.i;
+      if (!id) return;
+      hiddenSceneCharacterIds.add(id);
+      saveSceneViewPrefs();
+      render();
+    },
+    showhidden: () => {
+      hiddenSceneCharacterIds.clear();
+      saveSceneViewPrefs();
+      render();
+    },
+    close: () => (location.hash = ""),
+    mycharacter: () => {
+      const id = lostEffectiveCharacterId();
+      if (id) location.hash = id;
+    },
+    workspace: (t) => {
+      WORKSPACE = "scene";
+      try {
+        localStorage.setItem("lost_workspace_view", WORKSPACE);
+      } catch (e) {}
+      render();
+    },
+    togglelibraryscene: () => {
+      WORKSPACE = WORKSPACE === "library-scene" ? "scene" : "library-scene";
+      try {
+        localStorage.setItem("lost_workspace_view", WORKSPACE);
+      } catch (e) {}
+      render();
+    },
+    tab: (t) => {
+      TAB = t.dataset.k;
+      render();
+    },
+    side: (t) => {
+      C.find((x) => x.id == t.dataset.i).side = t.dataset.s;
+      sv();
+      render();
+    },
+    cancel: () => {
+      ed = null;
+      editFromLibrary = false;
+      render();
+    },
+    initx: () => $("#ib").classList.add("hid"),
+    lootx: () => $("#lt").classList.add("hid"),
+    gear: () => {},
+    rs: (t) => {
+      const c = cur();
+      if (!canRollCharacter(c)) {
+        alert("You can only roll as your assigned character.");
+        return;
+      }
+      ping("roll");
+      show(c.name, t.dataset.k + " Check", R(rf(c, t.dataset.k)), fxe(c, t.dataset.k));
+    },
+    rw: (t) => {
+      const c = cur();
+      if (!canRollCharacter(c)) {
+        alert("You can only roll as your assigned character.");
+        return;
+      }
+      const w = c.weapons[t.dataset.i],
+        cfg = weaponConfig(w),
+        d = t.dataset.m == "d";
+      if (!cfg.hasWeapon) return;
+      if (d && !cfg.damageFormula) {
+        alert("Set a damage formula for this weapon first.");
+        return;
+      }
+      const stat = d ? w.damageStat || "" : cfg.hitStat,
+        formula = d ? cfg.damageFormula : String(w.hitFormula || "").trim() || rf(c, cfg.hitStat),
+        ex = [...hb(c, w), ...fxe(c, stat)];
+      if (!d && num(w.hitBonus)) ex.push(["Weapon hit bonus", num(w.hitBonus)]);
+      if (d && w.damageStat) {
+        const v = stv(c, w.damageStat) + (c.mod?.stat?.[w.damageStat] || 0);
+        if (v) ex.push([`${w.damageStat} damage`, v]);
+      }
+      if (d && num(w.damageBonus)) ex.push(["Weapon damage bonus", num(w.damageBonus)]);
+      if (d && c.mod?.dmg) ex.push(["Passives (dmg)", c.mod.dmg]);
+      const roll = R(formula);
+      if (!roll) {
+        alert("Invalid dice formula. Use NdS+B (e.g. 2d6+3).");
+        return;
+      }
+      ping("roll");
+      show(c.name, `${d ? "Damage" : "Hit"} · ${cfg.name} (${TN[cfg.ti]})`, roll, ex);
+    },
+    ua: (t) => {
+      const c = cur();
+      if (!canRollCharacter(c)) {
+        alert("You can only use skills as your assigned character.");
+        return;
+      }
+      ping("action");
+      const a = c.actives[t.dataset.i];
+      mut((n) => (n.san[0] = Math.max(0, n.san[0] - num(a.c))));
+      T(
+        c.name,
+        "Active: " + a.n,
+        `<div class="mt">Cost: ${a.c} SAN</div><div class="tot">${Math.max(0, c.san[0] - num(a.c))} SAN remaining</div>`,
+        `cost ${a.c} SAN`,
+      );
+      a.r && show(c.name, "Active · " + a.n, R(a.r));
+    },
+  },
+  XA = {
+    toggleplayerlockspanel: () => togglePlayerLocksPanel(),
+    edit: () => {
+      editFromLibrary = !!cur()?.libraryId;
+      ed = J(cur());
+      form();
+    },
+    editlibchar: (t) => {
+      const raw = C.find((x) => x.id === t.dataset.i);
+      if (!raw) return;
+      if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+      sel = null;
+      editFromLibrary = true;
+      ed = J(A(raw));
+      ed.libraryId = raw.libraryId || "";
+      form();
+    },
+    assignplayer: (t) => lostAssignPlayer(t),
+    addplayer: () => lostAddPlayer(),
+    unlockplayer: (t) => lostUnassignPlayer(t),
+    ptadd: (t) =>
+      mut((n) => {
+        const i = t.dataset.i;
+        (n.passives[i].tags ||= []).push({ t: $("#pt" + i).value, v: num($("#pv" + i).value) });
+      }),
+    ptdel: (t) =>
+      mut((n) => {
+        n.passives[t.dataset.i].tags.splice(+t.dataset.j, 1);
+      }),
+    ptoff: (t) =>
+      mut((n) => {
+        const p = n.passives[t.dataset.i];
+        p.off = !p.off;
+      }),
+    new: () => {
+      ed = { ...blank(""), id: "", order: C.length + 1 };
+      form();
+    },
+    newlibchar: () => {
+      if (!activeLibrary) return;
+      ed = { ...blank(""), id: "", order: C.length + 1, libraryId: activeLibrary };
+      form();
+    },
+    newlib: () => {
+      const name = prompt("Library name", "Character Library");
+      if (!name?.trim()) return;
+      const makePrivate = confirm(
+        "Make this library PRIVATE? Private libraries are kept only in this author browser and excluded from the shared player campaign.",
+      );
+      let id = slug(name) || "library-" + Date.now();
+      if (LIBS.some((x) => x.id === id)) id += "-" + Date.now();
+      LIBS.push({ id, name: name.trim(), private: makePrivate });
+      activeLibrary = id;
+      WORKSPACE = "scene";
+      libsv();
+      render();
+    },
+    togglelibprivacy: () => {
+      const lib = LIBS.find((x) => x.id === activeLibrary);
+      if (!lib) return;
+      const next = !lib.private;
+      if (next) {
+        const ids = new Set(C.filter((c) => c.libraryId === lib.id).map((c) => c.id));
+        const assigned = lostPlayerProfiles.filter((p) => p.characterId && ids.has(p.characterId));
+        if (assigned.length) {
+          alert(
+            "This library contains characters assigned to players: " +
+              assigned.map((p) => "@" + (p.username || p.uid)).join(", ") +
+              ". Reassign those players before making this library private.",
+          );
+          return;
+        }
+        if (
+          !confirm(
+            "Make this library private? Its characters will stop being sent to the shared player campaign and will remain stored only in this author browser. Export a JSON backup first if you want another copy.",
+          )
+        )
+          return;
+      }
+      lib.private = next;
+      libsv();
+      render();
+    },
+    renamelib: () => {
+      const lib = LIBS.find((x) => x.id === activeLibrary);
+      if (!lib) return;
+      const name = prompt("Rename library", lib.name);
+      if (!name?.trim()) return;
+      lib.name = name.trim();
+      libsv();
+      render();
+    },
+    deletelib: () => {
+      const lib = LIBS.find((x) => x.id === activeLibrary);
+      if (
+        !lib ||
+        !confirm(`Delete library "${lib.name}"? Its characters will be returned to the main scene.`)
+      )
+        return;
+      C.forEach((c) => {
+        if (c.libraryId === lib.id) c.libraryId = "";
+      });
+      LIBS = LIBS.filter((x) => x.id !== lib.id);
+      C.forEach(mth);
+      activeLibrary = LIBS.find((x) => x.id === "main-party")?.id || LIBS[0]?.id || "";
+      sv();
+      libsv();
+      render();
+    },
+    store: (t) => {
+      const c = C.find((x) => x.id === (t.dataset.i || sel));
+      if (!c) return;
+      let id = activeLibrary;
+      if (!LIBS.some((x) => x.id === id)) {
+        const name = prompt("Create a library to store this character in", "Character Library");
+        if (!name?.trim()) return;
+        id = slug(name) || "library-" + Date.now();
+        if (LIBS.some((x) => x.id === id)) id += "-" + Date.now();
+        LIBS.push({ id, name: name.trim() });
+        activeLibrary = id;
+        libsv();
+      }
+      c.libraryId = id;
+      C.forEach(mth);
+      sv();
+      if (sel === c.id) location.hash = "";
+      render();
+    },
+    deploy: (t) => {
+      const c = C.find((x) => x.id === (t.dataset.i || sel));
+      if (!c) return;
+      c.libraryId = "";
+      C.forEach(mth);
+      sv();
+      WORKSPACE = "scene";
+      if (sel === c.id) location.hash = "";
+      render();
+    },
+    addw: () => mut((n) => n.weapons.push(wpn())),
+    delw: (t) => mut((n) => n.weapons.splice(t.dataset.i, 1)),
+    slot: (t) =>
+      mut((n) => {
+        n.slots = Math.max(1, (n.slots ?? 9) + +t.dataset.d);
+      }),
+    rmi: (t) =>
+      mut((n) => {
+        n.inv.splice(+t.dataset.i, 1);
+      }),
+    fit: () =>
+      mut((n) => {
+        n.fit = n.fit == "contain" ? "cover" : "contain";
+      }),
+    ovswap: (t) => {
+      const p = PEND.shift(),
+        c = A(C.find((x) => x.id == p.id)),
+        out = c.inv[+t.dataset.i];
+      mut((n) => {
+        n.inv.splice(+t.dataset.i, 1);
+        n.inv.push(p.item);
+      }, p.id);
+      psv();
+      T(
+        c.name,
+        "Inventory",
+        `<div class="mt">Dropped <b>${esc(out)}</b> and kept <b>${esc(p.item)}</b></div>`,
+        "swapped item",
+      );
+      ovUI();
+    },
+    ovgive: () => {
+      const p = PEND[0],
+        to = $("#ovto")?.value;
+      if (!p || !to) return;
+      PEND.shift();
+      const a = A(C.find((x) => x.id == p.id)),
+        b = A(C.find((x) => x.id == to));
+      gain(to, p.item);
+      psv();
+      T(
+        a.name,
+        "Inventory",
+        `<div class="mt">Gave <b>${esc(p.item)}</b> to <b>${esc(b.name)}</b></div>`,
+        "gave item",
+      );
+      ovUI();
+    },
+    ovdrop: () => {
+      const p = PEND.shift();
+      psv();
+      T(
+        A(C.find((x) => x.id == p.id)).name,
+        "Inventory",
+        `<div class="mt">Discarded <b>${esc(p.item)}</b></div>`,
+        "discarded item",
+      );
+      ovUI();
+    },
+    wipeinv: () => {
+      if (confirm("Clear inventory for this character?")) mut((n) => (n.inv = []));
+    },
+    clrforminv: () => {
+      if ($("#fi")) $("#fi").value = "";
+    },
+    sh: (t) => mut((n) => (n.shield = Math.max(0, (n.shield || 0) + +t.dataset.d))),
+    st: (t) => {
+      const k = t.dataset.k,
+        d = +t.dataset.d;
+      mut((n) => {
+        const v = stv(n, k) + d;
+        if (v >= 0 && (d < 0 || left(n) > 0)) n.st[k] = v;
+      });
+    },
+    addl: (t) => {
+      grab();
+      const k = t.dataset.k,
+        n = $("#" + k + "n").value.trim();
+      if (n)
+        ed[k].push(
+          k == "actives"
+            ? {
+                n,
+                c: num($("#activesc").value),
+                d: $("#activesd").value.trim(),
+                r: $("#activesr").value.trim(),
+              }
+            : { n, d: $("#passivesd").value.trim() },
+        );
+      form();
+    },
+    dell: (t) => {
+      grab();
+      ed[t.dataset.k].splice(t.dataset.i, 1);
+      form();
+    },
+    save: () => {
+      grab();
+      if (!ed.name) return alert("Enter name.");
+      if (ed.img) {
+        try {
+          const u = new URL(ed.img);
+          if (u.protocol !== "https:") throw new Error("Use an HTTPS image URL.");
+          const h = u.hostname.toLowerCase();
+          if (
+            (h === "imgur.com" || h === "www.imgur.com") &&
+            !/\.(png|jpe?g|gif|webp|avif)$/i.test(u.pathname)
+          )
+            throw new Error(
+              "This looks like an Imgur page, not a direct image. Copy the image address (i.imgur.com/...png or .jpg) and try again.",
+            );
+          ed.img = u.href;
+        } catch (e) {
+          alert(e.message || "Enter a valid direct image URL.");
+          return;
+        }
+      }
+      setCharacterMeta(ed, "class", ed.className || "");
+      setCharacterMeta(ed, "specialty", ed.specialty || "");
+      setCharacterMeta(ed, "specialtyInfo", ed.specialtyInfo || "");
+      delete ed.className;
+      delete ed.specialty;
+      delete ed.specialtyInfo;
+      ed.id ||= slug(ed.name) || "pj" + Date.now();
+      const n = ed,
+        returnToLibrary = editFromLibrary;
+      ed = null;
+      editFromLibrary = false;
+      WORKSPACE =
+        returnToLibrary && n.libraryId ? "library-scene" : n.libraryId ? "libraries" : "scene";
+      mth(n);
+      put(n);
+      if (returnToLibrary) {
+        if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+        render();
+      } else location.hash = n.id;
+    },
+    del: () => {
+      const id = ed?.id || sel,
+        raw = C.find((x) => x.id === id),
+        name = raw ? A(raw).name : "this character";
+      if (!raw) return;
+      if (!confirm("Delete " + name + "?")) return;
+      ed = null;
+      editFromLibrary = false;
+      if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+      C = C.filter((x) => x.id !== id);
+      C.forEach(mth);
+      sv();
+      render();
+    },
+    zero: (t) => {
+      const k = t.dataset.k;
+      all((n) => {
+        if (k != "san") n.hp[0] = 0;
+        if (k != "hp") n.san[0] = 0;
+      });
+    },
+    fx_toggle: (t) =>
+      mut((n) => {
+        n.fx[t.dataset.k] = !n.fx[t.dataset.k];
+      }),
+    fx_set: (t) =>
+      mut((n) => {
+        const k = t.dataset.k,
+          v = +t.dataset.v;
+        if (k === "bleeding" && v === 0) {
+          n.fx.bleeding = 0;
+          delete n.fx.hemorrhage;
+        } else if (k === "fire" && v === 0) {
+          n.fx.fire = 0;
+          delete n.fx.combustion;
+        } else {
+          n.fx[k] = v;
+        }
+      }),
+    fx_add: (t) =>
+      mut((n) => {
+        const k = t.dataset.k,
+          d = +t.dataset.d,
+          m = +t.dataset.m,
+          v = cl((getFxVal(n, k) || 0) + d, 0, m);
+        if (k === "bleeding") {
+          if (getFxVal(n, "bleeding") + d >= 4) {
+            n.fx.hemorrhage = true;
+            n.fx.bleeding = 0;
+          } else {
+            delete n.fx.hemorrhage;
+            n.fx.bleeding = v;
+          }
+        } else if (k === "fire") {
+          if (getFxVal(n, "fire") + d >= 2) {
+            n.fx.combustion = 2;
+            n.fx.fire = 0;
+          } else {
+            delete n.fx.combustion;
+            n.fx.fire = v;
+          }
+        } else {
+          n.fx[k] = v;
+        }
+      }),
 
-start_fight:()=>{all(n=>n.san[0]=n.san[1]>>1);XA.roll();XA.bstart()},
-turn:()=>{bturn()},
+    start_fight: () => {
+      all((n) => (n.san[0] = n.san[1] >> 1));
+      XA.roll();
+      XA.bstart();
+    },
+    turn: () => {
+      bturn();
+    },
 
-init:()=>{$('#ib').classList.toggle('hid');bpanel()},
-max:t=>{const k=t.dataset.k;all(n=>{if(k!='san')n.hp[0]=n.hp[1];if(k!='hp')n.san[0]=n.san[1]})},
-enadd:()=>{EN.push({id:'enemy-'+Date.now(),n:'Enemy '+(EN.length+1),f:'1d20',hp:100,hpMax:100,d:''});esv();renderSidebars();bpanel()},endel:t=>{EN.splice(t.dataset.i,1);esv();renderSidebars();bpanel()},
-roll:()=>{ping('roll');const characterTurns=sceneChars().flatMap(raw=>{const c=A(raw),turns=c.fx?.isBoss?3:1;return Array.from({length:turns},(_,j)=>({id:c.id,n:turns===3?`${c.name} · BOSS TURN ${j+1}/3`:c.name,p:c.mod?.initiativeFirst?1:0,...ir(R(rf(c,'SPD')),fxe(c,'SPD'))}))});BT.order=[...characterTurns,...EN.map(e=>({id:null,n:e.n||'Enemy',...ir(R(e.f||'1d20'),[])}))].sort((a,b)=>(b.p||0)-(a.p||0)||b.t-a.t||Math.random()-.5);BT.on=0;BT.i=0;bsv();bpanel();bchip();render();lostPublishNotice('Table','Initiative Roll',BT.order.map((o,i)=>({n:o.n,t:o.t,d:o.d,b:o.b||0,i:i+1})));lostFlushBroadcast(true)},
-bstart:()=>{if(!BT.order.length)XA.roll();Object.assign(BT,{on:1,round:1,i:0,n:1});bsv();$('#ib').classList.remove('hid');bpanel();bchip();render();lostFlushBroadcast(true)},
-bnext:()=>{if(!BT.on)return;ping('action');BT.n++;if(++BT.i>=BT.order.length){BT.i=0;BT.round++;bturn()}bsv();bpanel();bchip();render();lostFlushBroadcast(true)},
-brm:t=>{const i=+t.dataset.i;BT.order.splice(i,1);if(i<BT.i)BT.i--;if(BT.i>=BT.order.length){BT.i=0;if(BT.on){BT.round++;bturn()}}bsv();bpanel();bchip();render()},
-bend:()=>{if(!confirm('End battle? All characters recover 25% HP and SAN and roll loot.'))return;all(n=>{n.hp[0]=Math.min(n.hp[1],n.hp[0]+Math.ceil(n.hp[1]*.25));n.san[0]=Math.min(n.san[1],n.san[0]+Math.ceil(n.san[1]*.25))});BT={on:0,round:1,i:0,n:0,order:[]};bsv();bpanel();bchip();lootUI();render();lostFlushBroadcast(true)},
-lootcfg:()=>lootUI(),lspin:t=>spin(t.dataset.i),lspinall:()=>sceneChars().forEach((c,i)=>setTimeout(()=>spin(c.id),i*350)),
-send:()=>{const id=$('#who2').value,h=num($('#dh').value),s=num($('#ds').value);if(!C.some(x=>x.id==id))return;mut(n=>{let d=h;const k=Math.min(n.shield||0,Math.max(d,0));n.shield=(n.shield||0)-k;d-=k;n.hp[0]=cl(n.hp[0]-d,0,n.hp[1]);n.san[0]=cl(n.san[0]-s,0,n.san[1]);n.last=[h&&'HP −'+h,s&&'SAN −'+s].filter(Boolean).join(' · ')+` (${hms().slice(0,5)})`},id);$('#dh').value=$('#ds').value=''},
-exp:()=>{const pack={format:'L.O.S.T. session save',version:3,exportedAt:new Date().toISOString(),note:'Host-side full campaign. Players never keep this after leaving a session.',characters:C,libraries:LIBS,enemies:EN,battle:BT,loot:LOOT,pendingInventory:PEND,workspace:WORKSPACE,activeLibrary,playerAssignments:typeof lostPlayersData==='object'?lostPlayersData:{},hiddenSceneCharacterIds:[...hiddenSceneCharacterIds],librarySort};const a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}));a.href=u;a.download='lost_session_'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)},imp:()=>$('#jf').click(),
-pushscene:()=>{if(!admin||!lostHost){alert('Only the hosting author can push the live scene.');return}lostFlushBroadcast(true);T('Table','Live scene pushed',`<div class="mt">Connected players received the current scene, enemies and battle state.</div>`,'session push')},
-invite:()=>{if(!lostHost||!lostRoom)return;const u=location.origin+location.pathname+'?room='+encodeURIComponent(lostRoom);const done=()=>T('Table','Invite link copied',`<div class="mt">${esc(u)}</div>`,'invite link copied');if(navigator.clipboard?.writeText)navigator.clipboard.writeText(u).then(done,()=>prompt('Copy this invite link:',u));else prompt('Copy this invite link:',u)}};
+    init: () => {
+      $("#ib").classList.toggle("hid");
+      bpanel();
+    },
+    max: (t) => {
+      const k = t.dataset.k;
+      all((n) => {
+        if (k != "san") n.hp[0] = n.hp[1];
+        if (k != "hp") n.san[0] = n.san[1];
+      });
+    },
+    enadd: () => {
+      EN.push({
+        id: "enemy-" + Date.now(),
+        n: "Enemy " + (EN.length + 1),
+        f: "1d20",
+        hp: 100,
+        hpMax: 100,
+        d: "",
+      });
+      esv();
+      renderSidebars();
+      bpanel();
+    },
+    endel: (t) => {
+      EN.splice(t.dataset.i, 1);
+      esv();
+      renderSidebars();
+      bpanel();
+    },
+    roll: () => {
+      ping("roll");
+      const characterTurns = sceneChars().flatMap((raw) => {
+        const c = A(raw),
+          turns = c.fx?.isBoss ? 3 : 1;
+        return Array.from({ length: turns }, (_, j) => ({
+          id: c.id,
+          n: turns === 3 ? `${c.name} · BOSS TURN ${j + 1}/3` : c.name,
+          p: c.mod?.initiativeFirst ? 1 : 0,
+          ...ir(R(rf(c, "SPD")), fxe(c, "SPD")),
+        }));
+      });
+      BT.order = [
+        ...characterTurns,
+        ...EN.map((e) => ({ id: null, n: e.n || "Enemy", ...ir(R(e.f || "1d20"), []) })),
+      ].sort((a, b) => (b.p || 0) - (a.p || 0) || b.t - a.t || Math.random() - 0.5);
+      BT.on = 0;
+      BT.i = 0;
+      bsv();
+      bpanel();
+      bchip();
+      render();
+      lostPublishNotice(
+        "Table",
+        "Initiative Roll",
+        BT.order.map((o, i) => ({ n: o.n, t: o.t, d: o.d, b: o.b || 0, i: i + 1 })),
+      );
+      lostFlushBroadcast(true);
+    },
+    bstart: () => {
+      if (!BT.order.length) XA.roll();
+      Object.assign(BT, { on: 1, round: 1, i: 0, n: 1 });
+      bsv();
+      $("#ib").classList.remove("hid");
+      bpanel();
+      bchip();
+      render();
+      lostFlushBroadcast(true);
+    },
+    bnext: () => {
+      if (!BT.on) return;
+      ping("action");
+      BT.n++;
+      if (++BT.i >= BT.order.length) {
+        BT.i = 0;
+        BT.round++;
+        bturn();
+      }
+      bsv();
+      bpanel();
+      bchip();
+      render();
+      lostFlushBroadcast(true);
+    },
+    brm: (t) => {
+      const i = +t.dataset.i;
+      BT.order.splice(i, 1);
+      if (i < BT.i) BT.i--;
+      if (BT.i >= BT.order.length) {
+        BT.i = 0;
+        if (BT.on) {
+          BT.round++;
+          bturn();
+        }
+      }
+      bsv();
+      bpanel();
+      bchip();
+      render();
+    },
+    bend: () => {
+      if (!confirm("End battle? All characters recover 25% HP and SAN and roll loot.")) return;
+      all((n) => {
+        n.hp[0] = Math.min(n.hp[1], n.hp[0] + Math.ceil(n.hp[1] * 0.25));
+        n.san[0] = Math.min(n.san[1], n.san[0] + Math.ceil(n.san[1] * 0.25));
+      });
+      BT = { on: 0, round: 1, i: 0, n: 0, order: [] };
+      bsv();
+      bpanel();
+      bchip();
+      lootUI();
+      render();
+      lostFlushBroadcast(true);
+    },
+    lootcfg: () => lootUI(),
+    lspin: (t) => spin(t.dataset.i),
+    lspinall: () => sceneChars().forEach((c, i) => setTimeout(() => spin(c.id), i * 350)),
+    send: () => {
+      const id = $("#who2").value,
+        h = num($("#dh").value),
+        s = num($("#ds").value);
+      if (!C.some((x) => x.id == id)) return;
+      mut((n) => {
+        let d = h;
+        const k = Math.min(n.shield || 0, Math.max(d, 0));
+        n.shield = (n.shield || 0) - k;
+        d -= k;
+        n.hp[0] = cl(n.hp[0] - d, 0, n.hp[1]);
+        n.san[0] = cl(n.san[0] - s, 0, n.san[1]);
+        n.last =
+          [h && "HP −" + h, s && "SAN −" + s].filter(Boolean).join(" · ") +
+          ` (${hms().slice(0, 5)})`;
+      }, id);
+      $("#dh").value = $("#ds").value = "";
+    },
+    exp: () => {
+      const pack = {
+        format: "L.O.S.T. session save",
+        version: 3,
+        exportedAt: new Date().toISOString(),
+        note: "Host-side full campaign. Players never keep this after leaving a session.",
+        characters: C,
+        libraries: LIBS,
+        enemies: EN,
+        battle: BT,
+        loot: LOOT,
+        pendingInventory: PEND,
+        workspace: WORKSPACE,
+        activeLibrary,
+        playerAssignments: typeof lostPlayersData === "object" ? lostPlayersData : {},
+        hiddenSceneCharacterIds: [...hiddenSceneCharacterIds],
+        librarySort,
+      };
+      const a = document.createElement("a"),
+        u = URL.createObjectURL(
+          new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" }),
+        );
+      a.href = u;
+      a.download =
+        "lost_session_" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".json";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(u), 1000);
+    },
+    imp: () => $("#jf").click(),
+    pushscene: () => {
+      if (!admin || !lostHost) {
+        alert("Only the hosting author can push the live scene.");
+        return;
+      }
+      lostFlushBroadcast(true);
+      T(
+        "Table",
+        "Live scene pushed",
+        `<div class="mt">Connected players received the current scene, enemies and battle state.</div>`,
+        "session push",
+      );
+    },
+    invite: () => {
+      if (!lostHost || !lostRoom) return;
+      const u = location.origin + location.pathname + "?room=" + encodeURIComponent(lostRoom);
+      const done = () =>
+        T("Table", "Invite link copied", `<div class="mt">${esc(u)}</div>`, "invite link copied");
+      if (navigator.clipboard?.writeText)
+        navigator.clipboard.writeText(u).then(done, () => prompt("Copy this invite link:", u));
+      else prompt("Copy this invite link:", u);
+    },
+  };
 
-document.addEventListener('click',async e=>{const t=e.target.closest('button'),k=e.target.closest('.card'),b=e.target.closest('#rd-badge'),libEntry=e.target.closest('[data-open-libchar]');
-if(b){ping('click');XA.init();return}
-if(libEntry&&!t){ping('click');location.hash=libEntry.dataset.openLibchar;return}
-if(!t&&k){ping('click');if(k.dataset.new)XA.new();else if(!k.classList.contains('add'))location.hash=k.dataset.id;return}
-if(!t)return;ping('click');const f=XP[t.dataset.a]||admin&&XA[t.dataset.a];if(f)try{await f(t)}catch(x){console.error(x);alert('Action processing error.')}});
-document.addEventListener('keydown',e=>{const item=e.target.closest?.('[data-open-libchar]');if(item&&(e.key==='Enter'||e.key===' ')){e.preventDefault();location.hash=item.dataset.openLibchar}});
-document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;ping('click');
-if(t.id=='jf'||t.id=='auth-jf'){try{if(!t.files?.[0])return;let txt=await t.files[0].text();if(txt.charCodeAt(0)===0xFEFF)txt=txt.slice(1);const p=JSON.parse(txt);if(lostImportSessionPack(p)){const msg=`Session loaded: ${C.length} character(s), ${EN.length} enem${EN.length===1?'y':'ies'}.`;if(lostHost)T('Table','Session loaded',`<div class="mt">${esc(msg)} Players were updated.</div>`,'session loaded');else lostAuthMessage(msg+' Enter name + room code, then HOST SESSION.')}}catch(x){console.error(x);const m=x instanceof SyntaxError?'That file is not valid JSON.':(x.message||'Unsupported file.');if($('#auth-gate').style.display!=='none')lostAuthMessage('Could not load: '+m);else alert('Could not load: '+m)}finally{t.value=''}return}
-if(d.en!=null){const enemy=EN[d.en];if(enemy){enemy[d.k]=['hp','hpMax'].includes(d.k)?num(t.value):t.value;esv();renderSidebars();if($('#bp'))bpanel();}return}
-if(t.id==='libraryPick'){activeLibrary=t.value;libsv();render();return}
-if(t.id==='librarySort'){librarySort=t.value;try{localStorage.setItem('lost_library_sort',librarySort)}catch(e){}renderSidebars();return}
-if(d.lq){LOOT[d.lq]=t.value.split('\n').map(x=>x.trim()).filter(Boolean);lsv();return}
-if(!admin||!sel)return;
-if(d.sgt){mut(n=>{(n.sigTitle||={})[d.sgt]=t.value.trim()});return}
-if(d.sg){mut(n=>{(n.sig||={})[d.sg]=t.value});return}
-if(d.ip!=null){mut(n=>{n.imps[d.ip][d.k]=t.value});return}
-if(d.imp!=null){if(t.files[0]){const u=await img(t.files[0]);mut(n=>{n.imps[d.imp].img=u})}return}
-if(d.ac!=null){mut(n=>{const a=n.actives[d.ac];a[d.k]=d.k=='c'?num(t.value):t.value.trim()});return}
-if(d.pc!=null){mut(n=>{n.passives[d.pc].code=t.value});return}
-if(d.ro){mut(n=>{(n.ro||={})[d.ro]=t.value.trim()});return}
-if(d.ov){mut(n=>{(n.ov||={})[d.ov]=t.value.trim()});return}
-if(d.pool!=null){mut(n=>{n.pool=Math.max(0,num(t.value))});return}
-if(d.f)mut(n=>{const w=n.weapons[d.i];if(d.f=='charges'){w.charges=cl(Math.floor(num(t.value)),1,4);w.ch1=cl(Math.floor(num(w.ch1??1)),1,Math.min(2,w.charges));if(w.charges<=2&&w.ch1==2)w.attr2=''}else{const numeric=['ch1','ch2','hitBonus','damageBonus','charges'];w[d.f]=numeric.includes(d.f)?num(t.value):t.value;if(d.f=='ch1'&&w.ch1==2&&(w.charges??2)<=2){w.attr2='';w.ch2=1}}});
-else if(t.id=='upl'&&t.files[0]){const u=await img(t.files[0]);mut(n=>n.img=u)}});
-addEventListener('hashchange',()=>{ed=null;render();scrollTo(0,0)});
-
+document.addEventListener("click", async (e) => {
+  const t = e.target.closest("button"),
+    k = e.target.closest(".card"),
+    b = e.target.closest("#rd-badge"),
+    libEntry = e.target.closest("[data-open-libchar]");
+  if (b) {
+    ping("click");
+    XA.init();
+    return;
+  }
+  if (libEntry && !t) {
+    ping("click");
+    location.hash = libEntry.dataset.openLibchar;
+    return;
+  }
+  if (!t && k) {
+    ping("click");
+    if (k.dataset.new) XA.new();
+    else if (!k.classList.contains("add")) location.hash = k.dataset.id;
+    return;
+  }
+  if (!t) return;
+  ping("click");
+  const f = XP[t.dataset.a] || (admin && XA[t.dataset.a]);
+  if (f)
+    try {
+      await f(t);
+    } catch (x) {
+      console.error(x);
+      alert("Action processing error.");
+    }
+});
+document.addEventListener("keydown", (e) => {
+  const item = e.target.closest?.("[data-open-libchar]");
+  if (item && (e.key === "Enter" || e.key === " ")) {
+    e.preventDefault();
+    location.hash = item.dataset.openLibchar;
+  }
+});
+document.addEventListener("change", async (e) => {
+  const t = e.target,
+    d = t.dataset;
+  ping("click");
+  if (t.id == "jf" || t.id == "auth-jf") {
+    try {
+      if (!t.files?.[0]) return;
+      let txt = await t.files[0].text();
+      if (txt.charCodeAt(0) === 0xfeff) txt = txt.slice(1);
+      const p = JSON.parse(txt);
+      if (lostImportSessionPack(p)) {
+        const msg = `Session loaded: ${C.length} character(s), ${EN.length} enem${EN.length === 1 ? "y" : "ies"}.`;
+        if (lostHost)
+          T(
+            "Table",
+            "Session loaded",
+            `<div class="mt">${esc(msg)} Players were updated.</div>`,
+            "session loaded",
+          );
+        else lostAuthMessage(msg + " Enter name + room code, then HOST SESSION.");
+      }
+    } catch (x) {
+      console.error(x);
+      const m =
+        x instanceof SyntaxError
+          ? "That file is not valid JSON."
+          : x.message || "Unsupported file.";
+      if ($("#auth-gate").style.display !== "none") lostAuthMessage("Could not load: " + m);
+      else alert("Could not load: " + m);
+    } finally {
+      t.value = "";
+    }
+    return;
+  }
+  if (d.en != null) {
+    const enemy = EN[d.en];
+    if (enemy) {
+      enemy[d.k] = ["hp", "hpMax"].includes(d.k) ? num(t.value) : t.value;
+      esv();
+      renderSidebars();
+      if ($("#bp")) bpanel();
+    }
+    return;
+  }
+  if (t.id === "libraryPick") {
+    activeLibrary = t.value;
+    libsv();
+    render();
+    return;
+  }
+  if (t.id === "librarySort") {
+    librarySort = t.value;
+    try {
+      localStorage.setItem("lost_library_sort", librarySort);
+    } catch (e) {}
+    renderSidebars();
+    return;
+  }
+  if (d.lq) {
+    LOOT[d.lq] = t.value
+      .split("\n")
+      .map((x) => x.trim())
+      .filter(Boolean);
+    lsv();
+    return;
+  }
+  if (!admin || !sel) return;
+  if (d.sgt) {
+    mut((n) => {
+      (n.sigTitle ||= {})[d.sgt] = t.value.trim();
+    });
+    return;
+  }
+  if (d.sg) {
+    mut((n) => {
+      (n.sig ||= {})[d.sg] = t.value;
+    });
+    return;
+  }
+  if (d.ip != null) {
+    mut((n) => {
+      n.imps[d.ip][d.k] = t.value;
+    });
+    return;
+  }
+  if (d.imp != null) {
+    if (t.files[0]) {
+      const u = await img(t.files[0]);
+      mut((n) => {
+        n.imps[d.imp].img = u;
+      });
+    }
+    return;
+  }
+  if (d.ac != null) {
+    mut((n) => {
+      const a = n.actives[d.ac];
+      a[d.k] = d.k == "c" ? num(t.value) : t.value.trim();
+    });
+    return;
+  }
+  if (d.pc != null) {
+    mut((n) => {
+      n.passives[d.pc].code = t.value;
+    });
+    return;
+  }
+  if (d.ro) {
+    mut((n) => {
+      (n.ro ||= {})[d.ro] = t.value.trim();
+    });
+    return;
+  }
+  if (d.ov) {
+    mut((n) => {
+      (n.ov ||= {})[d.ov] = t.value.trim();
+    });
+    return;
+  }
+  if (d.pool != null) {
+    mut((n) => {
+      n.pool = Math.max(0, num(t.value));
+    });
+    return;
+  }
+  if (d.f)
+    mut((n) => {
+      const w = n.weapons[d.i];
+      if (d.f == "charges") {
+        w.charges = cl(Math.floor(num(t.value)), 1, 4);
+        w.ch1 = cl(Math.floor(num(w.ch1 ?? 1)), 1, Math.min(2, w.charges));
+        if (w.charges <= 2 && w.ch1 == 2) w.attr2 = "";
+      } else {
+        const numeric = ["ch1", "ch2", "hitBonus", "damageBonus", "charges"];
+        w[d.f] = numeric.includes(d.f) ? num(t.value) : t.value;
+        if (d.f == "ch1" && w.ch1 == 2 && (w.charges ?? 2) <= 2) {
+          w.attr2 = "";
+          w.ch2 = 1;
+        }
+      }
+    });
+  else if (t.id == "upl" && t.files[0]) {
+    const u = await img(t.files[0]);
+    mut((n) => (n.img = u));
+  }
+});
+addEventListener("hashchange", () => {
+  ed = null;
+  render();
+  scrollTo(0, 0);
+});
 
 /* ===== P2P / session layer ===== */
-function lostAuthMessage(msg){const el=$('#auth-status');if(el)el.textContent=msg}
-
-function lostUpdateAuthLoadStatus(){
-  const el=$('#auth-load-status');if(!el)return;
-  const n=(C||[]).length,e=(EN||[]).length;
-  const src=lostSource==='file'?'Loaded':lostSource==='saved'?'Saved in this browser':'Default roster';
-  el.textContent=`${src} · ${n} character(s) · ${e} enem${e===1?'y':'ies'}`;
-  el.style.color=lostSource==='default'?'':'#4ade80';
+function lostAuthMessage(msg) {
+  const el = $("#auth-status");
+  if (el) el.textContent = msg;
 }
-function lostNormalizeChars(list){
-  const seen=new Set(),out=[];
-  (Array.isArray(list)?list:[]).forEach((c,i)=>{
-    if(!c||typeof c!=='object')return;
-    if(c.mirror){
-      if(!c.sides||typeof c.sides!=='object')return;
-      for(const k of ['A','B']){if(!c.sides[k]||typeof c.sides[k]!=='object')c.sides[k]=blank(k==='A'?'Side A':'Side B')}
-      if(!['A','B'].includes(c.side))c.side='A';
-    }else c.name=String(c.name||'Unnamed '+(i+1));
-    const nm=c.mirror?(c.sides.A.name||''):c.name;
-    let id=String(c.id||slug(nm)||'pj'+(i+1)),base=id,n=2;while(seen.has(id))id=base+'-'+n++;
-    seen.add(id);c.id=id;c.order=Number.isFinite(Number(c.order))?Number(c.order):i+1;
-    for(const t of c.mirror?[c.sides.A,c.sides.B]:[c]){for(const k of ['weapons','actives','passives','inv','imps']){if(t[k]!==undefined&&!Array.isArray(t[k]))delete t[k]}
-      if(t.st&&typeof t.st!=='object')delete t.st;if(t.fx&&typeof t.fx!=='object')delete t.fx}
+
+function lostUpdateAuthLoadStatus() {
+  const el = $("#auth-load-status");
+  if (!el) return;
+  const n = (C || []).length,
+    e = (EN || []).length;
+  const src =
+    lostSource === "file"
+      ? "Loaded"
+      : lostSource === "saved"
+        ? "Saved in this browser"
+        : "Default roster";
+  el.textContent = `${src} · ${n} character(s) · ${e} enem${e === 1 ? "y" : "ies"}`;
+  el.style.color = lostSource === "default" ? "" : "#4ade80";
+}
+function lostNormalizeChars(list) {
+  const seen = new Set(),
+    out = [];
+  (Array.isArray(list) ? list : []).forEach((c, i) => {
+    if (!c || typeof c !== "object") return;
+    if (c.mirror) {
+      if (!c.sides || typeof c.sides !== "object") return;
+      for (const k of ["A", "B"]) {
+        if (!c.sides[k] || typeof c.sides[k] !== "object")
+          c.sides[k] = blank(k === "A" ? "Side A" : "Side B");
+      }
+      if (!["A", "B"].includes(c.side)) c.side = "A";
+    } else c.name = String(c.name || "Unnamed " + (i + 1));
+    const nm = c.mirror ? c.sides.A.name || "" : c.name;
+    let id = String(c.id || slug(nm) || "pj" + (i + 1)),
+      base = id,
+      n = 2;
+    while (seen.has(id)) id = base + "-" + n++;
+    seen.add(id);
+    c.id = id;
+    c.order = Number.isFinite(Number(c.order)) ? Number(c.order) : i + 1;
+    for (const t of c.mirror ? [c.sides.A, c.sides.B] : [c]) {
+      for (const k of ["weapons", "actives", "passives", "inv", "imps"]) {
+        if (t[k] !== undefined && !Array.isArray(t[k])) delete t[k];
+      }
+      if (t.st && typeof t.st !== "object") delete t.st;
+      if (t.fx && typeof t.fx !== "object") delete t.fx;
+    }
     out.push(c);
   });
   return out;
 }
-function lostImportSessionPack(p,{confirmReplace=true}={}){
-  if(!Array.isArray(p)&&(!p||!Array.isArray(p.characters)))throw new Error('Invalid session JSON');
-  if(confirmReplace&&admin&&!confirm('Import this JSON and replace the current campaign?'))return false;
-  if(Array.isArray(p)){C=lostNormalizeChars(p);LIBS=[];WORKSPACE='scene';activeLibrary='';}
-  else{
-    C=lostNormalizeChars(p.characters);LIBS=Array.isArray(p.libraries)?p.libraries:[];
-    if(Array.isArray(p.enemies))EN=normalizeEnemies(p.enemies);
-    if(p.battle)BT=p.battle;if(!Array.isArray(BT.order))BT.order=[];
-    if(p.loot)LOOT={basica:[],diferenciada:[],unica:[],eclipse:[],...p.loot};
-    if(Array.isArray(p.pendingInventory))PEND=p.pendingInventory;
-    WORKSPACE=p.workspace||'scene';activeLibrary=p.activeLibrary||LIBS[0]?.id||'';
-    if(p.playerAssignments&&typeof p.playerAssignments==='object'){
-      lostPlayersData=p.playerAssignments;
-      try{localStorage.lost_p2p_players=JSON.stringify(lostPlayersData)}catch(e){}
-      if(typeof lostRefreshProfiles==='function')lostRefreshProfiles();
+function lostImportSessionPack(p, { confirmReplace = true } = {}) {
+  if (!Array.isArray(p) && (!p || !Array.isArray(p.characters)))
+    throw new Error("Invalid session JSON");
+  if (confirmReplace && admin && !confirm("Import this JSON and replace the current campaign?"))
+    return false;
+  if (Array.isArray(p)) {
+    C = lostNormalizeChars(p);
+    LIBS = [];
+    WORKSPACE = "scene";
+    activeLibrary = "";
+  } else {
+    C = lostNormalizeChars(p.characters);
+    LIBS = Array.isArray(p.libraries) ? p.libraries : [];
+    if (Array.isArray(p.enemies)) EN = normalizeEnemies(p.enemies);
+    if (p.battle) BT = p.battle;
+    if (!Array.isArray(BT.order)) BT.order = [];
+    if (p.loot) LOOT = { basica: [], diferenciada: [], unica: [], eclipse: [], ...p.loot };
+    if (Array.isArray(p.pendingInventory)) PEND = p.pendingInventory;
+    WORKSPACE = p.workspace || "scene";
+    activeLibrary = p.activeLibrary || LIBS[0]?.id || "";
+    if (p.playerAssignments && typeof p.playerAssignments === "object") {
+      lostPlayersData = p.playerAssignments;
+      try {
+        localStorage.lost_p2p_players = JSON.stringify(lostPlayersData);
+      } catch (e) {}
+      if (typeof lostRefreshProfiles === "function") lostRefreshProfiles();
     }
-    if(Array.isArray(p.hiddenSceneCharacterIds)){hiddenSceneCharacterIds=new Set(p.hiddenSceneCharacterIds);saveSceneViewPrefs()}
-    if(p.librarySort){librarySort=p.librarySort;try{localStorage.setItem('lost_library_sort',librarySort)}catch(e){}}
+    if (Array.isArray(p.hiddenSceneCharacterIds)) {
+      hiddenSceneCharacterIds = new Set(p.hiddenSceneCharacterIds);
+      saveSceneViewPrefs();
+    }
+    if (p.librarySort) {
+      librarySort = p.librarySort;
+      try {
+        localStorage.setItem("lost_library_sort", librarySort);
+      } catch (e) {}
+    }
   }
-  if(!LIBS.some(x=>x.id==='main-party'))LIBS.unshift({id:'main-party',name:'Main Party'});
-  C.forEach(c=>{if(c.libraryId&&!LIBS.some(x=>x.id===c.libraryId))c.libraryId=''});
+  if (!LIBS.some((x) => x.id === "main-party"))
+    LIBS.unshift({ id: "main-party", name: "Main Party" });
+  C.forEach((c) => {
+    if (c.libraryId && !LIBS.some((x) => x.id === c.libraryId)) c.libraryId = "";
+  });
   C.forEach(mth);
-  if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';
+  if (!LIBS.some((x) => x.id === activeLibrary)) activeLibrary = "main-party";
   // Always persist for the author browser (even before HOST). Players never reach this path with intent to keep data.
-  try{
-    localStorage[KEY]=JSON.stringify(C);
-    localStorage.lost_libraries=JSON.stringify(LIBS);
-    localStorage.lost_active_library=activeLibrary;
-    localStorage.lost_enemies=JSON.stringify(EN);
-    localStorage.lost_battle=JSON.stringify(BT);
-    localStorage.lost_loot=JSON.stringify(LOOT);
-    localStorage.lost_pend=JSON.stringify(PEND);
-  }catch(e){console.warn(e)}
-  lostSource='file';lostMarkAuthorDevice();
-  if(location.hash)location.hash='';
+  try {
+    localStorage[KEY] = JSON.stringify(C);
+    localStorage.lost_libraries = JSON.stringify(LIBS);
+    localStorage.lost_active_library = activeLibrary;
+    localStorage.lost_enemies = JSON.stringify(EN);
+    localStorage.lost_battle = JSON.stringify(BT);
+    localStorage.lost_loot = JSON.stringify(LOOT);
+    localStorage.lost_pend = JSON.stringify(PEND);
+  } catch (e) {
+    console.warn(e);
+  }
+  lostSource = "file";
+  lostMarkAuthorDevice();
+  if (location.hash) location.hash = "";
   render();
   lostRenderPlayerLocks();
   lostUpdateAuthLoadStatus();
@@ -562,320 +2366,938 @@ function lostImportSessionPack(p,{confirmReplace=true}={}){
   return true;
 }
 
-const lostIsAuthorDevice=()=>{try{return localStorage.lost_author==='1'}catch(e){return false}};
-const lostMarkAuthorDevice=()=>{try{localStorage.lost_author='1'}catch(e){}};
-function lostClearCampaignStorage(force=false){
+const lostIsAuthorDevice = () => {
+  try {
+    return localStorage.lost_author === "1";
+  } catch (e) {
+    return false;
+  }
+};
+const lostMarkAuthorDevice = () => {
+  try {
+    localStorage.lost_author = "1";
+  } catch (e) {}
+};
+function lostClearCampaignStorage(force = false) {
   // Players never persist anything; wipe stale data on non-author devices so a session can't be re-hosted offline.
   // A device that has ever hosted / loaded a JSON is an author device: its saved campaign is never auto-wiped
   // (so testing a join in a second tab can no longer destroy the author's campaign).
-  if(!force&&lostIsAuthorDevice())return;
-  const keys=[KEY,'lost_libraries','lost_active_library','lost_enemies','lost_battle','lost_loot','lost_pend','lost_workspace_view','lost_hidden_scene_characters','lost_prejoin_backup'];
-  for(const k of keys){try{localStorage.removeItem(k)}catch(e){}}
+  if (!force && lostIsAuthorDevice()) return;
+  const keys = [
+    KEY,
+    "lost_libraries",
+    "lost_active_library",
+    "lost_enemies",
+    "lost_battle",
+    "lost_loot",
+    "lost_pend",
+    "lost_workspace_view",
+    "lost_hidden_scene_characters",
+    "lost_prejoin_backup",
+  ];
+  for (const k of keys) {
+    try {
+      localStorage.removeItem(k);
+    } catch (e) {}
+  }
 }
-function lostResetSessionMemory(){
-  C=DEF();LIBS=[{id:'main-party',name:'Main Party'}];activeLibrary='main-party';EN=[];BT={on:0,round:1,i:0,n:0,order:[]};LOOT={basica:[],diferenciada:[],unica:[],eclipse:[]};PEND=[];WORKSPACE='scene';hiddenSceneCharacterIds=new Set();sel=null;ed=null;assignedCharacterId='';
-  try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
+function lostResetSessionMemory() {
+  C = DEF();
+  LIBS = [{ id: "main-party", name: "Main Party" }];
+  activeLibrary = "main-party";
+  EN = [];
+  BT = { on: 0, round: 1, i: 0, n: 0, order: [] };
+  LOOT = { basica: [], diferenciada: [], unica: [], eclipse: [] };
+  PEND = [];
+  WORKSPACE = "scene";
+  hiddenSceneCharacterIds = new Set();
+  sel = null;
+  ed = null;
+  assignedCharacterId = "";
+  try {
+    history.replaceState(null, "", location.pathname + location.search);
+  } catch (e) {}
   C.forEach(mth);
 }
-function lostStripPrivateLocalData(){
+function lostStripPrivateLocalData() {
   // Players never keep author campaign data on disk.
-  if(admin)return;
+  if (admin) return;
   lostClearCampaignStorage();
 }
-function lostSetLoggedInUI(user,isAdmin){
-  if(!isAdmin)lostStripPrivateLocalData();
-  $('#auth-gate').style.display='none';
-  $('#who').textContent='@'+lostUserName(user);
-  $('#roleTag').textContent=isAdmin?'AUTHOR':'PLAYER';
-  $('#roleTag').style.color=isAdmin?'#f59e0b':'';
-  $('#roleTag').style.borderColor=isAdmin?'#f59e0b':'';
-  $('#adm').classList.toggle('hid',!isAdmin);
-  admin=!!isAdmin;
+function lostSetLoggedInUI(user, isAdmin) {
+  if (!isAdmin) lostStripPrivateLocalData();
+  $("#auth-gate").style.display = "none";
+  $("#who").textContent = "@" + lostUserName(user);
+  $("#roleTag").textContent = isAdmin ? "AUTHOR" : "PLAYER";
+  $("#roleTag").style.color = isAdmin ? "#f59e0b" : "";
+  $("#roleTag").style.borderColor = isAdmin ? "#f59e0b" : "";
+  $("#adm").classList.toggle("hid", !isAdmin);
+  admin = !!isAdmin;
 }
-function lostSetLoggedOutUI(){admin=false;lostCloudReady=false;$('#auth-gate').style.display='grid';$('#who').textContent='OFFLINE';$('#roleTag').textContent='READER';$('#adm').classList.add('hid');}
+function lostSetLoggedOutUI() {
+  admin = false;
+  lostCloudReady = false;
+  $("#auth-gate").style.display = "grid";
+  $("#who").textContent = "OFFLINE";
+  $("#roleTag").textContent = "READER";
+  $("#adm").classList.add("hid");
+}
 // Full host-side snapshot (also used by SAVE SESSION JSON).
-function lostCampaignState(){
-  return{characters:C||[],libraries:LIBS||[],enemies:EN,battle:BT,loot:LOOT,pendingInventory:PEND,workspace:WORKSPACE,activeLibrary};
-}
-// Lean live session payload for connected players (no private libraries, no offline persistence).
-function lostSessionState(){
-  const privateIds=new Set((LIBS||[]).filter(x=>x.private===true).map(x=>x.id));
-  const chars=(C||[]).filter(c=>!c.libraryId); // scene characters
-  const need=new Set(chars.map(c=>c.id));
-  (BT?.order||[]).forEach(o=>{if(o.id)need.add(o.id)});
-  Object.values(lostPlayersData||{}).forEach(p=>{if(p.characterId)need.add(p.characterId)});
-  const dummy=lostDummyCharacterId();if(dummy)need.add(dummy);
-  const extra=(C||[]).filter(c=>c.libraryId&&need.has(c.id)&&!privateIds.has(c.libraryId));
-  const libIds=new Set(['main-party',...extra.map(c=>c.libraryId)]);
-  const libs=(LIBS||[]).filter(l=>libIds.has(l.id)&&!l.private).map(l=>({id:l.id,name:l.name}));
-  if(!libs.some(l=>l.id==='main-party'))libs.unshift({id:'main-party',name:'Main Party'});
-  return{
-    characters:[...chars,...extra],
-    libraries:libs,
-    enemies:EN,
-    battle:BT,
-    loot:{basica:[],diferenciada:[],unica:[],eclipse:[]}, // loot tables stay host-side
-    pendingInventory:[]
+function lostCampaignState() {
+  return {
+    characters: C || [],
+    libraries: LIBS || [],
+    enemies: EN,
+    battle: BT,
+    loot: LOOT,
+    pendingInventory: PEND,
+    workspace: WORKSPACE,
+    activeLibrary,
   };
 }
-function lostApplyCampaignState(state,asSession=false){
-  if(!state||!Array.isArray(state.characters))return;
-  lostApplyingCloud=true;
-  if(admin&&!asSession){
-    const localPrivateLibs=(LIBS||[]).filter(x=>x.private===true);
-    const localPrivateIds=new Set(localPrivateLibs.map(x=>x.id));
-    const localPrivateChars=(C||[]).filter(c=>localPrivateIds.has(c.libraryId));
-    const remoteLibs=Array.isArray(state.libraries)?state.libraries.filter(x=>x.private!==true):[];
-    const remoteChars=state.characters.filter(c=>!localPrivateIds.has(c.libraryId));
-    const remoteCharIds=new Set(remoteChars.map(c=>c.id));
-    C=[...remoteChars,...localPrivateChars.filter(c=>!remoteCharIds.has(c.id))];
-    const remoteLibIds=new Set(remoteLibs.map(x=>x.id));
-    LIBS=[...remoteLibs,...localPrivateLibs.filter(x=>!remoteLibIds.has(x.id))];
-  }else{
-    C=state.characters.slice();
-    LIBS=Array.isArray(state.libraries)&&state.libraries.length?state.libraries:[{id:'main-party',name:'Main Party'}];
+// Lean live session payload for connected players (no private libraries, no offline persistence).
+function lostSessionState() {
+  const privateIds = new Set((LIBS || []).filter((x) => x.private === true).map((x) => x.id));
+  const chars = (C || []).filter((c) => !c.libraryId); // scene characters
+  const need = new Set(chars.map((c) => c.id));
+  (BT?.order || []).forEach((o) => {
+    if (o.id) need.add(o.id);
+  });
+  Object.values(lostPlayersData || {}).forEach((p) => {
+    if (p.characterId) need.add(p.characterId);
+  });
+  const dummy = lostDummyCharacterId();
+  if (dummy) need.add(dummy);
+  const extra = (C || []).filter(
+    (c) => c.libraryId && need.has(c.id) && !privateIds.has(c.libraryId),
+  );
+  const libIds = new Set(["main-party", ...extra.map((c) => c.libraryId)]);
+  const libs = (LIBS || [])
+    .filter((l) => libIds.has(l.id) && !l.private)
+    .map((l) => ({ id: l.id, name: l.name }));
+  if (!libs.some((l) => l.id === "main-party"))
+    libs.unshift({ id: "main-party", name: "Main Party" });
+  return {
+    characters: [...chars, ...extra],
+    libraries: libs,
+    enemies: EN,
+    battle: BT,
+    loot: { basica: [], diferenciada: [], unica: [], eclipse: [] }, // loot tables stay host-side
+    pendingInventory: [],
+  };
+}
+function lostApplyCampaignState(state, asSession = false) {
+  if (!state || !Array.isArray(state.characters)) return;
+  lostApplyingCloud = true;
+  if (admin && !asSession) {
+    const localPrivateLibs = (LIBS || []).filter((x) => x.private === true);
+    const localPrivateIds = new Set(localPrivateLibs.map((x) => x.id));
+    const localPrivateChars = (C || []).filter((c) => localPrivateIds.has(c.libraryId));
+    const remoteLibs = Array.isArray(state.libraries)
+      ? state.libraries.filter((x) => x.private !== true)
+      : [];
+    const remoteChars = state.characters.filter((c) => !localPrivateIds.has(c.libraryId));
+    const remoteCharIds = new Set(remoteChars.map((c) => c.id));
+    C = [...remoteChars, ...localPrivateChars.filter((c) => !remoteCharIds.has(c.id))];
+    const remoteLibIds = new Set(remoteLibs.map((x) => x.id));
+    LIBS = [...remoteLibs, ...localPrivateLibs.filter((x) => !remoteLibIds.has(x.id))];
+  } else {
+    C = state.characters.slice();
+    LIBS =
+      Array.isArray(state.libraries) && state.libraries.length
+        ? state.libraries
+        : [{ id: "main-party", name: "Main Party" }];
   }
-  EN=normalizeEnemies(state.enemies||[]);
-  BT=state.battle||{on:0,round:1,i:0,n:0,order:[]};if(!Array.isArray(BT.order))BT.order=[];
-  LOOT={basica:[],diferenciada:[],unica:[],eclipse:[],...(state.loot||{})};
-  PEND=Array.isArray(state.pendingInventory)?state.pendingInventory:[];
-  if(!LIBS.some(x=>x.id==='main-party'))LIBS.unshift({id:'main-party',name:'Main Party'});
-  if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';
-  C.forEach(c=>{if(c.libraryId&&!LIBS.some(x=>x.id===c.libraryId))c.libraryId=''});
+  EN = normalizeEnemies(state.enemies || []);
+  BT = state.battle || { on: 0, round: 1, i: 0, n: 0, order: [] };
+  if (!Array.isArray(BT.order)) BT.order = [];
+  LOOT = { basica: [], diferenciada: [], unica: [], eclipse: [], ...(state.loot || {}) };
+  PEND = Array.isArray(state.pendingInventory) ? state.pendingInventory : [];
+  if (!LIBS.some((x) => x.id === "main-party"))
+    LIBS.unshift({ id: "main-party", name: "Main Party" });
+  if (!LIBS.some((x) => x.id === activeLibrary)) activeLibrary = "main-party";
+  C.forEach((c) => {
+    if (c.libraryId && !LIBS.some((x) => x.id === c.libraryId)) c.libraryId = "";
+  });
   C.forEach(mth);
   // Host may persist; players keep session only in memory.
-  if(admin){
-    try{localStorage[KEY]=JSON.stringify(C);localStorage.lost_libraries=JSON.stringify(LIBS);localStorage.lost_active_library=activeLibrary;localStorage.lost_enemies=JSON.stringify(EN);localStorage.lost_battle=JSON.stringify(BT);localStorage.lost_loot=JSON.stringify(LOOT);localStorage.lost_pend=JSON.stringify(PEND)}catch(e){}
-  }else{
+  if (admin) {
+    try {
+      localStorage[KEY] = JSON.stringify(C);
+      localStorage.lost_libraries = JSON.stringify(LIBS);
+      localStorage.lost_active_library = activeLibrary;
+      localStorage.lost_enemies = JSON.stringify(EN);
+      localStorage.lost_battle = JSON.stringify(BT);
+      localStorage.lost_loot = JSON.stringify(LOOT);
+      localStorage.lost_pend = JSON.stringify(PEND);
+    } catch (e) {}
+  } else {
     lostClearCampaignStorage();
   }
-  lostApplyingCloud=false;lostCloudReady=true;render();bpanel();
+  lostApplyingCloud = false;
+  lostCloudReady = true;
+  render();
+  bpanel();
 }
-async function lostCloudPrepareImages(value){return value}
+async function lostCloudPrepareImages(value) {
+  return value;
+}
 // Disabled continuous full-campaign upload. Host pushes only on join / manual PUSH / battle events.
 /* Host -> players: debounced, de-duplicated live state. Only the lean player view is ever sent. */
-function lostFlushBroadcast(force){
+function lostFlushBroadcast(force) {
   clearTimeout(lostBcastTimer);
-  if(!lostHost||!admin||!lostConns.size)return;
-  let st,str;try{st=lostSessionState();str=JSON.stringify(st)}catch(e){console.warn(e);return}
-  if(!force&&str===lostLastBcast)return;
-  lostLastBcast=str;lostBroadcast({t:'state',state:st});
+  if (!lostHost || !admin || !lostConns.size) return;
+  let st, str;
+  try {
+    st = lostSessionState();
+    str = JSON.stringify(st);
+  } catch (e) {
+    console.warn(e);
+    return;
+  }
+  if (!force && str === lostLastBcast) return;
+  lostLastBcast = str;
+  lostBroadcast({ t: "state", state: st });
 }
-function lostQueueBroadcast(){if(!lostHost||!admin)return;clearTimeout(lostBcastTimer);lostBcastTimer=setTimeout(()=>lostFlushBroadcast(false),250)}
-cloudSyncHandler=lostQueueBroadcast;
-function lostCharacterList(){return (C||[]).filter(raw=>!lostIsPrivateLibraryId(raw.libraryId)).map(raw=>{const c=A(raw),lib=raw.libraryId?LIBS.find(x=>x.id===raw.libraryId)?.name:'';return{id:raw.id,name:c.name||raw.id,library:lib}})}
-function lostRenderPlayerLocks(){
-  const box=$('#player-lock-content');if(!box||!admin)return;syncPlayerLocksPanel();
-  const keep={};box.querySelectorAll('select[id^="plchar-"]').forEach(el=>{keep[el.id]=el.value});
-  const focusId=document.activeElement?.id;
-  const chars=lostCharacterList();
-  const addRow=`<div class="row" style="margin-top:6px"><input id="pl-new" placeholder="Add player name before they join" maxlength="20" style="flex:1;min-width:150px"><button class="b s am" data-a="addplayer" type="button">+ ADD PLAYER</button></div>`;
-  if(!lostPlayerProfiles.length){box.innerHTML='<div class="mt">No player profiles yet. Players appear here after they JOIN the room once, or add a name below. Assignments are saved in this browser and reapplied when they reconnect.</div>'+addRow;return}
-  box.innerHTML=lostPlayerProfiles.map(p=>{
-    const current=p.characterId||'',defaultId=!current?lostDummyCharacterId():'',username=esc(p.username||p.displayName||p.uid||'Player'),uid=esc(p.uid||p.id||'');
-    const pick=('plchar-'+(p.uid||p.id||'')) in keep?keep['plchar-'+(p.uid||p.id||'')]:current;
-    const online=lostConns&&lostConns.has(p.uid||p.id);
-    const choices='<option value="">— UNASSIGNED (DEFAULT) —</option>'+chars.map(c=>`<option value="${esc(c.id)}"${c.id===pick?' selected':''}>${esc(c.name)}${c.library?' · '+esc(c.library):''}</option>`).join('');
-    const status=current?'Assigned: '+esc(chars.find(c=>c.id===current)?.name||p.characterName||current):defaultId?'Unassigned · default: '+esc(chars.find(c=>c.id===defaultId)?.name||'Dummy'):'Unassigned · no Dummy character';
-    return `<div class="player-lock-row"><div class="player-lock-user"><b>@${username}</b> ${online?'<span class="chip o">ONLINE</span>':'<span class="chip">OFFLINE</span>'}<div class="player-lock-hint">${status}</div></div><select id="plchar-${uid}" aria-label="Character assigned to ${username}">${choices}</select><button class="b s am" data-a="assignplayer" data-uid="${uid}">ASSIGN</button><button class="b s rd" data-a="unlockplayer" data-uid="${uid}">UNLOCK</button></div>`;
-  }).join('')+`<div class="player-lock-hint">Pick a character in the dropdown, then press ASSIGN. Assigned players can only roll as that character. Unassigned players use the public character named DUMMY when it exists.</div>`+addRow;
-  if(focusId==='pl-new'){const el=$('#pl-new');el?.focus()}
+function lostQueueBroadcast() {
+  if (!lostHost || !admin) return;
+  clearTimeout(lostBcastTimer);
+  lostBcastTimer = setTimeout(() => lostFlushBroadcast(false), 250);
 }
-function lostRawCharacter(id){return (C||[]).find(raw=>raw.id===id)||null}
-function lostSetRollStatus(message,bad=false){const el=$('#roll-sync-status');if(el){el.textContent=message;el.style.color=bad?'#f87171':'#a78bfa'}}
-function lostCleanRoll(r){
-  if(!r||typeof r!=='object')return null;
-  const z=Math.trunc(Number(r.z)),d=Array.isArray(r.d)?r.d.slice(0,100).map(v=>Math.trunc(Number(v))||0):[];
-  if(!d.length||!Number.isFinite(z)||z<2||z>10000)return null;
-  const n=x=>Number.isFinite(Number(x))?Number(x):0;
-  return{f:String(r.f||'').slice(0,50),d,z,s:n(r.s),b:n(r.b),t:n(r.t),lo:n(r.lo),hi:n(r.hi)};
+cloudSyncHandler = lostQueueBroadcast;
+function lostCharacterList() {
+  return (C || [])
+    .filter((raw) => !lostIsPrivateLibraryId(raw.libraryId))
+    .map((raw) => {
+      const c = A(raw),
+        lib = raw.libraryId ? LIBS.find((x) => x.id === raw.libraryId)?.name : "";
+      return { id: raw.id, name: c.name || raw.id, library: lib };
+    });
 }
-const lostCleanEx=ex=>(Array.isArray(ex)?ex.slice(0,12):[]).map(x=>Array.isArray(x)?[String(x[0]??'').slice(0,60),Number(x[1])||0]:['',0]);
-function lostRollLog(ev){if(ev.type==='notice')return (ev.rows||[]).map(x=>`${esc(x.i)}. ${esc(x.n)} [${(Array.isArray(x.d)?x.d:[]).map(v=>Number(v)||0).join('+')}]${Number(x.b)?sg(Number(x.b)):''}: <b class="o">${Number(x.t)||0}</b>`).join(' · ');const r=lostCleanRoll(ev.r)||{f:'',d:[],t:0};const ex=lostCleanEx(ev.ex);return `<code>${esc(r.f||'')}</code> [${(r.d||[]).join('+')}] = <b class="o">${Number(r.t??0)+ex.reduce((a,x)=>a+Number(x[1]||0),0)}</b>`}
-function lostAppendHistory(ev){const L=$('#L');if(!L)return;L.insertAdjacentHTML('afterbegin',`<div class="lg"><b>[${esc(ev.clock||'live')}] ${esc(ev.who||'Player')}</b> ${esc(ev.title||'Roll')} <small>by @${esc(ev.actor||'player')}</small> ${lostRollLog(ev)}</div>`);while(L.children.length>80)L.lastChild.remove()}
-function lostPaintRemoteRoll(ev){if(ev.type==='notice'){lostPaintRemoteNotice(ev);return}const r=lostCleanRoll(ev.r)||{f:'',d:[],z:0,s:0,b:0,t:0,lo:0,hi:0},ex=lostCleanEx(ev.ex),e=ex.reduce((a,x)=>a+Number(x[1]||0),0),total=Number(r.t||0)+e,n=r.z==20&&r.d?.length===1?r.d[0]:0,k=n===20?'cr':n===1?'fl':'',parts=[`<b>${r.s}</b> dice`,r.b&&`<b>${sg(r.b)}</b> bonus`,...ex.map(([l,v])=>`<b>${sg(v)}</b> ${esc(l)}`)].filter(Boolean).join(' · ');
-  const inner=`<div class="mt">${esc(r.f||'')} · range ${Number(r.lo||0)+e}–${Number(r.hi||0)+e}</div><div class="dc">${(r.d||[]).length}d${r.z||''} ${(r.d||[]).map(x=>`<i class="${x==r.z?'mx':x==1?'mn':''}">${x}</i>`).join('')}</div><div class="mt">${parts}</div><div class="tot ${k}">= ${total}${n===20?' CRITICAL!':n===1?' FAILURE!':''}</div>`;
-  T(`${ev.who||'Player'} · @${ev.actor||'player'}`,ev.title||'Roll',inner,lostRollLog(ev));
+function lostRenderPlayerLocks() {
+  const box = $("#player-lock-content");
+  if (!box || !admin) return;
+  syncPlayerLocksPanel();
+  const keep = {};
+  box.querySelectorAll('select[id^="plchar-"]').forEach((el) => {
+    keep[el.id] = el.value;
+  });
+  const focusId = document.activeElement?.id;
+  const chars = lostCharacterList();
+  const addRow = `<div class="row" style="margin-top:6px"><input id="pl-new" placeholder="Add player name before they join" maxlength="20" style="flex:1;min-width:150px"><button class="b s am" data-a="addplayer" type="button">+ ADD PLAYER</button></div>`;
+  if (!lostPlayerProfiles.length) {
+    box.innerHTML =
+      '<div class="mt">No player profiles yet. Players appear here after they JOIN the room once, or add a name below. Assignments are saved in this browser and reapplied when they reconnect.</div>' +
+      addRow;
+    return;
+  }
+  box.innerHTML =
+    lostPlayerProfiles
+      .map((p) => {
+        const current = p.characterId || "",
+          defaultId = !current ? lostDummyCharacterId() : "",
+          username = esc(p.username || p.displayName || p.uid || "Player"),
+          uid = esc(p.uid || p.id || "");
+        const pick =
+          "plchar-" + (p.uid || p.id || "") in keep
+            ? keep["plchar-" + (p.uid || p.id || "")]
+            : current;
+        const online = lostConns && lostConns.has(p.uid || p.id);
+        const choices =
+          '<option value="">— UNASSIGNED (DEFAULT) —</option>' +
+          chars
+            .map(
+              (c) =>
+                `<option value="${esc(c.id)}"${c.id === pick ? " selected" : ""}>${esc(c.name)}${c.library ? " · " + esc(c.library) : ""}</option>`,
+            )
+            .join("");
+        const status = current
+          ? "Assigned: " +
+            esc(chars.find((c) => c.id === current)?.name || p.characterName || current)
+          : defaultId
+            ? "Unassigned · default: " + esc(chars.find((c) => c.id === defaultId)?.name || "Dummy")
+            : "Unassigned · no Dummy character";
+        return `<div class="player-lock-row"><div class="player-lock-user"><b>@${username}</b> ${online ? '<span class="chip o">ONLINE</span>' : '<span class="chip">OFFLINE</span>'}<div class="player-lock-hint">${status}</div></div><select id="plchar-${uid}" aria-label="Character assigned to ${username}">${choices}</select><button class="b s am" data-a="assignplayer" data-uid="${uid}">ASSIGN</button><button class="b s rd" data-a="unlockplayer" data-uid="${uid}">UNLOCK</button></div>`;
+      })
+      .join("") +
+    `<div class="player-lock-hint">Pick a character in the dropdown, then press ASSIGN. Assigned players can only roll as that character. Unassigned players use the public character named DUMMY when it exists.</div>` +
+    addRow;
+  if (focusId === "pl-new") {
+    const el = $("#pl-new");
+    el?.focus();
+  }
 }
-function lostPaintRemoteNotice(ev){const rows=Array.isArray(ev.rows)?ev.rows:[],inner=`<div class="mt">Initiative order · shared live</div>${rows.map(x=>`<div class="ini"><b>${Number(x.t)||0}</b><span>${Number(x.i)||0}. ${esc(x.n||'Combatant')}</span><small>[${(Array.isArray(x.d)?x.d:[]).map(v=>Number(v)||0).join('+')}]${Number(x.b)?sg(Number(x.b)):''}</small></div>`).join('')}`;T(`${ev.who||'Table'} · @${ev.actor||'player'}`,ev.title||'Initiative',inner,'shared initiative roll')}
+function lostRawCharacter(id) {
+  return (C || []).find((raw) => raw.id === id) || null;
+}
+function lostSetRollStatus(message, bad = false) {
+  const el = $("#roll-sync-status");
+  if (el) {
+    el.textContent = message;
+    el.style.color = bad ? "#f87171" : "#a78bfa";
+  }
+}
+function lostCleanRoll(r) {
+  if (!r || typeof r !== "object") return null;
+  const z = Math.trunc(Number(r.z)),
+    d = Array.isArray(r.d) ? r.d.slice(0, 100).map((v) => Math.trunc(Number(v)) || 0) : [];
+  if (!d.length || !Number.isFinite(z) || z < 2 || z > 10000) return null;
+  const n = (x) => (Number.isFinite(Number(x)) ? Number(x) : 0);
+  return {
+    f: String(r.f || "").slice(0, 50),
+    d,
+    z,
+    s: n(r.s),
+    b: n(r.b),
+    t: n(r.t),
+    lo: n(r.lo),
+    hi: n(r.hi),
+  };
+}
+const lostCleanEx = (ex) =>
+  (Array.isArray(ex) ? ex.slice(0, 12) : []).map((x) =>
+    Array.isArray(x) ? [String(x[0] ?? "").slice(0, 60), Number(x[1]) || 0] : ["", 0],
+  );
+function lostRollLog(ev) {
+  if (ev.type === "notice")
+    return (ev.rows || [])
+      .map(
+        (x) =>
+          `${esc(x.i)}. ${esc(x.n)} [${(Array.isArray(x.d) ? x.d : []).map((v) => Number(v) || 0).join("+")}]${Number(x.b) ? sg(Number(x.b)) : ""}: <b class="o">${Number(x.t) || 0}</b>`,
+      )
+      .join(" · ");
+  const r = lostCleanRoll(ev.r) || { f: "", d: [], t: 0 };
+  const ex = lostCleanEx(ev.ex);
+  return `<code>${esc(r.f || "")}</code> [${(r.d || []).join("+")}] = <b class="o">${Number(r.t ?? 0) + ex.reduce((a, x) => a + Number(x[1] || 0), 0)}</b>`;
+}
+function lostAppendHistory(ev) {
+  const L = $("#L");
+  if (!L) return;
+  L.insertAdjacentHTML(
+    "afterbegin",
+    `<div class="lg"><b>[${esc(ev.clock || "live")}] ${esc(ev.who || "Player")}</b> ${esc(ev.title || "Roll")} <small>by @${esc(ev.actor || "player")}</small> ${lostRollLog(ev)}</div>`,
+  );
+  while (L.children.length > 80) L.lastChild.remove();
+}
+function lostPaintRemoteRoll(ev) {
+  if (ev.type === "notice") {
+    lostPaintRemoteNotice(ev);
+    return;
+  }
+  const r = lostCleanRoll(ev.r) || { f: "", d: [], z: 0, s: 0, b: 0, t: 0, lo: 0, hi: 0 },
+    ex = lostCleanEx(ev.ex),
+    e = ex.reduce((a, x) => a + Number(x[1] || 0), 0),
+    total = Number(r.t || 0) + e,
+    n = r.z == 20 && r.d?.length === 1 ? r.d[0] : 0,
+    k = n === 20 ? "cr" : n === 1 ? "fl" : "",
+    parts = [
+      `<b>${r.s}</b> dice`,
+      r.b && `<b>${sg(r.b)}</b> bonus`,
+      ...ex.map(([l, v]) => `<b>${sg(v)}</b> ${esc(l)}`),
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  const inner = `<div class="mt">${esc(r.f || "")} · range ${Number(r.lo || 0) + e}–${Number(r.hi || 0) + e}</div><div class="dc">${(r.d || []).length}d${r.z || ""} ${(r.d || []).map((x) => `<i class="${x == r.z ? "mx" : x == 1 ? "mn" : ""}">${x}</i>`).join("")}</div><div class="mt">${parts}</div><div class="tot ${k}">= ${total}${n === 20 ? " CRITICAL!" : n === 1 ? " FAILURE!" : ""}</div>`;
+  T(`${ev.who || "Player"} · @${ev.actor || "player"}`, ev.title || "Roll", inner, lostRollLog(ev));
+}
+function lostPaintRemoteNotice(ev) {
+  const rows = Array.isArray(ev.rows) ? ev.rows : [],
+    inner = `<div class="mt">Initiative order · shared live</div>${rows.map((x) => `<div class="ini"><b>${Number(x.t) || 0}</b><span>${Number(x.i) || 0}. ${esc(x.n || "Combatant")}</span><small>[${(Array.isArray(x.d) ? x.d : []).map((v) => Number(v) || 0).join("+")}]${Number(x.b) ? sg(Number(x.b)) : ""}</small></div>`).join("")}`;
+  T(
+    `${ev.who || "Table"} · @${ev.actor || "player"}`,
+    ev.title || "Initiative",
+    inner,
+    "shared initiative roll",
+  );
+}
 
-const lostOriginalShow=show;
-show=function(who,title,r,ex=[]){if(!r){lostOriginalShow(who,title,r,ex);return}const character=cur();if(!canRollCharacter(character)){lostAuthMessage('You can only roll as your assigned character.');return}const actor=lostUserName(lostUser);lostOriginalShow(who+' · @'+actor,title,r,ex);lostPublishRoll(who,title,r,ex,character?.id)};
-document.addEventListener('click',e=>{const b=e.target.closest('[data-auth-action]');if(b)lostAuthAction(b.dataset.authAction)});
+const lostOriginalShow = show;
+show = function (who, title, r, ex = []) {
+  if (!r) {
+    lostOriginalShow(who, title, r, ex);
+    return;
+  }
+  const character = cur();
+  if (!canRollCharacter(character)) {
+    lostAuthMessage("You can only roll as your assigned character.");
+    return;
+  }
+  const actor = lostUserName(lostUser);
+  lostOriginalShow(who + " · @" + actor, title, r, ex);
+  lostPublishRoll(who, title, r, ex, character?.id);
+};
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-auth-action]");
+  if (b) lostAuthAction(b.dataset.authAction);
+});
 /* ---- P2P layer (PeerJS): the author's browser is the host; players connect directly to it. ---- */
-const lostUserName=u=>u?.displayName||'Player';
-const lostRoomId=code=>'lostrpg-'+String(code).toLowerCase();
-const lostSend=(c,m)=>{try{if(c&&c.open)c.send(m)}catch(e){console.warn('send failed',e)}};
-const lostBroadcast=(m,except)=>lostConns.forEach(p=>{if(p.conn!==except)lostSend(p.conn,m)});
-const lostEffectiveFor=uid=>lostPlayersData[uid]?.characterId||lostDummyCharacterId();
-function lostRefreshProfiles(){lostPlayerProfiles=Object.values(lostPlayersData).map(p=>({...p,id:p.uid})).sort((a,b)=>String(a.username).localeCompare(String(b.username)));lostRenderPlayerLocks()}
-function lostSavePlayers(){try{localStorage.lost_p2p_players=JSON.stringify(lostPlayersData)}catch(e){}lostRefreshProfiles()}
-function lostOnlineStatus(){lostSetRollStatus(lostHost?'HOSTING · '+lostConns.size+' online':'CONNECTED TO HOST')}
-function lostApplyVitalDelta(id,delta){
-  const raw=lostRawCharacter(id);if(!raw||(raw.libraryId&&lostIsPrivateLibraryId(raw.libraryId)))return;
-  const c=raw.mirror?raw.sides[raw.side]:raw;c.hp??=[0,0];c.san??=[0,0];
-  for(const k of ['hp','san','shield']){const v=Math.trunc(Number(delta[k]))||0;if(!v)continue;
-    if(k==='shield')c.shield=Math.max(0,num(c.shield)+v);else c[k][0]=cl(num(c[k][0])+v,0,Math.max(0,num(c[k][1])))}
-  sv();render();
+const lostUserName = (u) => u?.displayName || "Player";
+const lostRoomId = (code) => "lostrpg-" + String(code).toLowerCase();
+const lostSend = (c, m) => {
+  try {
+    if (c && c.open) c.send(m);
+  } catch (e) {
+    console.warn("send failed", e);
+  }
+};
+const lostBroadcast = (m, except) =>
+  lostConns.forEach((p) => {
+    if (p.conn !== except) lostSend(p.conn, m);
+  });
+const lostEffectiveFor = (uid) => lostPlayersData[uid]?.characterId || lostDummyCharacterId();
+function lostRefreshProfiles() {
+  lostPlayerProfiles = Object.values(lostPlayersData)
+    .map((p) => ({ ...p, id: p.uid }))
+    .sort((a, b) => String(a.username).localeCompare(String(b.username)));
+  lostRenderPlayerLocks();
 }
-function lostAdjustVital(id,key,delta){
-  if(!lostUser||!['hp','shield','san'].includes(key)||!Number.isInteger(delta)||!delta)return;
-  if(!admin&&(!assignedCharacterId||assignedCharacterId!==id)){alert('You can only change HP, shield and SAN for your assigned character.');return}
-  if(admin)lostApplyVitalDelta(id,{[key]:delta});else lostSend(lostConn,{t:'vital',id,delta:{[key]:delta}});
+function lostSavePlayers() {
+  try {
+    localStorage.lost_p2p_players = JSON.stringify(lostPlayersData);
+  } catch (e) {}
+  lostRefreshProfiles();
 }
-function lostSyncPlayerVitalDelta(before,after){
-  if(!lostUser||admin||!lostConn||!before||!after||!assignedCharacterId||before.id!==assignedCharacterId||after.id!==assignedCharacterId)return;
-  const a=A(before),b=A(after),delta={};for(const k of ['hp','san']){const d=num(b[k]?.[0])-num(a[k]?.[0]);if(d)delta[k]=d}
-  const s=num(b.shield)-num(a.shield);if(s)delta.shield=s;
-  if(Object.keys(delta).length)lostSend(lostConn,{t:'vital',id:after.id,delta});
+function lostOnlineStatus() {
+  lostSetRollStatus(lostHost ? "HOSTING · " + lostConns.size + " online" : "CONNECTED TO HOST");
 }
-function lostQueueAuthorVitals(){}
-function lostDeliver(ev){if(lostHost){lostRollHist.push(ev);if(lostRollHist.length>60)lostRollHist.shift();lostBroadcast({t:'roll',ev})}else lostSend(lostConn,{t:'roll',ev})}
-function lostMakeEv(type,who,title,extra){return{type,uid:lostUser.uid,actor:lostUserName(lostUser),who:String(who),title:String(title),clock:new Date().toLocaleTimeString('en-US',{hour12:false}),...extra}}
-function lostPublishRoll(who,title,r,ex,characterId){if(!lostUser)return;lostDeliver(lostMakeEv('roll',who,title,{characterId:String(characterId||''),r,ex}))}
-function lostPublishNotice(who,title,rows){if(!lostUser)return;const ev=lostMakeEv('notice',who,title,{rows});lostPaintRemoteNotice(ev);if(lostHost)lostDeliver(ev)}
-function lostAssignPlayer(button){
-  if(!admin)return;const uid=button.dataset.uid,characterId=document.getElementById('plchar-'+uid)?.value||'';if(!uid)return;
-  if(!characterId||!C.some(c=>c.id===characterId)){alert('Choose a valid character first.');return}
-  const name=A(C.find(c=>c.id===characterId)).name||characterId;
-  lostPlayersData[uid]={...(lostPlayersData[uid]||{}),uid,username:lostPlayersData[uid]?.username||uid.replace(/^u:/,''),characterId,characterName:name};
-  lostSavePlayers();lostFlushBroadcast(true);lostSend(lostConns.get(uid)?.conn,{t:'assign',characterId});lostRenderPlayerLocks();T('Table','Player assigned',`<div class="mt">@${esc(lostPlayersData[uid].username)} → <b>${esc(name)}</b></div>`,'assigned '+esc(name));
+function lostApplyVitalDelta(id, delta) {
+  const raw = lostRawCharacter(id);
+  if (!raw || (raw.libraryId && lostIsPrivateLibraryId(raw.libraryId))) return;
+  const c = raw.mirror ? raw.sides[raw.side] : raw;
+  c.hp ??= [0, 0];
+  c.san ??= [0, 0];
+  for (const k of ["hp", "san", "shield"]) {
+    const v = Math.trunc(Number(delta[k])) || 0;
+    if (!v) continue;
+    if (k === "shield") c.shield = Math.max(0, num(c.shield) + v);
+    else c[k][0] = cl(num(c[k][0]) + v, 0, Math.max(0, num(c[k][1])));
+  }
+  sv();
+  render();
 }
-function lostAddPlayer(){
-  if(!admin)return;const el=$('#pl-new'),name=(el?.value||'').trim();
-  if(!/^[a-zA-Z0-9_]{3,20}$/.test(name)){alert('Player name must be 3–20 characters: letters, numbers or underscore (same name they will use to join).');return}
-  const uid='u:'+name.toLowerCase();if(!lostPlayersData[uid])lostPlayersData[uid]={uid,username:name};
+function lostAdjustVital(id, key, delta) {
+  if (!lostUser || !["hp", "shield", "san"].includes(key) || !Number.isInteger(delta) || !delta)
+    return;
+  if (!admin && (!assignedCharacterId || assignedCharacterId !== id)) {
+    alert("You can only change HP, shield and SAN for your assigned character.");
+    return;
+  }
+  if (admin) lostApplyVitalDelta(id, { [key]: delta });
+  else lostSend(lostConn, { t: "vital", id, delta: { [key]: delta } });
+}
+function lostSyncPlayerVitalDelta(before, after) {
+  if (
+    !lostUser ||
+    admin ||
+    !lostConn ||
+    !before ||
+    !after ||
+    !assignedCharacterId ||
+    before.id !== assignedCharacterId ||
+    after.id !== assignedCharacterId
+  )
+    return;
+  const a = A(before),
+    b = A(after),
+    delta = {};
+  for (const k of ["hp", "san"]) {
+    const d = num(b[k]?.[0]) - num(a[k]?.[0]);
+    if (d) delta[k] = d;
+  }
+  const s = num(b.shield) - num(a.shield);
+  if (s) delta.shield = s;
+  if (Object.keys(delta).length) lostSend(lostConn, { t: "vital", id: after.id, delta });
+}
+function lostQueueAuthorVitals() {}
+function lostDeliver(ev) {
+  if (lostHost) {
+    lostRollHist.push(ev);
+    if (lostRollHist.length > 60) lostRollHist.shift();
+    lostBroadcast({ t: "roll", ev });
+  } else lostSend(lostConn, { t: "roll", ev });
+}
+function lostMakeEv(type, who, title, extra) {
+  return {
+    type,
+    uid: lostUser.uid,
+    actor: lostUserName(lostUser),
+    who: String(who),
+    title: String(title),
+    clock: new Date().toLocaleTimeString("en-US", { hour12: false }),
+    ...extra,
+  };
+}
+function lostPublishRoll(who, title, r, ex, characterId) {
+  if (!lostUser) return;
+  lostDeliver(lostMakeEv("roll", who, title, { characterId: String(characterId || ""), r, ex }));
+}
+function lostPublishNotice(who, title, rows) {
+  if (!lostUser) return;
+  const ev = lostMakeEv("notice", who, title, { rows });
+  lostPaintRemoteNotice(ev);
+  if (lostHost) lostDeliver(ev);
+}
+function lostAssignPlayer(button) {
+  if (!admin) return;
+  const uid = button.dataset.uid,
+    characterId = document.getElementById("plchar-" + uid)?.value || "";
+  if (!uid) return;
+  if (!characterId || !C.some((c) => c.id === characterId)) {
+    alert("Choose a valid character first.");
+    return;
+  }
+  const name = A(C.find((c) => c.id === characterId)).name || characterId;
+  lostPlayersData[uid] = {
+    ...(lostPlayersData[uid] || {}),
+    uid,
+    username: lostPlayersData[uid]?.username || uid.replace(/^u:/, ""),
+    characterId,
+    characterName: name,
+  };
+  lostSavePlayers();
+  lostFlushBroadcast(true);
+  lostSend(lostConns.get(uid)?.conn, { t: "assign", characterId });
+  lostRenderPlayerLocks();
+  T(
+    "Table",
+    "Player assigned",
+    `<div class="mt">@${esc(lostPlayersData[uid].username)} → <b>${esc(name)}</b></div>`,
+    "assigned " + esc(name),
+  );
+}
+function lostAddPlayer() {
+  if (!admin) return;
+  const el = $("#pl-new"),
+    name = (el?.value || "").trim();
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(name)) {
+    alert(
+      "Player name must be 3–20 characters: letters, numbers or underscore (same name they will use to join).",
+    );
+    return;
+  }
+  const uid = "u:" + name.toLowerCase();
+  if (!lostPlayersData[uid]) lostPlayersData[uid] = { uid, username: name };
   lostSavePlayers();
 }
-function lostUnassignPlayer(button){
-  if(!admin)return;const uid=button.dataset.uid;if(!uid)return;const p=lostPlayersData[uid];
-  if(p){delete p.characterId;delete p.characterName}lostSavePlayers();lostFlushBroadcast(true);lostSend(lostConns.get(uid)?.conn,{t:'assign',characterId:''});lostRenderPlayerLocks();
+function lostUnassignPlayer(button) {
+  if (!admin) return;
+  const uid = button.dataset.uid;
+  if (!uid) return;
+  const p = lostPlayersData[uid];
+  if (p) {
+    delete p.characterId;
+    delete p.characterName;
+  }
+  lostSavePlayers();
+  lostFlushBroadcast(true);
+  lostSend(lostConns.get(uid)?.conn, { t: "assign", characterId: "" });
+  lostRenderPlayerLocks();
 }
-function lostHostOnConn(conn){
-  let me=null;
-  conn.on('data',msg=>{
-    if(!msg||typeof msg!=='object')return;
-    if(msg.t==='hello'){
-      const name=String(msg.name||'').trim();if(!/^[a-zA-Z0-9_]{3,20}$/.test(name)){lostSend(conn,{t:'error',msg:'Invalid name.'});return}
-      const uid='u:'+name.toLowerCase(),old=lostConns.get(uid);if(old&&old.conn!==conn){try{old.conn.close()}catch(e){}}
-      me={uid,name,conn};lostConns.set(uid,me);lostPlayersData[uid]={...lostPlayersData[uid],uid,username:name};lostSavePlayers();
-      lostSend(conn,{t:'welcome',state:lostSessionState(),assigned:lostPlayersData[uid]?.characterId||'',rolls:lostRollHist});lostOnlineStatus();lostRenderPlayerLocks();return;
+function lostHostOnConn(conn) {
+  let me = null;
+  conn.on("data", (msg) => {
+    if (!msg || typeof msg !== "object") return;
+    if (msg.t === "hello") {
+      const name = String(msg.name || "").trim();
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(name)) {
+        lostSend(conn, { t: "error", msg: "Invalid name." });
+        return;
+      }
+      const uid = "u:" + name.toLowerCase(),
+        old = lostConns.get(uid);
+      if (old && old.conn !== conn) {
+        try {
+          old.conn.close();
+        } catch (e) {}
+      }
+      me = { uid, name, conn };
+      lostConns.set(uid, me);
+      lostPlayersData[uid] = { ...lostPlayersData[uid], uid, username: name };
+      lostSavePlayers();
+      lostSend(conn, {
+        t: "welcome",
+        state: lostSessionState(),
+        assigned: lostPlayersData[uid]?.characterId || "",
+        rolls: lostRollHist,
+      });
+      lostOnlineStatus();
+      lostRenderPlayerLocks();
+      return;
     }
-    if(!me)return;
-    if(msg.t==='vital'&&msg.delta&&typeof msg.delta==='object'){
-      const asg=lostPlayersData[me.uid]?.characterId;if(!asg||asg!==msg.id)return;
-      const d={};for(const k of ['hp','san','shield'])if(Number.isInteger(msg.delta[k])&&Math.abs(msg.delta[k])<=1000)d[k]=msg.delta[k];lostApplyVitalDelta(msg.id,d);
-    }else if(msg.t==='roll'&&msg.ev&&msg.ev.type==='roll'){
-      const e=msg.ev,eff=lostEffectiveFor(me.uid);if(!eff||String(e.characterId)!==eff)return;
-      const r=lostCleanRoll(e.r);if(!r)return;
-      const ev={type:'roll',uid:me.uid,actor:me.name,who:String(e.who||'').slice(0,60),title:String(e.title||'').slice(0,80),characterId:eff,r,ex:lostCleanEx(e.ex),clock:String(e.clock||'').slice(0,16)};
-      lostRollHist.push(ev);if(lostRollHist.length>60)lostRollHist.shift();lostPaintRemoteRoll(ev);lostBroadcast({t:'roll',ev},conn);
+    if (!me) return;
+    if (msg.t === "vital" && msg.delta && typeof msg.delta === "object") {
+      const asg = lostPlayersData[me.uid]?.characterId;
+      if (!asg || asg !== msg.id) return;
+      const d = {};
+      for (const k of ["hp", "san", "shield"])
+        if (Number.isInteger(msg.delta[k]) && Math.abs(msg.delta[k]) <= 1000) d[k] = msg.delta[k];
+      lostApplyVitalDelta(msg.id, d);
+    } else if (msg.t === "roll" && msg.ev && msg.ev.type === "roll") {
+      const e = msg.ev,
+        eff = lostEffectiveFor(me.uid);
+      if (!eff || String(e.characterId) !== eff) return;
+      const r = lostCleanRoll(e.r);
+      if (!r) return;
+      const ev = {
+        type: "roll",
+        uid: me.uid,
+        actor: me.name,
+        who: String(e.who || "").slice(0, 60),
+        title: String(e.title || "").slice(0, 80),
+        characterId: eff,
+        r,
+        ex: lostCleanEx(e.ex),
+        clock: String(e.clock || "").slice(0, 16),
+      };
+      lostRollHist.push(ev);
+      if (lostRollHist.length > 60) lostRollHist.shift();
+      lostPaintRemoteRoll(ev);
+      lostBroadcast({ t: "roll", ev }, conn);
     }
   });
-  conn.on('error',e=>console.warn('player connection error',e));
-  conn.on('close',()=>{if(me&&lostConns.get(me.uid)?.conn===conn){lostConns.delete(me.uid);lostOnlineStatus();lostRenderPlayerLocks()}});
+  conn.on("error", (e) => console.warn("player connection error", e));
+  conn.on("close", () => {
+    if (me && lostConns.get(me.uid)?.conn === conn) {
+      lostConns.delete(me.uid);
+      lostOnlineStatus();
+      lostRenderPlayerLocks();
+    }
+  });
 }
-function lostClientData(msg){
-  if(!msg||typeof msg!=='object')return;
-  if(msg.t==='welcome'){
-    assignedCharacterId=msg.assigned||'';lostSetLoggedInUI(lostUser,false);lostApplyCampaignState(msg.state,true);
-    $('#L').innerHTML='';(msg.rolls||[]).forEach(lostAppendHistory);if(!(msg.rolls||[]).length)$('#L').innerHTML='<div class="e0">— No rolls yet —</div>';
-    lostVitalsReady=true;lostOnlineStatus();render();
-  }else if(msg.t==='session'||msg.t==='state')lostApplyCampaignState(msg.state,true);
-  else if(msg.t==='assign'){assignedCharacterId=msg.characterId||'';render()}
-  else if(msg.t==='roll'&&msg.ev)lostPaintRemoteRoll(msg.ev);
-  else if(msg.t==='error'){lostFail(msg.msg||'Rejected by the host.')}
+function lostClientData(msg) {
+  if (!msg || typeof msg !== "object") return;
+  if (msg.t === "welcome") {
+    assignedCharacterId = msg.assigned || "";
+    lostSetLoggedInUI(lostUser, false);
+    lostApplyCampaignState(msg.state, true);
+    $("#L").innerHTML = "";
+    (msg.rolls || []).forEach(lostAppendHistory);
+    if (!(msg.rolls || []).length) $("#L").innerHTML = '<div class="e0">— No rolls yet —</div>';
+    lostVitalsReady = true;
+    lostOnlineStatus();
+    render();
+  } else if (msg.t === "session" || msg.t === "state") lostApplyCampaignState(msg.state, true);
+  else if (msg.t === "assign") {
+    assignedCharacterId = msg.characterId || "";
+    render();
+  } else if (msg.t === "roll" && msg.ev) lostPaintRemoteRoll(msg.ev);
+  else if (msg.t === "error") {
+    lostFail(msg.msg || "Rejected by the host.");
+  }
 }
-function lostLeave(){
-  const wasPlayer=lostRole==='player';
-  clearTimeout(lostBcastTimer);const p=lostPeer,c=lostConn;lostPeer=null;lostConn=null;lostRole=null;
-  try{c&&c.close()}catch(e){}try{p&&p.destroy()}catch(e){}
-  lostConns.clear();lostHost=false;lostRoom='';assignedCharacterId='';lostUser=null;lostPlayerProfiles=[];lostPlayersUnsub=null;lostLastBcast='';lostVitalsReady=false;
-  if(wasPlayer){
+function lostLeave() {
+  const wasPlayer = lostRole === "player";
+  clearTimeout(lostBcastTimer);
+  const p = lostPeer,
+    c = lostConn;
+  lostPeer = null;
+  lostConn = null;
+  lostRole = null;
+  try {
+    c && c.close();
+  } catch (e) {}
+  try {
+    p && p.destroy();
+  } catch (e) {}
+  lostConns.clear();
+  lostHost = false;
+  lostRoom = "";
+  assignedCharacterId = "";
+  lostUser = null;
+  lostPlayerProfiles = [];
+  lostPlayersUnsub = null;
+  lostLastBcast = "";
+  lostVitalsReady = false;
+  if (wasPlayer) {
     // Session closed: drop the session from memory (and storage on non-author devices).
     lostClearCampaignStorage();
     lostResetSessionMemory();
-    $('#L').innerHTML='<div class="e0">— Session closed · campaign data cleared —</div>';
+    $("#L").innerHTML = '<div class="e0">— Session closed · campaign data cleared —</div>';
   }
-  lostSetLoggedOutUI();render();lostUpdateAuthLoadStatus();
+  lostSetLoggedOutUI();
+  render();
+  lostUpdateAuthLoadStatus();
 }
-function lostFail(msg){lostLeave();lostAuthMessage(msg)}
+function lostFail(msg) {
+  lostLeave();
+  lostAuthMessage(msg);
+}
 /* ICE: STUN for direct links + a public TURN relay as a fallback for strict NATs / mobile data.
    Replace/extend LOST_ICE with your own TURN credentials if players behind strict networks cannot connect. */
-const LOST_ICE=[
-  {urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'},
-  {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}
+const LOST_ICE = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun1.l.google.com:19302" },
+  { urls: "stun:global.stun.twilio.com:3478" },
+  {
+    urls: [
+      "turn:openrelay.metered.ca:80",
+      "turn:openrelay.metered.ca:443",
+      "turn:openrelay.metered.ca:443?transport=tcp",
+    ],
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
 ];
-const lostPeerOpts=()=>({debug:1,config:{iceServers:LOST_ICE,sdpSemantics:'unified-plan'}});
-function lostPeerErrorText(e,joining){
-  switch(e.type){
-    case 'unavailable-id':return 'That room code is already in use (another host, or your previous session has not expired yet — wait ~1 minute or pick another code).';
-    case 'invalid-id':return 'That room code is not valid. Use letters/numbers, with - or _ only in the middle.';
-    case 'peer-unavailable':return 'No session found with that room code. Is the author online and hosting?';
-    case 'network':case 'server-error':case 'socket-error':case 'socket-closed':return 'Cannot reach the PeerJS signalling server. Check your internet connection and try again.';
-    case 'browser-incompatible':return 'This browser does not support WebRTC.';
-    case 'webrtc':return 'WebRTC connection failed (network/firewall). Try another network, or ask the author to add a TURN server.';
-    default:return (joining?'Connection error: ':'Could not start the session: ')+(e.type||e.message||'unknown');
+const lostPeerOpts = () => ({
+  debug: 1,
+  config: { iceServers: LOST_ICE, sdpSemantics: "unified-plan" },
+});
+function lostPeerErrorText(e, joining) {
+  switch (e.type) {
+    case "unavailable-id":
+      return "That room code is already in use (another host, or your previous session has not expired yet — wait ~1 minute or pick another code).";
+    case "invalid-id":
+      return "That room code is not valid. Use letters/numbers, with - or _ only in the middle.";
+    case "peer-unavailable":
+      return "No session found with that room code. Is the author online and hosting?";
+    case "network":
+    case "server-error":
+    case "socket-error":
+    case "socket-closed":
+      return "Cannot reach the PeerJS signalling server. Check your internet connection and try again.";
+    case "browser-incompatible":
+      return "This browser does not support WebRTC.";
+    case "webrtc":
+      return "WebRTC connection failed (network/firewall). Try another network, or ask the author to add a TURN server.";
+    default:
+      return (
+        (joining ? "Connection error: " : "Could not start the session: ") +
+        (e.type || e.message || "unknown")
+      );
   }
 }
-function lostStartHost(room){
-  lostAuthMessage('Starting session…');lostRole='host';lostRoom=room;
-  const peer=lostPeer=new Peer(lostRoomId(room),lostPeerOpts());
-  const timer=setTimeout(()=>{if(!lostHost&&lostPeer===peer)lostFail('Timed out reaching the PeerJS signalling server. Check your connection and try again.')},20000);
-  peer.on('open',()=>{clearTimeout(timer);lostHost=true;lostMarkAuthorDevice();lostSetLoggedInUI(lostUser,true);lostPlayersUnsub=()=>{};lostCloudReady=true;lostRefreshProfiles();lostRenderPlayerLocks();lostOnlineStatus();$('#L').innerHTML='<div class="e0">— No rolls recorded in this session —</div>';render()});
-  peer.on('connection',lostHostOnConn);
-  peer.on('error',e=>{clearTimeout(timer);console.error(e);if(lostPeer!==peer)return;if(!lostHost)lostFail(lostPeerErrorText(e,false));else lostSetRollStatus('NETWORK ERROR · '+e.type,true)});
-  peer.on('disconnected',()=>{if(lostPeer!==peer||peer.destroyed)return;lostSetRollStatus('RECONNECTING TO SIGNALLING…',true);setTimeout(()=>{try{if(lostPeer===peer&&!peer.destroyed)peer.reconnect()}catch(e){}},1500)});
-}
-function lostStartJoin(room){
-  // Players never keep campaign data: start from a clean memory state (storage is only wiped on non-author devices).
-  lostClearCampaignStorage();lostResetSessionMemory();lostRole='player';
-  lostAuthMessage('Connecting to the host…');const peer=lostPeer=new Peer(undefined,lostPeerOpts());let done=false,welcomed=false;
-  const fail=m=>{if(lostPeer===peer)lostFail(m)};
-  const timer=setTimeout(()=>{if(!done)fail('Could not reach the host (timed out). Check the room code, and that the author has started the session.')},25000);
-  peer.on('open',()=>{
-    const conn=lostConn=peer.connect(lostRoomId(room),{reliable:true});
-    conn.on('open',()=>{done=true;clearTimeout(timer);lostSend(conn,{t:'hello',name:lostUser.displayName});setTimeout(()=>{if(!lostVitalsReady&&lostConn===conn)fail('The host did not answer. Is the author running this version of the page?')},12000)});
-    conn.on('data',lostClientData);
-    conn.on('error',e=>{console.error(e);fail('Connection error: '+(e.type||e.message||'unknown'))});
-    conn.on('close',()=>{if(lostConn===conn)fail('Disconnected from the host. Join again once the session is running.')});
+function lostStartHost(room) {
+  lostAuthMessage("Starting session…");
+  lostRole = "host";
+  lostRoom = room;
+  const peer = (lostPeer = new Peer(lostRoomId(room), lostPeerOpts()));
+  const timer = setTimeout(() => {
+    if (!lostHost && lostPeer === peer)
+      lostFail(
+        "Timed out reaching the PeerJS signalling server. Check your connection and try again.",
+      );
+  }, 20000);
+  peer.on("open", () => {
+    clearTimeout(timer);
+    lostHost = true;
+    lostMarkAuthorDevice();
+    lostSetLoggedInUI(lostUser, true);
+    lostPlayersUnsub = () => {};
+    lostCloudReady = true;
+    lostRefreshProfiles();
+    lostRenderPlayerLocks();
+    lostOnlineStatus();
+    $("#L").innerHTML = '<div class="e0">— No rolls recorded in this session —</div>';
+    render();
   });
-  peer.on('disconnected',()=>{if(lostPeer!==peer||peer.destroyed)return;try{peer.reconnect()}catch(e){}});
-  peer.on('error',e=>{clearTimeout(timer);console.error(e);if(lostPeer===peer)lostFail(lostPeerErrorText(e,true))});
+  peer.on("connection", lostHostOnConn);
+  peer.on("error", (e) => {
+    clearTimeout(timer);
+    console.error(e);
+    if (lostPeer !== peer) return;
+    if (!lostHost) lostFail(lostPeerErrorText(e, false));
+    else lostSetRollStatus("NETWORK ERROR · " + e.type, true);
+  });
+  peer.on("disconnected", () => {
+    if (lostPeer !== peer || peer.destroyed) return;
+    lostSetRollStatus("RECONNECTING TO SIGNALLING…", true);
+    setTimeout(() => {
+      try {
+        if (lostPeer === peer && !peer.destroyed) peer.reconnect();
+      } catch (e) {}
+    }, 1500);
+  });
 }
-function lostAuthAction(action){
-  if(action==='logout'){const had=!!lostPeer;lostLeave();lostAuthMessage(had?'Disconnected.':'Host a session (author) or join one with the room code.');return}
-  if(action==='loadsession'){$('#auth-jf')?.click();return}
-  if(action==='clearsession'){
-    if(!confirm('Clear the loaded session from this browser?'))return;
-    lostClearCampaignStorage(true);lostResetSessionMemory();lostSource='default';
-    try{localStorage.removeItem('lost_p2p_players')}catch(e){}
-    lostPlayersData={};lostRefreshProfiles();
-    render();lostUpdateAuthLoadStatus();lostAuthMessage('Loaded session cleared. Load a JSON file before hosting, or host with the default roster.');
+function lostStartJoin(room) {
+  // Players never keep campaign data: start from a clean memory state (storage is only wiped on non-author devices).
+  lostClearCampaignStorage();
+  lostResetSessionMemory();
+  lostRole = "player";
+  lostAuthMessage("Connecting to the host…");
+  const peer = (lostPeer = new Peer(undefined, lostPeerOpts()));
+  let done = false,
+    welcomed = false;
+  const fail = (m) => {
+    if (lostPeer === peer) lostFail(m);
+  };
+  const timer = setTimeout(() => {
+    if (!done)
+      fail(
+        "Could not reach the host (timed out). Check the room code, and that the author has started the session.",
+      );
+  }, 25000);
+  peer.on("open", () => {
+    const conn = (lostConn = peer.connect(lostRoomId(room), { reliable: true }));
+    conn.on("open", () => {
+      done = true;
+      clearTimeout(timer);
+      lostSend(conn, { t: "hello", name: lostUser.displayName });
+      setTimeout(() => {
+        if (!lostVitalsReady && lostConn === conn)
+          fail("The host did not answer. Is the author running this version of the page?");
+      }, 12000);
+    });
+    conn.on("data", lostClientData);
+    conn.on("error", (e) => {
+      console.error(e);
+      fail("Connection error: " + (e.type || e.message || "unknown"));
+    });
+    conn.on("close", () => {
+      if (lostConn === conn)
+        fail("Disconnected from the host. Join again once the session is running.");
+    });
+  });
+  peer.on("disconnected", () => {
+    if (lostPeer !== peer || peer.destroyed) return;
+    try {
+      peer.reconnect();
+    } catch (e) {}
+  });
+  peer.on("error", (e) => {
+    clearTimeout(timer);
+    console.error(e);
+    if (lostPeer === peer) lostFail(lostPeerErrorText(e, true));
+  });
+}
+function lostAuthAction(action) {
+  if (action === "logout") {
+    const had = !!lostPeer;
+    lostLeave();
+    lostAuthMessage(
+      had ? "Disconnected." : "Host a session (author) or join one with the room code.",
+    );
     return;
   }
-  if(typeof Peer==='undefined'){lostAuthMessage('The connection library (PeerJS) failed to load. Check your internet / ad-blocker and reload.');return}
-  if(lostPeer)return;
-  const name=$('#auth-username').value.trim(),room=$('#auth-password').value.trim().toLowerCase();
-  if(!/^[a-zA-Z0-9_]{3,20}$/.test(name)){lostAuthMessage('Name must be 3–20 characters: letters, numbers or underscore.');return}
-  if(!/^[a-z0-9](?:[a-z0-9_-]{2,28})[a-z0-9]$/.test(room)){lostAuthMessage('Room code must be 4–30 characters: letters/numbers, with - or _ only in the middle.');return}
-  if(action==='host'&&lostSource==='default'&&!confirm('No session JSON is loaded. Host with the default roster?'))return;
-  try{localStorage.lost_p2p_name=name;localStorage.lost_p2p_room=room}catch(e){}
-  lostUser={uid:'u:'+name.toLowerCase(),displayName:name};
-  if(action==='host')lostStartHost(room);else lostStartJoin(room);
+  if (action === "loadsession") {
+    $("#auth-jf")?.click();
+    return;
+  }
+  if (action === "clearsession") {
+    if (!confirm("Clear the loaded session from this browser?")) return;
+    lostClearCampaignStorage(true);
+    lostResetSessionMemory();
+    lostSource = "default";
+    try {
+      localStorage.removeItem("lost_p2p_players");
+    } catch (e) {}
+    lostPlayersData = {};
+    lostRefreshProfiles();
+    render();
+    lostUpdateAuthLoadStatus();
+    lostAuthMessage(
+      "Loaded session cleared. Load a JSON file before hosting, or host with the default roster.",
+    );
+    return;
+  }
+  if (typeof Peer === "undefined") {
+    lostAuthMessage(
+      "The connection library (PeerJS) failed to load. Check your internet / ad-blocker and reload.",
+    );
+    return;
+  }
+  if (lostPeer) return;
+  const name = $("#auth-username").value.trim(),
+    room = $("#auth-password").value.trim().toLowerCase();
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(name)) {
+    lostAuthMessage("Name must be 3–20 characters: letters, numbers or underscore.");
+    return;
+  }
+  if (!/^[a-z0-9](?:[a-z0-9_-]{2,28})[a-z0-9]$/.test(room)) {
+    lostAuthMessage(
+      "Room code must be 4–30 characters: letters/numbers, with - or _ only in the middle.",
+    );
+    return;
+  }
+  if (
+    action === "host" &&
+    lostSource === "default" &&
+    !confirm("No session JSON is loaded. Host with the default roster?")
+  )
+    return;
+  try {
+    localStorage.lost_p2p_name = name;
+    localStorage.lost_p2p_room = room;
+  } catch (e) {}
+  lostUser = { uid: "u:" + name.toLowerCase(), displayName: name };
+  if (action === "host") lostStartHost(room);
+  else lostStartJoin(room);
 }
-addEventListener('beforeunload',()=>{try{lostPeer&&lostPeer.destroy()}catch(e){}});
+addEventListener("beforeunload", () => {
+  try {
+    lostPeer && lostPeer.destroy();
+  } catch (e) {}
+});
 /* Drag & drop a session JSON anywhere on the login screen */
-addEventListener('dragover',e=>{if(e.dataTransfer?.types?.includes('Files'))e.preventDefault()});
-addEventListener('drop',async e=>{const f=e.dataTransfer?.files?.[0];if(!f)return;e.preventDefault();if(lostUser&&!admin)return;try{let txt=await f.text();if(txt.charCodeAt(0)===0xFEFF)txt=txt.slice(1);if(lostImportSessionPack(JSON.parse(txt)))lostAuthMessage(`Session loaded: ${C.length} character(s), ${EN.length} enem${EN.length===1?'y':'ies'}. Enter name + room code, then HOST SESSION.`)}catch(x){lostAuthMessage('Could not load: '+(x instanceof SyntaxError?'that file is not valid JSON.':x.message))}});
+addEventListener("dragover", (e) => {
+  if (e.dataTransfer?.types?.includes("Files")) e.preventDefault();
+});
+addEventListener("drop", async (e) => {
+  const f = e.dataTransfer?.files?.[0];
+  if (!f) return;
+  e.preventDefault();
+  if (lostUser && !admin) return;
+  try {
+    let txt = await f.text();
+    if (txt.charCodeAt(0) === 0xfeff) txt = txt.slice(1);
+    if (lostImportSessionPack(JSON.parse(txt)))
+      lostAuthMessage(
+        `Session loaded: ${C.length} character(s), ${EN.length} enem${EN.length === 1 ? "y" : "ies"}. Enter name + room code, then HOST SESSION.`,
+      );
+  } catch (x) {
+    lostAuthMessage(
+      "Could not load: " + (x instanceof SyntaxError ? "that file is not valid JSON." : x.message),
+    );
+  }
+});
 /* ===== bootstrap (runs last, after everything above is defined) ===== */
-BT=ld('lost_battle',{on:0,round:1,i:0,n:0,order:[]});if(!Array.isArray(BT.order))BT.order=[];LIBS=ld('lost_libraries',[]);if(!Array.isArray(LIBS))LIBS=[];activeLibrary=ld('lost_active_library',LIBS[0]?.id||'');if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary=LIBS.find(x=>x.id==='main-party')?.id||LIBS[0]?.id||'';EN=normalizeEnemies(ld('lost_enemies',[{n:'Alpha Enemy',f:'1d20+4'},{n:'Beta Enemy',f:'1d20'}]));PEND=ld('lost_pend',[]);LOOT={basica:[],diferenciada:[],unica:[],eclipse:[],...ld('lost_loot',{})};
-try{C=JSON.parse(localStorage[KEY])}catch(e){}if(!Array.isArray(C))C=DEF();
-if(!LIBS.some(x=>x.id==='main-party'))LIBS.unshift({id:'main-party',name:'Main Party'});
-if(localStorage.getItem('lost_main_party_migrated')!=='1'){const defaultIds=new Set(DEF().map(x=>x.id));C.forEach(c=>{if(defaultIds.has(c.id))c.libraryId='main-party'});activeLibrary='main-party';localStorage.setItem('lost_main_party_migrated','1')}
-if(!LIBS.some(x=>x.id===activeLibrary))activeLibrary='main-party';WORKSPACE=ld('lost_workspace_view','scene');if(!['scene','library-scene'].includes(WORKSPACE))WORKSPACE='scene';
-C.forEach(mth);if(lostHadSaved)lostSource='saved';sv();libsv();esv();render();syncPlayerLocksPanel();
+BT = ld("lost_battle", { on: 0, round: 1, i: 0, n: 0, order: [] });
+if (!Array.isArray(BT.order)) BT.order = [];
+LIBS = ld("lost_libraries", []);
+if (!Array.isArray(LIBS)) LIBS = [];
+activeLibrary = ld("lost_active_library", LIBS[0]?.id || "");
+if (!LIBS.some((x) => x.id === activeLibrary))
+  activeLibrary = LIBS.find((x) => x.id === "main-party")?.id || LIBS[0]?.id || "";
+EN = normalizeEnemies(
+  ld("lost_enemies", [
+    { n: "Alpha Enemy", f: "1d20+4" },
+    { n: "Beta Enemy", f: "1d20" },
+  ]),
+);
+PEND = ld("lost_pend", []);
+LOOT = { basica: [], diferenciada: [], unica: [], eclipse: [], ...ld("lost_loot", {}) };
+try {
+  C = JSON.parse(localStorage[KEY]);
+} catch (e) {}
+if (!Array.isArray(C)) C = DEF();
+if (!LIBS.some((x) => x.id === "main-party"))
+  LIBS.unshift({ id: "main-party", name: "Main Party" });
+if (localStorage.getItem("lost_main_party_migrated") !== "1") {
+  const defaultIds = new Set(DEF().map((x) => x.id));
+  C.forEach((c) => {
+    if (defaultIds.has(c.id)) c.libraryId = "main-party";
+  });
+  activeLibrary = "main-party";
+  localStorage.setItem("lost_main_party_migrated", "1");
+}
+if (!LIBS.some((x) => x.id === activeLibrary)) activeLibrary = "main-party";
+WORKSPACE = ld("lost_workspace_view", "scene");
+if (!["scene", "library-scene"].includes(WORKSPACE)) WORKSPACE = "scene";
+C.forEach(mth);
+if (lostHadSaved) lostSource = "saved";
+sv();
+libsv();
+esv();
+render();
+syncPlayerLocksPanel();
 lostSetLoggedOutUI();
-try{$('#auth-username').value=localStorage.lost_p2p_name||'';$('#auth-password').value=localStorage.lost_p2p_room||''}catch(e){}
-try{const q=new URLSearchParams(location.search).get('room');if(q)$('#auth-password').value=q.trim().toLowerCase()}catch(e){}
-try{lostUpdateAuthLoadStatus()}catch(e){}
+try {
+  $("#auth-username").value = localStorage.lost_p2p_name || "";
+  $("#auth-password").value = localStorage.lost_p2p_room || "";
+} catch (e) {}
+try {
+  const q = new URLSearchParams(location.search).get("room");
+  if (q) $("#auth-password").value = q.trim().toLowerCase();
+} catch (e) {}
+try {
+  lostUpdateAuthLoadStatus();
+} catch (e) {}
