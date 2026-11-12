@@ -38,7 +38,7 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com
+   git clone https://github.com/WarpedLGR/Lost-p2p-vtt/
    ```
 2. **Open `index.html`** in any modern web browser (or visit the [GitHub Pages link](https://warpedlgr.github.io/Lost-p2p-vtt/)).
 3. **To Host (Game Master):** Optionally load a saved campaign `.json` file, enter your name and a custom Room Code, and click **HOST SESSION (AUTHOR)**.
