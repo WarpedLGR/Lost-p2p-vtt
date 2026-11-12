@@ -4,8 +4,8 @@
 
 > **Note:** Because this app powers a custom, homebrew RPG ruleset, some game-specific mechanics and terminology may not be immediately obvious without the campaign rulebook—this README highlights the technical architecture and core system features.
 
-▸ **[Live Demo](https://github.io)**
-
+▸ **[Live Demo](https://warpedlgr.github.io/Lost-p2p-vtt/)**
+![Pretty cool, right?](https://imgur.com/j2zEvWM.png)
 ---
 
 ## ✦ Key Features
@@ -40,6 +40,6 @@
    ```bash
    git clone https://github.com
    ```
-2. **Open `index.html`** in any modern web browser (or visit the [GitHub Pages link](https://github.io)).
+2. **Open `index.html`** in any modern web browser (or visit the [GitHub Pages link](https://warpedlgr.github.io/Lost-p2p-vtt/)).
 3. **To Host (Game Master):** Optionally load a saved campaign `.json` file, enter your name and a custom Room Code, and click **HOST SESSION (AUTHOR)**.
 4. **To Join (Player):** Enter your name and the host's Room Code, then click **JOIN SESSION**.
