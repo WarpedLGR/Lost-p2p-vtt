@@ -43,3 +43,14 @@
 2. **Open `index.html`** in any modern web browser (or visit the [GitHub Pages link](https://warpedlgr.github.io/Lost-p2p-vtt/)).
 3. **To Host (Game Master):** Optionally load a saved campaign `.json` file, enter your name and a custom Room Code, and click **HOST SESSION (AUTHOR)**.
 4. **To Join (Player):** Enter your name and the host's Room Code, then click **JOIN SESSION**.
+
+## ☾ NIGHTWAY mode (alternate ruleset)
+
+Use the **⚙ MODE** button in the header (author only; players follow the host) to switch between **LOST** (default, untouched) and **NIGHTWAY**. Extra files: `nightway.js`, `nightway.css`; `app.js` only gained small `NWon()` hooks.
+
+- **Stats (7 pts, −3…5 each):** TRIPAS, MIOLOS, CARNE, CHEIRO, SANGUE, STAMINA, TEMPERO.
+- **Dice:** p ≥ 1 → p×d20 keep best (1 point = one d20); p ≤ 0 → (2 − p)×d20 keep worst.
+- **Vitals:** HP = 100 + 25×TRIPAS; stamina bar = 15 + 5×STAMINA (reuses the SAN bar).
+- **Armor tab:** 3 armor pieces + 2 accessories. Each item has modifiers (`CARNE+1, VIDA+10, BARRA+5, DANO+2`) and optional inline JS `(c, m)`.
+- **Perícias** replace active skills and spend stamina. Inventory defaults to 24 slots.
+- N64 "Select Item" styling with optional CRT distortion (**CRT** button).

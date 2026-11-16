@@ -1,3 +1,4 @@
+const NWon = () => typeof NW !== "undefined" && NW.on();
 const lostHashId = () => {
     try {
       return decodeURIComponent(location.hash.slice(1));
@@ -278,8 +279,8 @@ const wpn = () => ({
     c.fx ??= {};
     const m = (c.mod = mods(c)),
       ov = (k, d) => (c.ov?.[k] > "" ? num(c.ov[k]) : d),
-      baseH = Math.max(0, ov("hp", stv(c, "CON") * 5 + m.hpmax)),
-      S = Math.max(0, ov("san", stv(c, "SAN") * 3 + m.sanmax)),
+      baseH = Math.max(0, ov("hp", NWon() ? NW.hp(c, m) : stv(c, "CON") * 5 + m.hpmax)),
+      S = Math.max(0, ov("san", NWon() ? NW.sta(c, m) : stv(c, "SAN") * 3 + m.sanmax)),
       hmRaw = Number(m.hpMultiplier),
       hm = c.ov?.hp > "" ? 1 : Number.isFinite(hmRaw) && hmRaw > 0 ? Math.min(hmRaw, 100) : 1,
       bossMult = (c.fx?.isBoss && !c.libraryId ? Math.max(1, sceneChars().length + 1) : 1) * hm,
@@ -289,7 +290,7 @@ const wpn = () => ({
         Math.abs(oldMult - bossMult) > 1e-9 ? Math.round((oldHp / oldMult) * bossMult) : oldHp,
       H = Math.max(0, Math.round(baseH * bossMult));
     c._bossHpMultiplier = bossMult;
-    c.regen = ov("regen", stv(c, "INT") + m.regen);
+    c.regen = ov("regen", NWon() ? 0 : stv(c, "INT") + m.regen);
     c.hp = [cl(scaledHp, 0, H), H];
     c.san = [cl(c.san?.[0] ?? S, 0, S), S];
     c.imps ??= [{}, {}, {}, {}];
@@ -351,7 +352,7 @@ const wpn = () => ({
           .join("")
       : "",
   bar = (v, m, k) =>
-    `<div class="lb"><span>${k == "hp" ? "HEALTH" : "SANITY"}</span><span>${v}/${m} ${k == "hp" ? "HP" : "SAN"}</span></div><div class="m ${k}"><i style="width:${m ? cl((v / m) * 100, 0, 100) : 0}%"></i></div>`,
+    `<div class="lb"><span>${k == "hp" ? "HEALTH" : NWon() ? "STAMINA" : "SANITY"}</span><span>${v}/${m} ${k == "hp" ? "HP" : NWon() ? "STA" : "SAN"}</span></div><div class="m ${k}"><i style="width:${m ? cl((v / m) * 100, 0, 100) : 0}%"></i></div>`,
   no = (t) => `<div class="mt">— ${t} —</div>`,
   hms = () => new Date().toLocaleTimeString("en-US", { hour12: false });
 const ld = (k, d) => {
@@ -489,7 +490,7 @@ function show(who, title, r, ex = []) {
   }
   const e = ex.reduce((a, x) => a + x[1], 0),
     t = r.t + e,
-    n = r.z == 20 && r.d.length == 1 ? r.d[0] : 0,
+    n = r.k ? t : r.z == 20 && r.d.length == 1 ? r.d[0] : 0,
     k = n == 20 ? "cr" : n == 1 ? "fl" : "",
     p = [
       `<b>${r.s}</b> dice`,
@@ -954,6 +955,7 @@ ${cfg.hasWeapon ? Array.from({ length: slots }, (_, j) => at(w["attr" + (j + 1)]
 }
 
 function view(c) {
+  if (NWon()) return NW.view(c);
   const [a, b] = [c.hp, c.san],
     canRoll = canRollCharacter(c);
   $("#v").innerHTML =
@@ -1249,7 +1251,7 @@ const psv = () => {
     } catch (e) {}
     scheduleCloudSync();
   },
-  slotsOf = (c) => c.slots ?? 9,
+  slotsOf = (c) => (NWon() ? (c.nw?.slots ?? 24) : (c.slots ?? 9)),
   invHtml = (c) => {
     const v = c.inv || [],
       n = Math.max(slotsOf(c), v.length);
@@ -1303,6 +1305,7 @@ const TG = [
   ],
   TL = Object.fromEntries(TG),
   mods = (c) => {
+    if (NWon()) return NW.mods(c);
     const m = {
       roll: 0,
       hpmax: 0,
@@ -1907,7 +1910,7 @@ const XP = {
           id: c.id,
           n: turns === 3 ? `${c.name} · BOSS TURN ${j + 1}/3` : c.name,
           p: c.mod?.initiativeFirst ? 1 : 0,
-          ...ir(R(rf(c, "SPD")), fxe(c, "SPD")),
+          ...(NWon() ? NW.ini(c) : ir(R(rf(c, "SPD")), fxe(c, "SPD"))),
         }));
       });
       BT.order = [
@@ -2319,6 +2322,7 @@ function lostImportSessionPack(p, { confirmReplace = true } = {}) {
     if (Array.isArray(p.pendingInventory)) PEND = p.pendingInventory;
     WORKSPACE = p.workspace || "scene";
     activeLibrary = p.activeLibrary || LIBS[0]?.id || "";
+    if (typeof NW !== "undefined" && p.mode) NW.setMode(p.mode, true);
     if (p.playerAssignments && typeof p.playerAssignments === "object") {
       lostPlayersData = p.playerAssignments;
       try {
@@ -2453,6 +2457,7 @@ function lostCampaignState() {
     pendingInventory: PEND,
     workspace: WORKSPACE,
     activeLibrary,
+    mode: NWon() ? "nightway" : "lost",
   };
 }
 // Lean live session payload for connected players (no private libraries, no offline persistence).
@@ -2484,11 +2489,13 @@ function lostSessionState() {
     battle: BT,
     loot: { basica: [], diferenciada: [], unica: [], eclipse: [] }, // loot tables stay host-side
     pendingInventory: [],
+    mode: NWon() ? "nightway" : "lost",
   };
 }
 function lostApplyCampaignState(state, asSession = false) {
   if (!state || !Array.isArray(state.characters)) return;
   lostApplyingCloud = true;
+  if (typeof NW !== "undefined") NW.setMode(state.mode, true);
   if (admin && !asSession) {
     const localPrivateLibs = (LIBS || []).filter((x) => x.private === true);
     const localPrivateIds = new Set(localPrivateLibs.map((x) => x.id));
