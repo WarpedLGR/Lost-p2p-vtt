@@ -160,6 +160,11 @@ ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div
     document.querySelectorAll("[data-m]").forEach((x) => x.classList.toggle("on", x.dataset.m === mode));
     document.title = on() ? "NIGHTWAY" : "L.O.S.T.";
     const h1 = $("h1"); if (h1) h1.textContent = on() ? "☾ NIGHTWAY" : "◉ L.O.S.T.";
+    // Author panel labels: SAN → STA in Nightway; hide shield concepts
+    const maxSan = $("#btn-max-san"), zeroSan = $("#btn-zero-san"), ds = $("#ds");
+    if (maxSan) maxSan.textContent = on() ? "MAX STA" : "MAX SAN";
+    if (zeroSan) zeroSan.textContent = on() ? "ZERO STA" : "ZERO SAN";
+    if (ds) ds.placeholder = on() ? (ds.dataset.phNw || "STA Drain") : (ds.dataset.phLost || "SAN Drain");
     if (!silent && typeof C !== "undefined") { C.forEach(mth); render(); }
   }
   /* back at the start screen: return to the mode that was picked there */

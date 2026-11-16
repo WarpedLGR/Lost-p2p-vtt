@@ -300,6 +300,8 @@ const wpn = () => ({
     c.regen = ov("regen", NWon() ? 0 : stv(c, "INT") + m.regen);
     c.hp = [cl(scaledHp, 0, H), H];
     c.san = [cl(c.san?.[0] ?? S, 0, S), S];
+    // Nightway has no shield mechanic
+    if (NWon()) c.shield = 0;
     c.imps ??= [{}, {}, {}, {}];
     c.weapons ??= [wpn(), wpn()];
     c.weapons.forEach((w) => {
@@ -695,11 +697,16 @@ function lostCanEditVitals(id) {
 }
 function lostVitalsControls(c, compact = false) {
   if ((c.libraryId && lostIsPrivateLibraryId(c.libraryId)) || !lostCanEditVitals(c.id)) return "";
-  const groups = [
-    ["hp", "HP"],
-    ["shield", "SHIELD"],
-    ["san", NWon() ? "STA" : "SAN"],
-  ];
+  const groups = NWon()
+    ? [
+        ["hp", "HP"],
+        ["san", "STA"],
+      ]
+    : [
+        ["hp", "HP"],
+        ["shield", "SHIELD"],
+        ["san", "SAN"],
+      ];
   return `<div class="row" style="gap:3px;${compact ? "margin-top:4px;" : ""}">${groups.map(([k, label]) => `<span class="mt" style="margin-left:3px">${label}</span><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="-1" title="${label} −1">−</button><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="1" title="${label} +1">+</button>`).join("")}</div>`;
 }
 
@@ -709,7 +716,7 @@ const card = (r) => {
     where = r.libraryId
       ? `<span class="chip">${esc(LIBS.find((x) => x.id == r.libraryId)?.name || "LIBRARY")}</span>`
       : "";
-  return `<div class="w card${BT.on && BT.order[BT.i]?.id == c.id ? " now" : ""}" data-id="${c.id}"><div class="tb"><span class="row" style="gap:4px">${c.mirror ? "DYAKIER / REIKYAD" : esc(c.name.toUpperCase())}${sb(c)}</span><span class="row">${where}<span class="${c.fx?.shieldbreak ? "grey chip" : "o"}">${c.shield ? "▽" + c.shield : ""}</span><button class="b s" data-a="hidecard" data-i="${c.id}" title="Hide this card on this device only">HIDE</button></span></div><div class="pd cd"><div class="th">${im(c)}</div><div class="in"><div class="nm">${esc(c.name)}</div>${c.fx?.isBoss ? `<span class="chip o">BOSS · ${c.libraryId ? "BASE HP" : `${bossSceneMultiplier()}× HP`}</span>` : ""}${bar(...c.hp, "hp")}${bar(...c.san, "sn")}${NWon() ? "" : `<span class="chip">REGEN ${c.regen}/TR</span>`}${typeof lostVitalsControls === "function" ? lostVitalsControls(c, true) : ""}${fxc(c)}${c.last ? `<div class="lb"><span>LAST</span><span>${esc(c.last)}</span></div>` : ""}</div></div>${admin ? `<div class="pd row" style="padding-top:0"><button class="b s${r.libraryId ? " am" : ""}" data-a="${r.libraryId ? "deploy" : "store"}" data-i="${r.id}">${r.libraryId ? "＋ ADD TO SCENE" : "▣ HIDE TO LIBRARY"}</button></div>` : ""}</div>`;
+  return `<div class="w card${BT.on && BT.order[BT.i]?.id == c.id ? " now" : ""}" data-id="${c.id}"><div class="tb"><span class="row" style="gap:4px">${c.mirror ? "DYAKIER / REIKYAD" : esc(c.name.toUpperCase())}${sb(c)}</span><span class="row">${where}${NWon() ? "" : `<span class="${c.fx?.shieldbreak ? "grey chip" : "o"}">${c.shield ? "▽" + c.shield : ""}</span>`}<button class="b s" data-a="hidecard" data-i="${c.id}" title="Hide this card on this device only">HIDE</button></span></div><div class="pd cd"><div class="th">${im(c)}</div><div class="in"><div class="nm">${esc(c.name)}</div>${c.fx?.isBoss ? `<span class="chip o">BOSS · ${c.libraryId ? "BASE HP" : `${bossSceneMultiplier()}× HP`}</span>` : ""}${bar(...c.hp, "hp")}${bar(...c.san, "sn")}${NWon() ? "" : `<span class="chip">REGEN ${c.regen}/TR</span>`}${typeof lostVitalsControls === "function" ? lostVitalsControls(c, true) : ""}${fxc(c)}${c.last ? `<div class="lb"><span>LAST</span><span>${esc(c.last)}</span></div>` : ""}</div></div>${admin ? `<div class="pd row" style="padding-top:0"><button class="b s${r.libraryId ? " am" : ""}" data-a="${r.libraryId ? "deploy" : "store"}" data-i="${r.id}">${r.libraryId ? "＋ ADD TO SCENE" : "▣ HIDE TO LIBRARY"}</button></div>` : ""}</div>`;
 };
 function workspaceTools() {
   const isLibraryScene =
@@ -1001,7 +1008,7 @@ function form() {
       `<h3>${t}</h3><div class="wi"><div class="row"><input id="${k}n" placeholder="Name" style="flex:2">${k == "actives" ? `<input id="activesc" type="number" placeholder="${sanLabel} Cost" style="flex:1"><input id="activesr" placeholder="Dice (optional) 2d6+3" style="flex:1">` : ""}<button class="b am s" data-a="addl" data-k="${k}">+ ADD</button></div><input id="${k}d" placeholder="Description/Effect" style="margin-top:4px"></div>${c[k].map((x, i) => (x?._lostMeta ? "" : `<div class="ab row sp"><span><b>${esc(x.n)}</b>${k == "actives" ? ` (${x.c} ${sanLabel})` : ""}: ${esc(x.d || "")}</span><button class="b s rd" data-a="dell" data-k="${k}" data-i="${i}">✕</button></div>`)).join("")}`;
   const currentImageIsUrl = typeof c.img === "string" && /^https?:\/\//i.test(c.img);
   $("#v").innerHTML =
-    `<div class="tb"><span>EDIT · ${esc(c.name || "NEW CHARACTER")}</span></div><div class="pd"><label>NAME</label><input id="fn" value="${esc(c.name)}"><div class="r3" style="margin-top:6px"><div><label>CLASS</label><input id="fclass" value="${esc(c.className ?? characterMeta(c, "class"))}" placeholder="Player class"></div><div><label>SPECIALTY</label><input id="fspecialty" value="${esc(c.specialty ?? characterMeta(c, "specialty"))}" placeholder="Character specialty"></div></div><div class="ab" style="margin-top:6px"><label>SPECIALTY INFO</label><textarea id="fspecialtyInfo" rows="3" placeholder="Extra specialty rules / description…">${esc(c.specialtyInfo ?? characterMeta(c, "specialtyInfo"))}</textarea></div><div class="ab" style="margin-top:8px"><label>CHARACTER IMAGE · IMGUR URL</label><input id="fimg" type="url" value="${currentImageIsUrl ? esc(c.img) : ""}" placeholder="https://i.imgur.com/example.png"><div class="mt">Paste a direct image link (preferably https://i.imgur.com/...png or .jpg). Leave blank to keep an existing uploaded image. The link must point directly to the image, not an Imgur gallery page.</div><label style="display:flex;align-items:center;gap:6px"><input id="fimg-clear" type="checkbox" style="width:auto"> Remove current image</label></div><div class="r3"><div><label>CURRENT HP (max ${c.hp[1]} = ${hpMaxHint})</label><input id="fh" type="number" value="${c.hp[0]}"></div><div><label>CURRENT ${sanLabel} (max ${c.san[1]} = ${sanMaxHint})</label><input id="fs" type="number" value="${c.san[0]}"></div><div><label>SHIELD</label><input id="fe" type="number" value="${c.shield}"></div></div>${L("actives", "ACTIVE SKILLS")}${L("passives", "PASSIVE SKILLS")}
+    `<div class="tb"><span>EDIT · ${esc(c.name || "NEW CHARACTER")}</span></div><div class="pd"><label>NAME</label><input id="fn" value="${esc(c.name)}"><div class="r3" style="margin-top:6px"><div><label>CLASS</label><input id="fclass" value="${esc(c.className ?? characterMeta(c, "class"))}" placeholder="Player class"></div><div><label>SPECIALTY</label><input id="fspecialty" value="${esc(c.specialty ?? characterMeta(c, "specialty"))}" placeholder="Character specialty"></div></div><div class="ab" style="margin-top:6px"><label>SPECIALTY INFO</label><textarea id="fspecialtyInfo" rows="3" placeholder="Extra specialty rules / description…">${esc(c.specialtyInfo ?? characterMeta(c, "specialtyInfo"))}</textarea></div><div class="ab" style="margin-top:8px"><label>CHARACTER IMAGE · IMGUR URL</label><input id="fimg" type="url" value="${currentImageIsUrl ? esc(c.img) : ""}" placeholder="https://i.imgur.com/example.png"><div class="mt">Paste a direct image link (preferably https://i.imgur.com/...png or .jpg). Leave blank to keep an existing uploaded image. The link must point directly to the image, not an Imgur gallery page.</div><label style="display:flex;align-items:center;gap:6px"><input id="fimg-clear" type="checkbox" style="width:auto"> Remove current image</label></div><div class="r3"><div><label>CURRENT HP (max ${c.hp[1]} = ${hpMaxHint})</label><input id="fh" type="number" value="${c.hp[0]}"></div><div><label>CURRENT ${sanLabel} (max ${c.san[1]} = ${sanMaxHint})</label><input id="fs" type="number" value="${c.san[0]}"></div>${NWon() ? "" : `<div><label>SHIELD</label><input id="fe" type="number" value="${c.shield}"></div>`}</div>${L("actives", "ACTIVE SKILLS")}${L("passives", "PASSIVE SKILLS")}
 <div class="row sp"><label style="margin:0">INVENTORY (one per line)</label><button class="b s rd" data-a="clrforminv">⌧ CLEAR INVENTORY</button></div><textarea id="fi" rows="2">${esc((c.inv || []).join("\n"))}</textarea><label>NOTES</label><textarea id="fo" rows="3">${esc(c.notes || "")}</textarea><div class="row" style="margin-top:10px"><button class="b am" data-a="save">SAVE</button><button class="b" data-a="cancel">CANCEL</button>${c.id ? '<button class="b rd" data-a="del">DELETE</button>' : ""}</div></div>`;
   document.body.classList.add("full");
   $("#v").classList.remove("hid");
@@ -1012,7 +1019,7 @@ const grab = () => {
     const imageUrl = $("#fimg")?.value.trim();
     Object.assign(ed, {
       name: $("#fn").value.trim(),
-      shield: num($("#fe").value),
+      shield: NWon() ? 0 : num($("#fe")?.value),
       inv: $("#fi")
         .value.split("\n")
         .map((s) => s.trim())
@@ -1108,21 +1115,22 @@ const tick = (n, o) => {
       w.push(`Poison −${d} HP [-${pStk} Rolls]`);
     }
 
-    // 5. Sanity Regen (Trauma / Shocked cancelam; Motivated +25%)
+    // 5. Sanity Regen — LOST only (Nightway has no natural STA regen)
     const blockSan = f.trauma || f.shocked;
     let sanRegen = 0;
-    if (!blockSan) {
+    if (!NWon() && !blockSan) {
       const baseReg = num(n.regen);
       sanRegen = Math.ceil(baseReg * (f.motivated ? 1.25 : 1));
     }
 
     // Aplicação
     n.hp[0] = Math.max(0, n.hp[0] - hpDmg);
-    n.san[0] = cl(n.san[0] + sanRegen, 0, n.san[1]);
+    if (!NWon()) n.san[0] = cl(n.san[0] + sanRegen, 0, n.san[1]);
 
-    if (hpDmg || blockSan || sanRegen || w.length) {
+    if (hpDmg || (!NWon() && (blockSan || sanRegen)) || w.length) {
+      const sanLbl = NWon() ? "STA" : "SAN";
       o.push(
-        `<div><b>${esc(n.name)}</b>: ${hpDmg ? `−${hpDmg} HP (${w.join(", ")}) ` : ""}${blockSan ? "[SAN blocked]" : `+${sanRegen} SAN`}</div>`,
+        `<div><b>${esc(n.name)}</b>: ${hpDmg ? `−${hpDmg} HP (${w.join(", ")}) ` : ""}${NWon() ? "" : blockSan ? `[${sanLbl} blocked]` : `+${sanRegen} ${sanLbl}`}</div>`,
       );
     }
   },
@@ -1789,7 +1797,7 @@ const XP = {
     clrforminv: () => {
       if ($("#fi")) $("#fi").value = "";
     },
-    sh: (t) => mut((n) => (n.shield = Math.max(0, (n.shield || 0) + +t.dataset.d))),
+    sh: (t) => { if (NWon()) return; mut((n) => (n.shield = Math.max(0, (n.shield || 0) + +t.dataset.d))); },
     st: (t) => {
       const k = t.dataset.k,
         d = +t.dataset.d;
@@ -1928,7 +1936,8 @@ const XP = {
       }),
 
     start_fight: () => {
-      all((n) => (n.san[0] = n.san[1] >> 1));
+      // LOST: start combat at half SAN. Nightway has no half-STA rule.
+      if (!NWon()) all((n) => (n.san[0] = n.san[1] >> 1));
       XA.roll();
       XA.bstart();
     },
@@ -2037,10 +2046,19 @@ const XP = {
       render();
     },
     bend: () => {
-      if (!confirm("End battle? All characters recover 25% HP and SAN and roll loot.")) return;
+      const sanLbl = NWon() ? "STA" : "SAN";
+      if (
+        !confirm(
+          NWon()
+            ? "End battle? All characters recover 25% HP and roll loot."
+            : "End battle? All characters recover 25% HP and SAN and roll loot.",
+        )
+      )
+        return;
       all((n) => {
         n.hp[0] = Math.min(n.hp[1], n.hp[0] + Math.ceil(n.hp[1] * 0.25));
-        n.san[0] = Math.min(n.san[1], n.san[0] + Math.ceil(n.san[1] * 0.25));
+        // Nightway: no automatic STA recovery at end of battle
+        if (!NWon()) n.san[0] = Math.min(n.san[1], n.san[0] + Math.ceil(n.san[1] * 0.25));
       });
       BT = { on: 0, round: 1, i: 0, n: 0, order: [] };
       bsv();
@@ -2058,15 +2076,19 @@ const XP = {
         h = num($("#dh").value),
         s = num($("#ds").value);
       if (!C.some((x) => x.id == id)) return;
+      const sanLbl = NWon() ? "STA" : "SAN";
       mut((n) => {
         let d = h;
-        const k = Math.min(n.shield || 0, Math.max(d, 0));
-        n.shield = (n.shield || 0) - k;
-        d -= k;
+        // Nightway has no shield absorption
+        if (!NWon()) {
+          const k = Math.min(n.shield || 0, Math.max(d, 0));
+          n.shield = (n.shield || 0) - k;
+          d -= k;
+        }
         n.hp[0] = cl(n.hp[0] - d, 0, n.hp[1]);
         n.san[0] = cl(n.san[0] - s, 0, n.san[1]);
         n.last =
-          [h && "HP −" + h, s && "SAN −" + s].filter(Boolean).join(" · ") +
+          [h && "HP −" + h, s && `${sanLbl} −` + s].filter(Boolean).join(" · ") +
           ` (${hms().slice(0, 5)})`;
       }, id);
       $("#dh").value = $("#ds").value = "";
@@ -2840,20 +2862,28 @@ function lostApplyVitalDelta(id, delta) {
   const c = raw.mirror ? raw.sides[raw.side] : raw;
   c.hp ??= [0, 0];
   c.san ??= [0, 0];
-  for (const k of ["hp", "san", "shield"]) {
+  const keys = NWon() ? ["hp", "san"] : ["hp", "san", "shield"];
+  for (const k of keys) {
     const v = Math.trunc(Number(delta[k])) || 0;
     if (!v) continue;
-    if (k === "shield") c.shield = Math.max(0, num(c.shield) + v);
-    else c[k][0] = cl(num(c[k][0]) + v, 0, Math.max(0, num(c[k][1])));
+    if (k === "shield") {
+      if (!NWon()) c.shield = Math.max(0, num(c.shield) + v);
+    } else c[k][0] = cl(num(c[k][0]) + v, 0, Math.max(0, num(c[k][1])));
   }
+  if (NWon()) c.shield = 0;
   sv();
   render();
 }
 function lostAdjustVital(id, key, delta) {
+  if (NWon() && key === "shield") return; // no shield in Nightway
   if (!lostUser || !["hp", "shield", "san"].includes(key) || !Number.isInteger(delta) || !delta)
     return;
   if (!admin && (!assignedCharacterId || assignedCharacterId !== id)) {
-    alert("You can only change HP, shield and SAN for your assigned character.");
+    alert(
+      NWon()
+        ? "You can only change HP and STA for your assigned character."
+        : "You can only change HP, shield and SAN for your assigned character.",
+    );
     return;
   }
   if (admin) lostApplyVitalDelta(id, { [key]: delta });
