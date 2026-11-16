@@ -697,7 +697,9 @@ function lostCanEditVitals(id) {
 }
 function lostVitalsControls(c, compact = false) {
   if ((c.libraryId && lostIsPrivateLibraryId(c.libraryId)) || !lostCanEditVitals(c.id)) return "";
-  const groups = NWon()
+  // Nightway: HP + STA only (no shield). Also trust body.nw in case NWon races.
+  const isNw = NWon() || document.body.classList.contains("nw");
+  const groups = isNw
     ? [
         ["hp", "HP"],
         ["san", "STA"],
@@ -985,7 +987,7 @@ function view(c) {
               .replace(/\.?0+$/, ""),
           )}</span>`
         : ""
-    }<span class="${c.fx?.shieldbreak ? "grey chip" : "chip o"}">SHIELD ${c.shield || 0}</span>${typeof lostVitalsControls === "function" ? lostVitalsControls(c) : ""}
+    }${NWon() || document.body.classList.contains("nw") ? "" : `<span class="${c.fx?.shieldbreak ? "grey chip" : "chip o"}">SHIELD ${c.shield || 0}</span>`}${typeof lostVitalsControls === "function" ? lostVitalsControls(c) : ""}
 ${c.fx?.isBoss ? `<span class="chip o">BOSS · ${c.libraryId ? "BASE HP" : bossSceneMultiplier() + "× HP"}</span>` : ""}${admin ? `<div class="row" style="margin-top:4px;gap:2px"><button class="b s ${c.fx?.isBoss ? "on" : ""}" data-a="fx_toggle" data-k="isBoss" style="margin-left:auto">♛ BOSS</button></div>` : ""}
 <h3>BASE ATTRIBUTES · ${left(c)}/${c.pool ?? POOL} PTS${admin ? ` <input type="number" data-pool value="${c.pool ?? POOL}" title="Stat cap for this character" style="width:58px;display:inline">` : ""}</h3><table>${SK.map((k) => `<tr><th>${k}</th><td>${admin ? `<button class="b s" data-a="st" data-k="${k}" data-d="-1">−</button> <b>${stv(c, k)}</b> <button class="b s" data-a="st" data-k="${k}" data-d="1">+</button>` : `<b>${stv(c, k)}</b>`}</td><td>${canRoll ? `<button class="b s" data-a="rs" data-k="${k}">⚄ ${rf(c, k)}</button>` : ""}${admin ? ` <input data-ro="${k}" value="${esc(c.ro?.[k] || "")}" placeholder="manual roll" title="Overrides the automatic roll" style="width:92px;padding:1px 4px">` : ""}</td></tr>`).join("")}</table><h3>EFFECTS</h3>${fxv(c)}${admin ? ovw(c) : ""}</div>
 <div>${tabs()}${

@@ -52,5 +52,18 @@
 <script src="nwstore.js"></script>
 <script src="nightway.js"></script>
 <script src="app.js"></script>
-<script>NW.boot()</script>
+<script>
+NW.boot();
+// Force author-panel SAN/STA labels after boot (Nightway)
+(function () {
+  try {
+    if (typeof NW !== "undefined" && NW.on()) {
+      document.querySelectorAll('[data-a="max"][data-k="san"]').forEach((el) => { el.textContent = "MAX STA"; });
+      document.querySelectorAll('[data-a="zero"][data-k="san"]').forEach((el) => { el.textContent = "ZERO STA"; });
+      var ds = document.getElementById("ds");
+      if (ds) ds.placeholder = ds.dataset.phNw || "STA Drain";
+    }
+  } catch (e) {}
+})();
+</script>
 </body></html>

@@ -93,35 +93,74 @@ ${tags.map((g) => `<span class="chip o">${esc(g.t.replace("stat:", "").replace("
         return `<div class="nwstat"><div class="nwsn"><b>${k}</b><span class="mt">${d}</span></div><div class="nwsc">${admin ? `<button class="b s" data-a="nw" data-op="st" data-k="${k}" data-d="-1">−</button>` : ""}<span class="nwv ${b < 0 ? "neg" : ""}">${b}</span>${admin ? `<button class="b s" data-a="nw" data-op="st" data-k="${k}" data-d="1">+</button>` : ""}${g ? `<span class="chip o">equip ${sg(g)}</span>` : ""}</div><div class="nwsd">${e !== b + g ? `<span class="mt">efetivo ${e}</span> ` : ""}<span class="chip">${lbl(e)}</span>${canRollCharacter(c) ? `<button class="b s am" data-a="nw" data-op="roll" data-k="${k}">ROLAR</button>` : ""}</div></div>`;
       }).join("");
   };
-  const weapons = (c) => c.nw.weapons.map((w, i) => {
-    const p = `nw.weapons.${i}`, canR = canRollCharacter(c);
+  const weapons = (c) => (c.nw?.weapons || [{}, {}]).map((w, i) => {
+    w = w || {};
+    const p = `nw.weapons.${i}`, canR = typeof canRollCharacter === "function" && canRollCharacter(c);
     return `<div class="nwslot"><b class="o">ARMA ${i + 1}</b>${inp(p + ".n", w.n, "Nome da arma")}
 ${admin ? `<div class="r3"><div><label>STAT DE ACERTO</label><select data-nw="${p}.stat">${opts([["", "CARNE"], ...K.map((k) => [k, k])], w.stat || "")}</select></div><div><label>DANO (NdS+B)</label><input data-nw="${p}.f" value="${esc(w.f || "")}" placeholder="1d8+2"></div></div>` : `<div class="mt">Acerto: ${esc(w.stat || "CARNE")} · Dano: ${esc(w.f || "—")}${mDmg(c) ? ` ${sg(mDmg(c))} equip` : ""}</div>`}
 ${area(p + ".d", w.d, "Notas / efeitos", 2)}${w.n && canR ? `<div class="row"><button class="b am" data-a="nw" data-op="hit" data-i="${i}">ACERTAR</button>${w.f ? `<button class="b rd" data-a="nw" data-op="dmg" data-i="${i}">DANO</button>` : ""}</div>` : ""}</div>`;
   }).join("");
-  const skills = (c) => c.nw.skills.map((s, i) => {
-    const p = `nw.skills.${i}`;
-    return `<div class="nwslot"><div class="row sp"><b class="o">${admin ? "" : esc(s.n || "Perícia")}</b><span class="row"><span class="chip o">${num(s.cost)} STA</span>${canRollCharacter(c) && s.n ? `<button class="b s am" data-a="nw" data-op="skill" data-i="${i}">USAR</button>` : ""}${admin ? `<button class="b s rd" data-a="nw" data-op="delskill" data-i="${i}">✕</button>` : ""}</span></div>
+  const skills = (c) => {
+    const list = c.nw?.skills || [];
+    if (!list.length) return '<div class="mt">— nenhuma perícia —</div>';
+    return list.map((s, i) => {
+      s = s || {};
+      const p = `nw.skills.${i}`;
+      return `<div class="nwslot"><div class="row sp"><b class="o">${admin ? "" : esc(s.n || "Perícia")}</b><span class="row"><span class="chip o">${num(s.cost)} STA</span>${typeof canRollCharacter === "function" && canRollCharacter(c) && s.n ? `<button class="b s am" data-a="nw" data-op="skill" data-i="${i}">USAR</button>` : ""}${admin ? `<button class="b s rd" data-a="nw" data-op="delskill" data-i="${i}">✕</button>` : ""}</span></div>
 ${admin ? `<div class="row"><input data-nw="${p}.n" value="${esc(s.n || "")}" placeholder="Nome da perícia" style="flex:2"><input type="number" data-nw="${p}.cost" value="${num(s.cost)}" placeholder="Custo" style="flex:1"><select data-nw="${p}.stat" style="flex:1">${opts([["", "sem rolagem"], ...K.map((k) => [k, k])], s.stat || "")}</select></div>` : `<div class="mt">${s.stat ? "Rola " + esc(s.stat) : "Sem rolagem"}</div>`}${area(p + ".d", s.d, "Descrição / efeito", 2)}</div>`;
-  }).join("") || '<div class="mt">— nenhuma perícia —</div>';
+    }).join("");
+  };
   function view(c) {
-    const w = c.nw || {}, i = w.info || {}, [h, s] = [c.hp, c.san], ws = c.weapons ? 0 : 0;
-    const tab = TAB === "imp" ? "imp" : "main", used = (c.inv || []).length, slots = slotsOf(c);
-    const inv = Array.from({ length: Math.max(slots, used) }, (_, j) => j < used ? `<div class="sl${j >= slots ? " ov" : ""}"><span>${esc(c.inv[j])}</span>${admin ? `<button class="b s rd" data-a="nw" data-op="rmi" data-i="${j}">✕</button>` : ""}</div>` : '<div class="sl e">vazio</div>').join("");
-    const body = tab === "imp"
-      ? `<div class="nwhead">ARMADURA</div><div class="nwgrid">${["TOPO", "MEIO", "BAIXO"].map((l, j) => itemCard(c, "armor", j, l)).join("")}</div><div class="nwhead">ACESSÓRIOS</div><div class="nwgrid">${["ACESSÓRIO 1", "ACESSÓRIO 2"].map((l, j) => itemCard(c, "acc", j, l)).join("")}</div>`
-      : `<div class="nwhead">VOCÊ.</div><div class="nwid"><div><label>Seu Nome</label>${inp("name", c.name)}</div><div><label>Seu Gênero</label>${inp("nw.info.gender", i.gender)}</div><div><label>Sua Idade</label>${inp("nw.info.age", i.age)}</div><div><label>Sua "Classe" (Guerreiro, mago, etc.)</label>${inp("nw.info.cls", i.cls)}</div></div>
-<div class="mt">Equipamentos: ${w.weapons.filter((x) => x.n).length}/2 armas · ${w.armor.filter((x) => x.n).length}/3 armaduras · ${w.acc.filter((x) => x.n).length}/2 acessórios</div>
+    if (!c) return;
+    try {
+      // Ensure Nightway data exists before reading armor/weapons/skills
+      init(c);
+      if (typeof mth === "function") mth(c);
+      const w = c.nw,
+        i = w.info || {},
+        [h, s] = [c.hp || [0, 0], c.san || [0, 0]];
+      const weaponsList = w.weapons || [{}, {}],
+        armorList = w.armor || [{}, {}, {}],
+        accList = w.acc || [{}, {}];
+      const tab = (typeof TAB !== "undefined" && TAB === "imp") ? "imp" : "main",
+        used = (c.inv || []).length,
+        slots = typeof slotsOf === "function" ? slotsOf(c) : (w.slots || 24);
+      const inv = Array.from({ length: Math.max(slots, used) }, (_, j) =>
+        j < used
+          ? `<div class="sl${j >= slots ? " ov" : ""}"><span>${esc(c.inv[j])}</span>${admin ? `<button class="b s rd" data-a="nw" data-op="rmi" data-i="${j}">✕</button>` : ""}</div>`
+          : '<div class="sl e">vazio</div>',
+      ).join("");
+      const body =
+        tab === "imp"
+          ? `<div class="nwhead">ARMADURA</div><div class="nwgrid">${["TOPO", "MEIO", "BAIXO"].map((l, j) => itemCard(c, "armor", j, l)).join("")}</div><div class="nwhead">ACESSÓRIOS</div><div class="nwgrid">${["ACESSÓRIO 1", "ACESSÓRIO 2"].map((l, j) => itemCard(c, "acc", j, l)).join("")}</div>`
+          : `<div class="nwhead">VOCÊ.</div><div class="nwid"><div><label>Seu Nome</label>${inp("name", c.name)}</div><div><label>Seu Gênero</label>${inp("nw.info.gender", i.gender)}</div><div><label>Sua Idade</label>${inp("nw.info.age", i.age)}</div><div><label>Sua "Classe" (Guerreiro, mago, etc.)</label>${inp("nw.info.cls", i.cls)}</div></div>
+<div class="mt">Equipamentos: ${weaponsList.filter((x) => x && x.n).length}/2 armas · ${armorList.filter((x) => x && x.n).length}/3 armaduras · ${accList.filter((x) => x && x.n).length}/2 acessórios</div>
 <label>Sua história <span class="mt">(Não mencione o lorde das sombras. Mas você sabe que uma hora ele apareceu, e ele é seu objetivo.)</span></label>${area("nw.info.story", i.story, "⚿> …", 4)}
 ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div>
 <div class="row sp"><div class="nwhead" style="flex:1">PERÍCIAS <span class="mt">(custam stamina)</span></div>${admin ? '<button class="b s am" data-a="nw" data-op="addskill">+ PERÍCIA</button>' : ""}</div><div class="nwgrid">${skills(c)}</div>
 <div class="row sp"><div class="nwhead" style="flex:1">INVENTÁRIO · <span class="${used > slots ? "pz" : "o"}">${used}/${slots}</span></div>${admin ? `<span class="row"><button class="b s" data-a="nw" data-op="slot" data-d="-1">−</button><button class="b s" data-a="nw" data-op="slot" data-d="1">+</button></span>` : ""}</div>
 <div class="inv">${inv}</div>${admin ? '<div class="row" style="margin-top:4px"><input id="nwadd" placeholder="Novo item…" style="flex:1"><button class="b am" data-a="nw" data-op="addi">ADICIONAR</button></div>' : ""}`;
-    setH($("#v"), `<div class="tb"><span>▸ ${esc(c.name)}</span><span class="row">${sb(c)}<button class="b s" data-a="close">FECHAR</button></span></div>
+      const html = `<div class="tb"><span>▸ ${esc(c.name)}</span><span class="row">${typeof sb === "function" ? sb(c) : ""}<button class="b s" data-a="close">FECHAR</button></span></div>
 <div class="pd sh nwm"><div><div class="im">${im(c, "SEM IMAGEM")}</div></div><div>
 <div class="two">${bar(h[0], h[1], "hp")}${bar(s[0], s[1], "sn")}</div>${typeof lostVitalsControls === "function" ? lostVitalsControls(c) : ""}
-<div class="row nwtabs">${[["main", "PRINCIPAL"], ["imp", "ARMADURA"]].map(([k, t]) => `<button class="b${tab == k ? " on" : ""}" data-a="tab" data-k="${k}">${t}</button>`).join("")}</div>${body}</div></div>`);
-    $("#v").classList.remove("hid");
+<div class="row nwtabs">${[["main", "PRINCIPAL"], ["imp", "ARMADURA"]].map(([k, t]) => `<button class="b${tab == k ? " on" : ""}" data-a="tab" data-k="${k}">${t}</button>`).join("")}</div>${body}</div></div>`;
+      const el = $("#v");
+      if (el) {
+        // Force refresh even if setH thinks HTML is unchanged (e.g. after a failed open)
+        el._h = null;
+        setH(el, html);
+        el.classList.remove("hid");
+      }
+      document.body.classList.add("full");
+    } catch (err) {
+      console.error("Nightway view error", err);
+      const el = $("#v");
+      if (el) {
+        el._h = null;
+        el.innerHTML = `<div class="tb"><span>▸ Erro ao abrir personagem</span><button class="b s" data-a="close">FECHAR</button></div><div class="pd"><div class="pz">${esc(err && err.message ? err.message : String(err))}</div><div class="mt">Abra o console (F12) para detalhes. Tente recarregar a página.</div></div>`;
+        el.classList.remove("hid");
+      }
+    }
   }
   function act(t) {
     const d = t.dataset, id = sel, c = cur();
@@ -160,10 +199,11 @@ ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div
     document.querySelectorAll("[data-m]").forEach((x) => x.classList.toggle("on", x.dataset.m === mode));
     document.title = on() ? "NIGHTWAY" : "L.O.S.T.";
     const h1 = $("h1"); if (h1) h1.textContent = on() ? "☾ NIGHTWAY" : "◉ L.O.S.T.";
-    // Author panel labels: SAN → STA in Nightway; hide shield concepts
-    const maxSan = $("#btn-max-san"), zeroSan = $("#btn-zero-san"), ds = $("#ds");
-    if (maxSan) maxSan.textContent = on() ? "MAX STA" : "MAX SAN";
-    if (zeroSan) zeroSan.textContent = on() ? "ZERO STA" : "ZERO SAN";
+    // Author panel labels: SAN → STA in Nightway
+    const sanWord = on() ? "STA" : "SAN";
+    document.querySelectorAll('[data-a="max"][data-k="san"]').forEach((el) => { el.textContent = "MAX " + sanWord; });
+    document.querySelectorAll('[data-a="zero"][data-k="san"]').forEach((el) => { el.textContent = "ZERO " + sanWord; });
+    const ds = document.getElementById("ds");
     if (ds) ds.placeholder = on() ? (ds.dataset.phNw || "STA Drain") : (ds.dataset.phLost || "SAN Drain");
     if (!silent && typeof C !== "undefined") { C.forEach(mth); render(); }
   }
