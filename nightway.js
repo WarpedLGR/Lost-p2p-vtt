@@ -140,7 +140,7 @@ ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div
 <div class="row sp"><div class="nwhead" style="flex:1">PERÍCIAS <span class="mt">(custam stamina)</span></div>${admin ? '<button class="b s am" data-a="nw" data-op="addskill">+ PERÍCIA</button>' : ""}</div><div class="nwgrid">${skills(c)}</div>
 <div class="row sp"><div class="nwhead" style="flex:1">INVENTÁRIO · <span class="${used > slots ? "pz" : "o"}">${used}/${slots}</span></div>${admin ? `<span class="row"><button class="b s" data-a="nw" data-op="slot" data-d="-1">−</button><button class="b s" data-a="nw" data-op="slot" data-d="1">+</button></span>` : ""}</div>
 <div class="inv">${inv}</div>${admin ? '<div class="row" style="margin-top:4px"><input id="nwadd" placeholder="Novo item…" style="flex:1"><button class="b am" data-a="nw" data-op="addi">ADICIONAR</button></div>' : ""}`;
-      const html = `<div class="tb"><span>▸ ${esc(c.name)}</span><span class="row">${typeof sb === "function" ? sb(c) : ""}<button class="b s" data-a="close">FECHAR</button></span></div>
+      const html = `<div class="tb"><span>▸ ${esc(c.name)}</span><span class="row">${typeof sb === "function" ? sb(c) : ""}${admin ? '<button class="b s" data-a="edit">EDIT</button>' : ""}<button class="b s" data-a="close">FECHAR</button></span></div>
 <div class="pd sh nwm"><div><div class="im">${im(c, "SEM IMAGEM")}</div></div><div>
 <div class="two">${bar(h[0], h[1], "hp")}${bar(s[0], s[1], "sn")}</div>${typeof lostVitalsControls === "function" ? lostVitalsControls(c) : ""}
 <div class="row nwtabs">${[["main", "PRINCIPAL"], ["imp", "ARMADURA"]].map(([k, t]) => `<button class="b${tab == k ? " on" : ""}" data-a="tab" data-k="${k}">${t}</button>`).join("")}</div>${body}</div></div>`;

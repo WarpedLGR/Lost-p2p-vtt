@@ -1547,37 +1547,16 @@ const XP = {
   XA = {
     toggleplayerlockspanel: () => togglePlayerLocksPanel(),
     edit: () => {
-      if (NWon()) {
-        // Nightway uses always-on inline editing in NW.view — no LOST form.
-        ed = null;
-        editFromLibrary = false;
-        const c = cur();
-        if (c) {
-          mth(c);
-          location.hash = c.id;
-          view(c);
-        }
-        return;
-      }
-      editFromLibrary = !!cur()?.libraryId;
-      ed = J(cur());
+      // Full edit form in both modes (name, Imgur URL, HP/STA, notes, inventory…)
+      const c = cur();
+      if (!c) return;
+      editFromLibrary = !!c.libraryId;
+      ed = J(c);
       form();
     },
     editlibchar: (t) => {
       const raw = C.find((x) => x.id === t.dataset.i);
       if (!raw) return;
-      if (NWon()) {
-        // Open the Nightway sheet for the library character (inline edit).
-        ed = null;
-        editFromLibrary = false;
-        const c = A(raw);
-        mth(c);
-        if (location.hash) history.replaceState(null, "", location.pathname + location.search);
-        sel = c.id;
-        location.hash = c.id;
-        view(c);
-        return;
-      }
       if (location.hash) history.replaceState(null, "", location.pathname + location.search);
       sel = null;
       editFromLibrary = true;
