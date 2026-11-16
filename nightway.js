@@ -29,6 +29,7 @@ const NW = (() => {
     n.inv ??= [];
     return w;
   };
+  const FN = Object.create(null);
   const items = (c) => [...(c.nw?.armor || []), ...(c.nw?.acc || [])];
   const parseMod = (s) => {
     const out = [];
@@ -47,7 +48,7 @@ const NW = (() => {
       delete p.err;
       parseMod(p.mod).forEach((g) => (g.t.startsWith("stat:") ? (m.stat[g.t.slice(5)] += g.v) : (m[g.t] += g.v)));
       if (p.code)
-        try { new Function("c", "m", p.code)(J(c), m); } catch (e) { p.err = e.message; }
+        try { (FN[p.code] ??= new Function("c", "m", p.code))(J(c), m); } catch (e) { p.err = e.message; }
     });
     return m;
   }
@@ -116,10 +117,10 @@ ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div
 <div class="row sp"><div class="nwhead" style="flex:1">PERÍCIAS <span class="mt">(custam stamina)</span></div>${admin ? '<button class="b s am" data-a="nw" data-op="addskill">+ PERÍCIA</button>' : ""}</div><div class="nwgrid">${skills(c)}</div>
 <div class="row sp"><div class="nwhead" style="flex:1">INVENTÁRIO · <span class="${used > slots ? "pz" : "o"}">${used}/${slots}</span></div>${admin ? `<span class="row"><button class="b s" data-a="nw" data-op="slot" data-d="-1">−</button><button class="b s" data-a="nw" data-op="slot" data-d="1">+</button></span>` : ""}</div>
 <div class="inv">${inv}</div>${admin ? '<div class="row" style="margin-top:4px"><input id="nwadd" placeholder="Novo item…" style="flex:1"><button class="b am" data-a="nw" data-op="addi">ADICIONAR</button></div>' : ""}`;
-    $("#v").innerHTML = `<div class="tb"><span>▸ ${esc(c.name)}</span><span class="row">${sb(c)}<button class="b s" data-a="close">FECHAR</button></span></div>
+    setH($("#v"), `<div class="tb"><span>▸ ${esc(c.name)}</span><span class="row">${sb(c)}<button class="b s" data-a="close">FECHAR</button></span></div>
 <div class="pd sh nwm"><div><div class="im">${im(c, "SEM IMAGEM")}</div></div><div>
 <div class="two">${bar(h[0], h[1], "hp")}${bar(s[0], s[1], "sn")}</div>${typeof lostVitalsControls === "function" ? lostVitalsControls(c) : ""}
-<div class="row nwtabs">${[["main", "PRINCIPAL"], ["imp", "ARMADURA"]].map(([k, t]) => `<button class="b${tab == k ? " on" : ""}" data-a="tab" data-k="${k}">${t}</button>`).join("")}</div>${body}</div></div>`;
+<div class="row nwtabs">${[["main", "PRINCIPAL"], ["imp", "ARMADURA"]].map(([k, t]) => `<button class="b${tab == k ? " on" : ""}" data-a="tab" data-k="${k}">${t}</button>`).join("")}</div>${body}</div></div>`);
     $("#v").classList.remove("hid");
   }
   function act(t) {
@@ -173,6 +174,7 @@ ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div
   }
   function boot() {
     XP.nw = act;
+    XP.nwmode = () => { if (confirm("Voltar à tela inicial para trocar o modo? (sua sessão atual será encerrada; os dados de cada modo ficam salvos)")) lostLeave(); };
     XP.nwcrt = () => { crt = CRTS[(CRTS.indexOf(crt) + 1) % 3]; try { localStorage.setItem(CK, crt); } catch (e) {} setMode(mode, true); };
     XP.nwpick = (t) => { const m = t.dataset.m; if (m === saved()) return; try { localStorage.setItem(KEY, m); } catch (e) {} location.reload(); };
     document.addEventListener("change", (ev) => {

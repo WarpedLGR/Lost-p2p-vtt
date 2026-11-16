@@ -1,4 +1,9 @@
 const NWon = () => typeof NW !== "undefined" && NW.on();
+/* set innerHTML only when it changed (Nightway): avoids needless layout/paint and keeps typed input state */
+const setH = (el, h) => {
+  if (!NWon()) el.innerHTML = h;
+  else if (el._h !== h) el.innerHTML = el._h = h;
+};
 const lostHashId = () => {
     try {
       return decodeURIComponent(location.hash.slice(1));
@@ -876,14 +881,16 @@ function render() {
   const emptyText = libraryScene
     ? "This library scene is empty. Add characters using the library panel."
     : "The main scene is empty. Add a character from the Main Party library on the right.";
-  $("#g").innerHTML =
+  setH(
+    $("#g"),
     list.map(card).join("") +
       (!libraryScene && admin && list.length < 9
         ? '<div class="w card add" data-new="1">+ NEW CHARACTER</div>'
         : "") ||
     (allScene.length && hiddenSceneCharacterIds.size
       ? '<div class="w pd"><div class="mt">All character cards in this view are hidden on this device. Use SHOW HIDDEN to restore them.</div></div>'
-      : `<div class="w pd"><div class="mt">${emptyText}</div></div>`);
+      : `<div class="w pd"><div class="mt">${emptyText}</div></div>`),
+  );
   const w = $("#who2");
   w.innerHTML = opts(
     sceneChars().map((r) => [r.id, A(r).name]),

@@ -46,7 +46,7 @@
 
 ## ☾ NIGHTWAY mode (alternate ruleset)
 
-Use the **⚙ MODE** button in the header (author only; players follow the host) to switch between **LOST** (default, untouched) and **NIGHTWAY**. Extra files: `nightway.js`, `nightway.css`; `app.js` only gained small `NWon()` hooks.
+Pick **LOST** (default, untouched) or **NIGHTWAY** on the start screen before hosting/joining (the header **⚙ MODE** button takes you back there). Each mode keeps its own characters, libraries and saves; players follow the host's mode. Extra files: `nightway.js`, `nightway.css`; `app.js` only gained small `NWon()` hooks.
 
 - **Stats (7 pts, −3…5 each):** TRIPAS, MIOLOS, CARNE, CHEIRO, SANGUE, STAMINA, TEMPERO.
 - **Dice:** p ≥ 1 → p×d20 keep best (1 point = one d20); p ≤ 0 → (2 − p)×d20 keep worst.
