@@ -12,8 +12,8 @@ const NW = (() => {
   const K = ST.map((x) => x[0]), MIN = -3, MAX = 5, POOL = 7;
   const ALIAS = { VIDA: "hpmax", BARRA: "sanmax", DANO: "dmg" };
   const KEY = "lost_mode", CK = "nw_crt";
-  let mode = "lost", crt = true;
-  try { mode = localStorage.getItem(KEY) || "lost"; crt = localStorage.getItem(CK) !== "0"; } catch (e) {}
+  let mode = "lost", crt = "on";
+  try { mode = localStorage.getItem(KEY) || "lost"; crt = ({ "1": "on", "0": "off" })[localStorage.getItem(CK)] || localStorage.getItem(CK) || "on"; } catch (e) {}
   const on = () => mode === "nightway";
   const eff0 = (b, g) => cl((b || 0) + (g || 0), MIN, MAX);
   const base = (c, k) => c.nw?.st?.[k] || 0;
@@ -144,29 +144,46 @@ ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div
       case "addi": { const v = $("#nwadd")?.value.trim(); if (v) e((w, n) => n.inv.push(v)); }
     }
   }
-  document.addEventListener("change", (ev) => {
-    const t = ev.target, p = t.dataset?.nw;
-    if (!p || !on() || !admin) return;
-    let v = t.type === "number" ? num(t.value) : t.value;
-    if (p === "nw.pool") v = cl(Math.round(v), 0, 99);
-    mut((n) => { init(n); if (p === "name") n.name = String(v).trim() || n.name; else setPath(n, p, v); });
-  });
-  function setMode(m, silent) {
+  const saved = () => { try { return localStorage.getItem(KEY) === "nightway" ? "nightway" : "lost"; } catch (e) { return "lost"; } };
+  const CRTS = ["on", "warp", "off"];
+  function setMode(m, silent, persist) {
     mode = m === "nightway" ? "nightway" : "lost";
-    try { localStorage.setItem(KEY, mode); } catch (e) {}
-    document.body.classList.toggle("nw", on());
-    document.body.classList.toggle("nw-crt", on() && crt);
-    const b = $("#nwbtn"), cb = $("#nwcrtbtn");
-    if (b) b.textContent = "⚙ MODE: " + (on() ? "NIGHTWAY" : "LOST");
-    if (cb) { cb.classList.toggle("hid", !on()); cb.textContent = "CRT: " + (crt ? "ON" : "OFF"); }
+    if (persist) try { localStorage.setItem(KEY, mode); } catch (e) {}
+    const b = document.body;
+    b.classList.toggle("nw", on());
+    b.classList.toggle("nw-crt", on() && crt !== "off");
+    b.classList.toggle("nw-warp", on() && crt === "warp");
+    const mb = $("#nwbtn"), cb = $("#nwcrtbtn");
+    if (mb) mb.textContent = "MODE: " + (on() ? "NIGHTWAY" : "LOST");
+    if (cb) { cb.classList.toggle("hid", !on()); cb.textContent = "CRT: " + crt.toUpperCase(); }
+    document.querySelectorAll("[data-m]").forEach((x) => x.classList.toggle("on", x.dataset.m === mode));
     document.title = on() ? "NIGHTWAY" : "L.O.S.T.";
-    const h1 = $("h1"); if (h1) h1.textContent = on() ? "◉ NIGHTWAY" : "◉ L.O.S.T.";
-    if (!silent && typeof C !== "undefined") { C.forEach(mth); render(); if (typeof lostQueueBroadcast === "function" && lostHost) lostQueueBroadcast(); }
+    const h1 = $("h1"); if (h1) h1.textContent = on() ? "☾ NIGHTWAY" : "◉ L.O.S.T.";
+    if (!silent && typeof C !== "undefined") { C.forEach(mth); render(); }
   }
-  XP.nw = act;
-  XP.nwmode = () => { if (!admin && lostUser) return alert("Só o autor (host) pode trocar o modo."); setMode(on() ? "lost" : "nightway"); sv(); };
-  XP.nwcrt = () => { crt = !crt; try { localStorage.setItem(CK, crt ? "1" : "0"); } catch (e) {} setMode(mode, true); };
-  setMode(mode, true);
-  if (on() && typeof C !== "undefined") { C.forEach(mth); render(); }
-  return { on, setMode, mods, hp, sta, ini, view, STATS: K };
+  /* back at the start screen: return to the mode that was picked there */
+  function restore() {
+    if (mode === saved()) return;
+    setMode(saved(), true);
+    lostResetSessionMemory(); render();
+  }
+  function checkImport(p) {
+    const m = Array.isArray(p) ? "lost" : p?.mode === "nightway" ? "nightway" : "lost";
+    if (m !== mode) throw new Error(`This save is a ${m.toUpperCase()} session. Pick ${m.toUpperCase()} on the start screen first.`);
+  }
+  function boot() {
+    XP.nw = act;
+    XP.nwcrt = () => { crt = CRTS[(CRTS.indexOf(crt) + 1) % 3]; try { localStorage.setItem(CK, crt); } catch (e) {} setMode(mode, true); };
+    XP.nwpick = (t) => { const m = t.dataset.m; if (m === saved()) return; try { localStorage.setItem(KEY, m); } catch (e) {} location.reload(); };
+    document.addEventListener("change", (ev) => {
+      const t = ev.target, p = t.dataset?.nw;
+      if (!p || !on() || !admin) return;
+      let v = t.type === "number" ? num(t.value) : t.value;
+      if (p === "nw.pool") v = cl(Math.round(v), 0, 99);
+      mut((n) => { init(n); if (p === "name") n.name = String(v).trim() || n.name; else setPath(n, p, v); });
+    });
+    setMode(mode, true);
+    if (on()) { C.forEach(mth); render(); }
+  }
+  return { on, setMode, mods, hp, sta, ini, view, restore, checkImport, boot, STATS: K };
 })();

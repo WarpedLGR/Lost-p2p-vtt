@@ -202,7 +202,9 @@ const wpn = () => ({
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, ""),
   DEF = () =>
-    [
+    NWon()
+      ? [{ ...blank("Personagem 1"), id: "personagem-1", order: 1 }]
+      : [
       "Jake Marlowe",
       "Person Jaulo",
       "Mr. Happy",
@@ -2009,6 +2011,7 @@ const XP = {
     exp: () => {
       const pack = {
         format: "L.O.S.T. session save",
+        mode: NWon() ? "nightway" : "lost",
         version: 3,
         exportedAt: new Date().toISOString(),
         note: "Host-side full campaign. Players never keep this after leaving a session.",
@@ -2030,7 +2033,7 @@ const XP = {
         );
       a.href = u;
       a.download =
-        "lost_session_" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".json";
+        (NWon() ? "nightway_session_" : "lost_session_") + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".json";
       a.click();
       setTimeout(() => URL.revokeObjectURL(u), 1000);
     },
@@ -2305,6 +2308,7 @@ function lostNormalizeChars(list) {
 function lostImportSessionPack(p, { confirmReplace = true } = {}) {
   if (!Array.isArray(p) && (!p || !Array.isArray(p.characters)))
     throw new Error("Invalid session JSON");
+  if (typeof NW !== "undefined") NW.checkImport(p);
   if (confirmReplace && admin && !confirm("Import this JSON and replace the current campaign?"))
     return false;
   if (Array.isArray(p)) {
@@ -2322,7 +2326,6 @@ function lostImportSessionPack(p, { confirmReplace = true } = {}) {
     if (Array.isArray(p.pendingInventory)) PEND = p.pendingInventory;
     WORKSPACE = p.workspace || "scene";
     activeLibrary = p.activeLibrary || LIBS[0]?.id || "";
-    if (typeof NW !== "undefined" && p.mode) NW.setMode(p.mode, true);
     if (p.playerAssignments && typeof p.playerAssignments === "object") {
       lostPlayersData = p.playerAssignments;
       try {
@@ -2440,6 +2443,7 @@ function lostSetLoggedInUI(user, isAdmin) {
 }
 function lostSetLoggedOutUI() {
   admin = false;
+  if (typeof NW !== "undefined") NW.restore();
   lostCloudReady = false;
   $("#auth-gate").style.display = "grid";
   $("#who").textContent = "OFFLINE";
@@ -2495,7 +2499,7 @@ function lostSessionState() {
 function lostApplyCampaignState(state, asSession = false) {
   if (!state || !Array.isArray(state.characters)) return;
   lostApplyingCloud = true;
-  if (typeof NW !== "undefined") NW.setMode(state.mode, true);
+  if (asSession && typeof NW !== "undefined") NW.setMode(state.mode, true);
   if (admin && !asSession) {
     const localPrivateLibs = (LIBS || []).filter((x) => x.private === true);
     const localPrivateIds = new Set(localPrivateLibs.map((x) => x.id));
