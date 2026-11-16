@@ -698,7 +698,7 @@ function lostVitalsControls(c, compact = false) {
   const groups = [
     ["hp", "HP"],
     ["shield", "SHIELD"],
-    ["san", "SAN"],
+    ["san", NWon() ? "STA" : "SAN"],
   ];
   return `<div class="row" style="gap:3px;${compact ? "margin-top:4px;" : ""}">${groups.map(([k, label]) => `<span class="mt" style="margin-left:3px">${label}</span><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="-1" title="${label} −1">−</button><button class="b s" data-a="vital" data-i="${esc(c.id)}" data-k="${k}" data-d="1" title="${label} +1">+</button>`).join("")}</div>`;
 }
@@ -709,7 +709,7 @@ const card = (r) => {
     where = r.libraryId
       ? `<span class="chip">${esc(LIBS.find((x) => x.id == r.libraryId)?.name || "LIBRARY")}</span>`
       : "";
-  return `<div class="w card${BT.on && BT.order[BT.i]?.id == c.id ? " now" : ""}" data-id="${c.id}"><div class="tb"><span class="row" style="gap:4px">${c.mirror ? "DYAKIER / REIKYAD" : esc(c.name.toUpperCase())}${sb(c)}</span><span class="row">${where}<span class="${c.fx?.shieldbreak ? "grey chip" : "o"}">${c.shield ? "▽" + c.shield : ""}</span><button class="b s" data-a="hidecard" data-i="${c.id}" title="Hide this card on this device only">HIDE</button></span></div><div class="pd cd"><div class="th">${im(c)}</div><div class="in"><div class="nm">${esc(c.name)}</div>${c.fx?.isBoss ? `<span class="chip o">BOSS · ${c.libraryId ? "BASE HP" : `${bossSceneMultiplier()}× HP`}</span>` : ""}${bar(...c.hp, "hp")}${bar(...c.san, "sn")}<span class="chip">REGEN ${c.regen}/TR</span>${typeof lostVitalsControls === "function" ? lostVitalsControls(c, true) : ""}${fxc(c)}${c.last ? `<div class="lb"><span>LAST</span><span>${esc(c.last)}</span></div>` : ""}</div></div>${admin ? `<div class="pd row" style="padding-top:0"><button class="b s${r.libraryId ? " am" : ""}" data-a="${r.libraryId ? "deploy" : "store"}" data-i="${r.id}">${r.libraryId ? "＋ ADD TO SCENE" : "▣ HIDE TO LIBRARY"}</button></div>` : ""}</div>`;
+  return `<div class="w card${BT.on && BT.order[BT.i]?.id == c.id ? " now" : ""}" data-id="${c.id}"><div class="tb"><span class="row" style="gap:4px">${c.mirror ? "DYAKIER / REIKYAD" : esc(c.name.toUpperCase())}${sb(c)}</span><span class="row">${where}<span class="${c.fx?.shieldbreak ? "grey chip" : "o"}">${c.shield ? "▽" + c.shield : ""}</span><button class="b s" data-a="hidecard" data-i="${c.id}" title="Hide this card on this device only">HIDE</button></span></div><div class="pd cd"><div class="th">${im(c)}</div><div class="in"><div class="nm">${esc(c.name)}</div>${c.fx?.isBoss ? `<span class="chip o">BOSS · ${c.libraryId ? "BASE HP" : `${bossSceneMultiplier()}× HP`}</span>` : ""}${bar(...c.hp, "hp")}${bar(...c.san, "sn")}${NWon() ? "" : `<span class="chip">REGEN ${c.regen}/TR</span>`}${typeof lostVitalsControls === "function" ? lostVitalsControls(c, true) : ""}${fxc(c)}${c.last ? `<div class="lb"><span>LAST</span><span>${esc(c.last)}</span></div>` : ""}</div></div>${admin ? `<div class="pd row" style="padding-top:0"><button class="b s${r.libraryId ? " am" : ""}" data-a="${r.libraryId ? "deploy" : "store"}" data-i="${r.id}">${r.libraryId ? "＋ ADD TO SCENE" : "▣ HIDE TO LIBRARY"}</button></div>` : ""}</div>`;
 };
 function workspaceTools() {
   const isLibraryScene =
@@ -994,11 +994,14 @@ ${c.fx?.isBoss ? `<span class="chip o">BOSS · ${c.libraryId ? "BASE HP" : bossS
 
 function form() {
   const c = ed,
+    sanLabel = NWon() ? "STA" : "SAN",
+    hpMaxHint = NWon() ? "TRIPAS-based" : "CON×5",
+    sanMaxHint = NWon() ? "STAMINA-based" : "SAN×3",
     L = (k, t) =>
-      `<h3>${t}</h3><div class="wi"><div class="row"><input id="${k}n" placeholder="Name" style="flex:2">${k == "actives" ? '<input id="activesc" type="number" placeholder="SAN Cost" style="flex:1"><input id="activesr" placeholder="Dice (optional) 2d6+3" style="flex:1">' : ""}<button class="b am s" data-a="addl" data-k="${k}">+ ADD</button></div><input id="${k}d" placeholder="Description/Effect" style="margin-top:4px"></div>${c[k].map((x, i) => (x?._lostMeta ? "" : `<div class="ab row sp"><span><b>${esc(x.n)}</b>${k == "actives" ? ` (${x.c} SAN)` : ""}: ${esc(x.d || "")}</span><button class="b s rd" data-a="dell" data-k="${k}" data-i="${i}">✕</button></div>`)).join("")}`;
+      `<h3>${t}</h3><div class="wi"><div class="row"><input id="${k}n" placeholder="Name" style="flex:2">${k == "actives" ? `<input id="activesc" type="number" placeholder="${sanLabel} Cost" style="flex:1"><input id="activesr" placeholder="Dice (optional) 2d6+3" style="flex:1">` : ""}<button class="b am s" data-a="addl" data-k="${k}">+ ADD</button></div><input id="${k}d" placeholder="Description/Effect" style="margin-top:4px"></div>${c[k].map((x, i) => (x?._lostMeta ? "" : `<div class="ab row sp"><span><b>${esc(x.n)}</b>${k == "actives" ? ` (${x.c} ${sanLabel})` : ""}: ${esc(x.d || "")}</span><button class="b s rd" data-a="dell" data-k="${k}" data-i="${i}">✕</button></div>`)).join("")}`;
   const currentImageIsUrl = typeof c.img === "string" && /^https?:\/\//i.test(c.img);
   $("#v").innerHTML =
-    `<div class="tb"><span>EDIT · ${esc(c.name || "NEW CHARACTER")}</span></div><div class="pd"><label>NAME</label><input id="fn" value="${esc(c.name)}"><div class="r3" style="margin-top:6px"><div><label>CLASS</label><input id="fclass" value="${esc(c.className ?? characterMeta(c, "class"))}" placeholder="Player class"></div><div><label>SPECIALTY</label><input id="fspecialty" value="${esc(c.specialty ?? characterMeta(c, "specialty"))}" placeholder="Character specialty"></div></div><div class="ab" style="margin-top:6px"><label>SPECIALTY INFO</label><textarea id="fspecialtyInfo" rows="3" placeholder="Extra specialty rules / description…">${esc(c.specialtyInfo ?? characterMeta(c, "specialtyInfo"))}</textarea></div><div class="ab" style="margin-top:8px"><label>CHARACTER IMAGE · IMGUR URL</label><input id="fimg" type="url" value="${currentImageIsUrl ? esc(c.img) : ""}" placeholder="https://i.imgur.com/example.png"><div class="mt">Paste a direct image link (preferably https://i.imgur.com/...png or .jpg). Leave blank to keep an existing uploaded image. The link must point directly to the image, not an Imgur gallery page.</div><label style="display:flex;align-items:center;gap:6px"><input id="fimg-clear" type="checkbox" style="width:auto"> Remove current image</label></div><div class="r3"><div><label>CURRENT HP (max ${c.hp[1]} = CON×5)</label><input id="fh" type="number" value="${c.hp[0]}"></div><div><label>CURRENT SAN (max ${c.san[1]} = SAN×3)</label><input id="fs" type="number" value="${c.san[0]}"></div><div><label>SHIELD</label><input id="fe" type="number" value="${c.shield}"></div></div>${L("actives", "ACTIVE SKILLS")}${L("passives", "PASSIVE SKILLS")}
+    `<div class="tb"><span>EDIT · ${esc(c.name || "NEW CHARACTER")}</span></div><div class="pd"><label>NAME</label><input id="fn" value="${esc(c.name)}"><div class="r3" style="margin-top:6px"><div><label>CLASS</label><input id="fclass" value="${esc(c.className ?? characterMeta(c, "class"))}" placeholder="Player class"></div><div><label>SPECIALTY</label><input id="fspecialty" value="${esc(c.specialty ?? characterMeta(c, "specialty"))}" placeholder="Character specialty"></div></div><div class="ab" style="margin-top:6px"><label>SPECIALTY INFO</label><textarea id="fspecialtyInfo" rows="3" placeholder="Extra specialty rules / description…">${esc(c.specialtyInfo ?? characterMeta(c, "specialtyInfo"))}</textarea></div><div class="ab" style="margin-top:8px"><label>CHARACTER IMAGE · IMGUR URL</label><input id="fimg" type="url" value="${currentImageIsUrl ? esc(c.img) : ""}" placeholder="https://i.imgur.com/example.png"><div class="mt">Paste a direct image link (preferably https://i.imgur.com/...png or .jpg). Leave blank to keep an existing uploaded image. The link must point directly to the image, not an Imgur gallery page.</div><label style="display:flex;align-items:center;gap:6px"><input id="fimg-clear" type="checkbox" style="width:auto"> Remove current image</label></div><div class="r3"><div><label>CURRENT HP (max ${c.hp[1]} = ${hpMaxHint})</label><input id="fh" type="number" value="${c.hp[0]}"></div><div><label>CURRENT ${sanLabel} (max ${c.san[1]} = ${sanMaxHint})</label><input id="fs" type="number" value="${c.san[0]}"></div><div><label>SHIELD</label><input id="fe" type="number" value="${c.shield}"></div></div>${L("actives", "ACTIVE SKILLS")}${L("passives", "PASSIVE SKILLS")}
 <div class="row sp"><label style="margin:0">INVENTORY (one per line)</label><button class="b s rd" data-a="clrforminv">⌧ CLEAR INVENTORY</button></div><textarea id="fi" rows="2">${esc((c.inv || []).join("\n"))}</textarea><label>NOTES</label><textarea id="fo" rows="3">${esc(c.notes || "")}</textarea><div class="row" style="margin-top:10px"><button class="b am" data-a="save">SAVE</button><button class="b" data-a="cancel">CANCEL</button>${c.id ? '<button class="b rd" data-a="del">DELETE</button>' : ""}</div></div>`;
   document.body.classList.add("full");
   $("#v").classList.remove("hid");
@@ -1308,8 +1311,8 @@ const TG = [
     ["roll", "All rolls"],
     ...SK.map((k) => ["stat:" + k, k + " rolls"]),
     ["hpmax", "Max HP"],
-    ["sanmax", "Max SAN"],
-    ["regen", "SAN regen"],
+    ["sanmax", NWon() ? "Max STA" : "Max SAN"],
+    ["regen", NWon() ? "STA regen" : "SAN regen"],
     ["dmg", "Weapon damage"],
   ],
   TL = Object.fromEntries(TG),
@@ -1407,8 +1410,8 @@ const TG = [
   ovw = (c) =>
     `<h3>MANUAL OVERRIDES <span class="mt">(blank = automatic)</span></h3><div class="r3">${[
       ["hp", "MAX HP"],
-      ["san", "MAX SAN"],
-      ["regen", "SAN REGEN"],
+      ["san", NWon() ? "MAX STA" : "MAX SAN"],
+      ["regen", NWon() ? "STA REGEN" : "SAN REGEN"],
     ]
       .map(
         ([k, l]) =>
@@ -1520,12 +1523,13 @@ const XP = {
       }
       ping("action");
       const a = c.actives[t.dataset.i];
+      const sanLbl = NWon() ? "STA" : "SAN";
       mut((n) => (n.san[0] = Math.max(0, n.san[0] - num(a.c))));
       T(
         c.name,
         "Active: " + a.n,
-        `<div class="mt">Cost: ${a.c} SAN</div><div class="tot">${Math.max(0, c.san[0] - num(a.c))} SAN remaining</div>`,
-        `cost ${a.c} SAN`,
+        `<div class="mt">Cost: ${a.c} ${sanLbl}</div><div class="tot">${Math.max(0, c.san[0] - num(a.c))} ${sanLbl} remaining</div>`,
+        `cost ${a.c} ${sanLbl}`,
       );
       a.r && show(c.name, "Active · " + a.n, R(a.r));
     },
@@ -1533,6 +1537,18 @@ const XP = {
   XA = {
     toggleplayerlockspanel: () => togglePlayerLocksPanel(),
     edit: () => {
+      if (NWon()) {
+        // Nightway uses always-on inline editing in NW.view — no LOST form.
+        ed = null;
+        editFromLibrary = false;
+        const c = cur();
+        if (c) {
+          mth(c);
+          location.hash = c.id;
+          view(c);
+        }
+        return;
+      }
       editFromLibrary = !!cur()?.libraryId;
       ed = J(cur());
       form();
@@ -1540,6 +1556,18 @@ const XP = {
     editlibchar: (t) => {
       const raw = C.find((x) => x.id === t.dataset.i);
       if (!raw) return;
+      if (NWon()) {
+        // Open the Nightway sheet for the library character (inline edit).
+        ed = null;
+        editFromLibrary = false;
+        const c = A(raw);
+        mth(c);
+        if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+        sel = c.id;
+        location.hash = c.id;
+        view(c);
+        return;
+      }
       if (location.hash) history.replaceState(null, "", location.pathname + location.search);
       sel = null;
       editFromLibrary = true;
@@ -1565,11 +1593,39 @@ const XP = {
         p.off = !p.off;
       }),
     new: () => {
+      if (NWon()) {
+        // Create a Nightway character and open its inline-editable sheet.
+        const n = { ...blank("Novo Personagem"), id: "nw-" + Date.now(), order: C.length + 1 };
+        mth(n);
+        put(n);
+        ed = null;
+        editFromLibrary = false;
+        sel = n.id;
+        location.hash = n.id;
+        view(n);
+        return;
+      }
       ed = { ...blank(""), id: "", order: C.length + 1 };
       form();
     },
     newlibchar: () => {
       if (!activeLibrary) return;
+      if (NWon()) {
+        const n = {
+          ...blank("Novo Personagem"),
+          id: "nw-" + Date.now(),
+          order: C.length + 1,
+          libraryId: activeLibrary,
+        };
+        mth(n);
+        put(n);
+        ed = null;
+        editFromLibrary = false;
+        sel = n.id;
+        location.hash = n.id;
+        view(n);
+        return;
+      }
       ed = { ...blank(""), id: "", order: C.length + 1, libraryId: activeLibrary };
       form();
     },
