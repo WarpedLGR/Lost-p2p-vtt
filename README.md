@@ -46,7 +46,7 @@
 
 ## ☾ NIGHTWAY mode (alternate ruleset)
 
-Pick **LOST** (default, untouched) or **NIGHTWAY** on the start screen before hosting/joining (the header **⚙ MODE** button takes you back there). Each mode keeps its own characters, libraries and saves; players follow the host's mode. Extra files: `nightway.js`, `nightway.css`; `app.js` only gained small `NWon()` hooks.
+Pick **LOST** (default, untouched) or **NIGHTWAY** on the start screen before hosting/joining (the header **⚙ MODE** button takes you back there). Each mode keeps its own characters, libraries and saves; players follow the host's mode. Extra files live in the `nightway/` folder (`nightway.js`, `nightway.css`, `nightway-base.css`, `nwstore.js`); `app.js` only gained small `NWon()` hooks.
 
 - **Stats (7 pts, −3…5 each):** TRIPAS, MIOLOS, CARNE, CHEIRO, SANGUE, STAMINA, TEMPERO.
 - **Dice:** p ≥ 1 → p×d20 keep best (1 point = one d20); p ≤ 0 → (2 − p)×d20 keep worst.
@@ -54,3 +54,4 @@ Pick **LOST** (default, untouched) or **NIGHTWAY** on the start screen before ho
 - **Armor tab:** 3 armor pieces + 2 accessories. Each item has modifiers (`CARNE+1, VIDA+10, BARRA+5, DANO+2`) and optional inline JS `(c, m)`.
 - **Perícias** replace active skills and spend stamina. Inventory defaults to 24 slots.
 - N64 "Select Item" styling with optional CRT distortion (**CRT** button).
+- **Single-character JSON:** **⇧ EXPORTAR** on a character sheet downloads just that character (`nightway_char_<name>.json`). The author can bring it into any Nightway session with **⇩ IMPORT CHARACTER** in the author panel (it gets a new id and lands in the main scene).
