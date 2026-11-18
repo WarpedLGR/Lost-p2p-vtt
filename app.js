@@ -69,19 +69,19 @@ finale|FINALE|3|???|Attacks increase damage taken by enemies.|Increases damage t
 [
   [
     "Light Melee",
-    "Knife|STR|1d4+2|1d6+4|1d12+8|1d20+12;Rapier|SPD|1d4+2|1d6+4|2d6+8|3d6+12;Gauntlets|STR|1d4+2|1d8+4|2d6+10|3d8+12;Shield|CON|1d4+1|1d6+2|2d4+6|2d6+10;Dual Claws|STR|1d4+2|1d8+6|2d8+10|2d12+16;Nunchaku|SPD|1d4+1|1d6+4|1d10+8|2d8+12;Hatchet|STR|1d4+2|1d8+6|2d8+10|3d8+16;Whip|SPD|1d4+1|1d8+2|1d12+6|2d8+10;Sword|STR|1d6+2|1d10+6|1d20+12|3d8+20;Spear|SPD|1d4+2|1d6+4|1d12+8|1d20+12;Energy Saber|STR|1d8+2|1d10+8|1d20+14|3d12+18;Yo-yo|SPD|1d4+1|1d6+4|1d10+8|2d8+10;Combat Syringe|STR|1d4+2|1d6+4|1d10+8|2d8+12",
+    "Knife|STR|1d4|1d6+1|1d8+2|1d10+3;Rapier|SPD|1d4|1d6+1|1d8+3|2d6+2;Gauntlets|STR|1d4+1|1d6+2|1d10+3|2d6+4;Shield|CON|1d4|1d4+1|1d6+2|1d8+3;Dual Claws|STR|1d4+1|1d6+3|1d10+4|2d6+5;Nunchaku|SPD|1d4|1d6+1|1d8+2|1d10+4;Hatchet|STR|1d4+1|1d6+2|1d10+3|2d6+5;Whip|SPD|1d4|1d6+1|1d8+2|1d10+3;Sword|STR|1d4+1|1d6+2|1d10+4|2d8+4;Spear|SPD|1d4|1d6+1|1d8+3|1d10+4;Energy Saber|STR|1d6+1|1d8+2|1d12+3|2d8+4;Yo-yo|SPD|1d4|1d6+1|1d8+2|1d10+3;Combat Syringe|STR|1d4|1d6+1|1d8+2|1d10+4",
   ],
   [
     "Heavy Melee",
-    "Greatsword|STR|1d8+2|2d6+6|3d6+14|3d12+16;Energy Sword|STR|2d4+2|3d4+6|3d8+12|3d10+22;Trident|CON|1d4+1|1d6+4|1d10+8|2d8+12;Halberd|CON|1d4+2|1d6+4|1d12+8|3d6+12;Scythe|STR|1d6+2|1d10+6|2d8+12|4d6+18;Axe / Mace|STR|1d6+2|1d10+6|2d10+12|3d8+20;Flail|STR|1d6+2|1d10+6|2d8+12|4d6+18;Warhammer|CON|1d4+2|1d8+4|3d4+8|3d6+14;Chainsaw|CON|1d4+2|1d8+4|3d4+8|4d4+14",
+    "Greatsword|STR|1d6+1|1d8+2|2d6+3|2d8+4;Energy Sword|STR|1d6|1d8+1|1d10+3|2d6+5;Trident|CON|1d4|1d6+1|1d8+2|1d10+3;Halberd|CON|1d4+1|1d6+1|1d8+3|2d6+2;Scythe|STR|1d4+1|1d6+2|1d10+3|2d6+4;Axe / Mace|STR|1d4+1|1d6+2|1d10+3|2d6+5;Flail|STR|1d4+1|1d6+2|1d10+3|2d6+4;Warhammer|CON|1d4+1|1d6+1|1d8+2|2d4+4;Chainsaw|CON|1d4+1|1d6+1|1d8+2|2d4+3",
   ],
   [
     "Ranged Weapons",
-    "Pistol|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Hand Cannon|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Throwing Cards|LCK|1d6+0|1d12+0|2d12+0|2d20+0;Energy Blaster|DEX|1d6+2|1d12+6|3d6+12|4d6+20;Revolver|DEX|1d6+2|1d10+6|2d10+10|3d10+16;Submachine Gun|DEX|1d6+2|3d4+4|4d4+10|4d6+16;Flamethrower|DEX|1d6+2|3d4+4|4d4+12|4d6+18;Machine Gun|CON|1d6+1|1d10+2|2d8+6|3d8+10;Shotgun|DEX|1d8+2|2d8+4|2d12+12|3d12+18;Syringe Launcher|DEX|1d4+2|1d8+4|3d4+8|4d4+12",
+    "Pistol|DEX|1d4+1|1d6+2|1d8+3|1d10+4;Hand Cannon|DEX|1d6+1|1d8+2|1d10+3|2d6+4;Throwing Cards|LCK|1d4|1d6|1d8|1d10;Energy Blaster|DEX|1d4+1|1d6+2|1d10+2|2d6+3;Revolver|DEX|1d4+1|1d6+2|1d8+3|1d10+4;Submachine Gun|DEX|1d4+1|1d6+1|2d4+2|2d6+2;Flamethrower|DEX|1d4+1|1d6+1|2d4+2|2d6+3;Machine Gun|CON|1d4|1d6|1d8+1|1d10+2;Shotgun|DEX|1d6+1|1d8+1|1d10+3|2d6+3;Syringe Launcher|DEX|1d4|1d6+1|1d8+1|2d4+2",
   ],
   [
     "Long Range",
-    "Bow|DEX|1d6+2|1d8+6|2d8+12|2d12+18;Crossbow|DEX|1d6+2|1d10+6|1d20+12|3d8+20;Assault Rifle|DEX|1d8+2|2d6+4|2d10+10|3d10+16;Plasma Rifle|DEX|1d8+2|2d6+6|3d8+12|4d8+20;Grenade Launcher|CON|1d6+1|1d12+2|1d20+6|4d6+10;Bazooka|CON|1d6+1|2d6+2|2d12+4|4d8+8;Rocket Launcher|CON|1d6+1|2d4+4|4d4+6|4d6+10;Sniper Rifle|DEX|1d10+2|1d20+4|2d12+14|4d10+18",
+    "Bow|DEX|1d4+1|1d6+2|1d8+3|1d10+4;Crossbow|DEX|1d4+1|1d6+2|1d10+3|2d6+4;Assault Rifle|DEX|1d6|1d8+1|1d10+2|1d12+3;Plasma Rifle|DEX|1d6+1|1d8+2|1d10+3|2d6+4;Grenade Launcher|CON|1d4|1d6+1|1d8+2|2d4+3;Bazooka|CON|1d4|1d6|1d8+1|2d4+2;Rocket Launcher|CON|1d4|1d6|1d8|2d4+2;Sniper Rifle|DEX|1d6+1|1d8+2|1d12+2|2d6+4",
   ],
 ].forEach(([c, s]) => {
   const l = s.split(";").map((x) => {
