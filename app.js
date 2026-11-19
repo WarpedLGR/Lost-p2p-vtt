@@ -125,7 +125,11 @@ let lostUser = null,
   lostApplyingCloud = false,
   lostVitalsReady = false,
   lostSource = "default",
-  lostStorageWarned = false;
+  lostStorageWarned = false,
+  /* connection-reliability state (heartbeat, screen wake lock, join attempt token) */
+  lostHeartbeat = null,
+  lostWakeLock = null,
+  lostJoinSeq = 0;
 try {
   lostPlayersData = JSON.parse(localStorage.lost_p2p_players || "{}") || {};
 } catch (e) {}
@@ -210,25 +214,25 @@ const wpn = () => ({
     NWon()
       ? [{ ...blank("Personagem 1"), id: "personagem-1", order: 1 }]
       : [
-      "Jake Marlowe",
-      "Person Jaulo",
-      "Mr. Happy",
-      0,
-      "Beacon",
-      "Murphy L.",
-      "Rob Kyle",
-      "Ásgeirr",
-    ].map((n, i) =>
-      n
-        ? { ...blank(n), id: slug(n), order: i + 1 }
-        : {
-            id: "dyakier-reikyad",
-            mirror: 1,
-            side: "A",
-            order: i + 1,
-            sides: { A: blank("Dyakier Voss"), B: blank("Reikyad") },
-          },
-    ),
+          "Jake Marlowe",
+          "Person Jaulo",
+          "Mr. Happy",
+          0,
+          "Beacon",
+          "Murphy L.",
+          "Rob Kyle",
+          "Ásgeirr",
+        ].map((n, i) =>
+          n
+            ? { ...blank(n), id: slug(n), order: i + 1 }
+            : {
+                id: "dyakier-reikyad",
+                mirror: 1,
+                side: "A",
+                order: i + 1,
+                sides: { A: blank("Dyakier Voss"), B: blank("Reikyad") },
+              },
+        ),
   stv = (c, k) => c.st?.[k] || 0,
   left = (c) => (c.pool ?? POOL) - SK.reduce((a, k) => a + stv(c, k), 0),
   A = (c) =>
@@ -896,9 +900,9 @@ function render() {
       (!libraryScene && admin && list.length < 9
         ? '<div class="w card add" data-new="1">+ NEW CHARACTER</div>'
         : "") ||
-    (allScene.length && hiddenSceneCharacterIds.size
-      ? '<div class="w pd"><div class="mt">All character cards in this view are hidden on this device. Use SHOW HIDDEN to restore them.</div></div>'
-      : `<div class="w pd"><div class="mt">${emptyText}</div></div>`),
+      (allScene.length && hiddenSceneCharacterIds.size
+        ? '<div class="w pd"><div class="mt">All character cards in this view are hidden on this device. Use SHOW HIDDEN to restore them.</div></div>'
+        : `<div class="w pd"><div class="mt">${emptyText}</div></div>`),
   );
   const w = $("#who2");
   w.innerHTML = opts(
@@ -1778,7 +1782,10 @@ const XP = {
     clrforminv: () => {
       if ($("#fi")) $("#fi").value = "";
     },
-    sh: (t) => { if (NWon()) return; mut((n) => (n.shield = Math.max(0, (n.shield || 0) + +t.dataset.d))); },
+    sh: (t) => {
+      if (NWon()) return;
+      mut((n) => (n.shield = Math.max(0, (n.shield || 0) + +t.dataset.d)));
+    },
     st: (t) => {
       const k = t.dataset.k,
         d = +t.dataset.d;
@@ -2099,7 +2106,9 @@ const XP = {
         );
       a.href = u;
       a.download =
-        (NWon() ? "nightway_session_" : "lost_session_") + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".json";
+        (NWon() ? "nightway_session_" : "lost_session_") +
+        new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") +
+        ".json";
       a.click();
       setTimeout(() => URL.revokeObjectURL(u), 1000);
     },
@@ -3069,10 +3078,56 @@ function lostClientData(msg) {
   else if (msg.t === "error") {
     lostFail(msg.msg || "Rejected by the host.");
   }
+  // msg.t === "ping" (host heartbeat) needs no handling: it only keeps the NAT/relay path warm.
 }
+
+/* ---- connection reliability helpers ---- */
+async function lostAcquireWakeLock() {
+  // Keeps the host's screen (and therefore the tab) awake so the room does not silently go offline.
+  try {
+    if (!navigator.wakeLock || lostWakeLock || document.visibilityState !== "visible") return;
+    lostWakeLock = await navigator.wakeLock.request("screen");
+    lostWakeLock.addEventListener("release", () => {
+      lostWakeLock = null;
+    });
+  } catch (e) {
+    lostWakeLock = null;
+  }
+}
+function lostReleaseWakeLock() {
+  try {
+    lostWakeLock && lostWakeLock.release();
+  } catch (e) {}
+  lostWakeLock = null;
+}
+function lostStartHeartbeat() {
+  clearInterval(lostHeartbeat);
+  lostHeartbeat = setInterval(() => {
+    if (lostHost && lostConns.size) lostBroadcast({ t: "ping", ts: Date.now() });
+  }, 20000);
+}
+function lostReconnectSignalling() {
+  const p = lostPeer;
+  if (p && p.disconnected && !p.destroyed) {
+    try {
+      p.reconnect();
+    } catch (e) {}
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  if (lostHost && admin) lostAcquireWakeLock();
+  lostReconnectSignalling();
+});
+addEventListener("online", lostReconnectSignalling);
+
 function lostLeave() {
   const wasPlayer = lostRole === "player";
+  lostJoinSeq++; // invalidates any pending join retry
   clearTimeout(lostBcastTimer);
+  clearInterval(lostHeartbeat);
+  lostHeartbeat = null;
+  lostReleaseWakeLock();
   const p = lostPeer,
     c = lostConn;
   lostPeer = null;
@@ -3107,25 +3162,43 @@ function lostFail(msg) {
   lostLeave();
   lostAuthMessage(msg);
 }
-/* ICE: STUN for direct links + a public TURN relay as a fallback for strict NATs / mobile data.
-   Replace/extend LOST_ICE with your own TURN credentials if players behind strict networks cannot connect. */
-const LOST_ICE = [
+/* ICE: several STUN servers for direct links + TURN relays as a fallback for strict NATs, CGNAT and mobile data.
+   The public "openrelayproject" credentials below are shared and can be rate-limited or revoked at any time.
+   For reliable joins, add your own TURN credentials (free tiers: Metered, Cloudflare Realtime TURN, Xirsys) in one of two ways:
+     1) before this script loads:  window.LOST_TURN_SERVERS = [{ urls: ["turn:host:443?transport=tcp", "turns:host:443?transport=tcp"], username: "...", credential: "..." }];
+     2) at runtime, in the browser console of any device:  localStorage.lost_turn_servers = JSON.stringify([...same array...]);
+   Custom servers are tried first. The TCP/443 and turns: entries are what get through school, office and mobile firewalls. */
+const LOST_ICE_DEFAULT = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
+  { urls: "stun:stun2.l.google.com:19302" },
   { urls: "stun:global.stun.twilio.com:3478" },
+  { urls: "stun:stun.cloudflare.com:3478" },
   {
     urls: [
       "turn:openrelay.metered.ca:80",
       "turn:openrelay.metered.ca:443",
       "turn:openrelay.metered.ca:443?transport=tcp",
+      "turns:openrelay.metered.ca:443?transport=tcp",
     ],
     username: "openrelayproject",
     credential: "openrelayproject",
   },
 ];
+function lostIceServers() {
+  const custom = [];
+  try {
+    if (Array.isArray(window.LOST_TURN_SERVERS)) custom.push(...window.LOST_TURN_SERVERS);
+  } catch (e) {}
+  try {
+    const saved = JSON.parse(localStorage.lost_turn_servers || "null");
+    if (Array.isArray(saved)) custom.push(...saved);
+  } catch (e) {}
+  return [...custom.filter((s) => s && s.urls), ...LOST_ICE_DEFAULT];
+}
 const lostPeerOpts = () => ({
   debug: 1,
-  config: { iceServers: LOST_ICE, sdpSemantics: "unified-plan" },
+  config: { iceServers: lostIceServers(), sdpSemantics: "unified-plan", iceCandidatePoolSize: 4 },
 });
 function lostPeerErrorText(e, joining) {
   switch (e.type) {
@@ -3143,7 +3216,7 @@ function lostPeerErrorText(e, joining) {
     case "browser-incompatible":
       return "This browser does not support WebRTC.";
     case "webrtc":
-      return "WebRTC connection failed (network/firewall). Try another network, or ask the author to add a TURN server.";
+      return "WebRTC connection failed (network/firewall). Try another network, turn off VPNs/privacy extensions, or ask the author to add a TURN server.";
     default:
       return (
         (joining ? "Connection error: " : "Could not start the session: ") +
@@ -3172,6 +3245,8 @@ function lostStartHost(room) {
     lostRefreshProfiles();
     lostRenderPlayerLocks();
     lostOnlineStatus();
+    lostStartHeartbeat();
+    lostAcquireWakeLock();
     $("#L").innerHTML = '<div class="e0">— No rolls recorded in this session —</div>';
     render();
   });
@@ -3193,34 +3268,87 @@ function lostStartHost(room) {
     }, 1500);
   });
 }
-function lostStartJoin(room) {
-  // Players never keep campaign data: start from a clean memory state (storage is only wiped on non-author devices).
-  lostClearCampaignStorage();
-  lostResetSessionMemory();
+/* Joining: up to LOST_JOIN_ATTEMPTS tries with a fresh peer each time, because a single failed
+   ICE negotiation or a briefly unreachable signalling server should not lock a player out. */
+const LOST_JOIN_ATTEMPTS = 3;
+function lostStartJoin(room, attempt = 1) {
+  if (attempt === 1) {
+    // Players never keep campaign data: start from a clean memory state (storage is only wiped on non-author devices).
+    lostClearCampaignStorage();
+    lostResetSessionMemory();
+  }
   lostRole = "player";
-  lostAuthMessage("Connecting to the host…");
+  lostAuthMessage(
+    attempt > 1
+      ? `Connecting to the host… (attempt ${attempt}/${LOST_JOIN_ATTEMPTS})`
+      : "Connecting to the host…",
+  );
   const peer = (lostPeer = new Peer(undefined, lostPeerOpts()));
-  let done = false,
-    welcomed = false;
-  const fail = (m) => {
-    if (lostPeer === peer) lostFail(m);
+  let conn = null,
+    done = false,
+    settled = false,
+    connectTimer = null,
+    welcomeTimer = null;
+  const fail = (m, retryable = true) => {
+    if (settled || lostPeer !== peer) return;
+    settled = true;
+    clearTimeout(connectTimer);
+    clearTimeout(welcomeTimer);
+    if (retryable && !lostVitalsReady && attempt < LOST_JOIN_ATTEMPTS) {
+      lostAuthMessage(
+        `Attempt ${attempt}/${LOST_JOIN_ATTEMPTS} failed — retrying… (${m.replace(/\.$/, "")})`,
+      );
+      const seq = lostJoinSeq;
+      lostPeer = null;
+      lostConn = null;
+      try {
+        conn && conn.close();
+      } catch (e) {}
+      try {
+        peer.destroy();
+      } catch (e) {}
+      setTimeout(
+        () => {
+          // Abort if the player pressed LEAVE / started something else in the meantime.
+          if (seq !== lostJoinSeq || lostRole !== "player" || lostPeer) return;
+          lostStartJoin(room, attempt + 1);
+        },
+        1200 * attempt,
+      );
+      return;
+    }
+    lostFail(m);
   };
-  const timer = setTimeout(() => {
+  connectTimer = setTimeout(() => {
     if (!done)
       fail(
         "Could not reach the host (timed out). Check the room code, and that the author has started the session.",
       );
   }, 25000);
   peer.on("open", () => {
-    const conn = (lostConn = peer.connect(lostRoomId(room), { reliable: true }));
+    if (lostPeer !== peer) return;
+    conn = lostConn = peer.connect(lostRoomId(room), { reliable: true });
+    // Surface hard ICE failures immediately instead of waiting for the timeout.
+    try {
+      const pc = conn.peerConnection;
+      if (pc)
+        pc.addEventListener("iceconnectionstatechange", () => {
+          console.info("ICE connection state:", pc.iceConnectionState);
+          if (pc.iceConnectionState === "failed")
+            fail(
+              "Could not open a direct or relayed connection to the host (network/firewall blocked it).",
+            );
+        });
+    } catch (e) {}
     conn.on("open", () => {
       done = true;
-      clearTimeout(timer);
+      clearTimeout(connectTimer);
       lostSend(conn, { t: "hello", name: lostUser.displayName });
-      setTimeout(() => {
+      // The host sends the whole scene in the welcome message; over a relay this can take a while.
+      welcomeTimer = setTimeout(() => {
         if (!lostVitalsReady && lostConn === conn)
           fail("The host did not answer. Is the author running this version of the page?");
-      }, 12000);
+      }, 30000);
     });
     conn.on("data", lostClientData);
     conn.on("error", (e) => {
@@ -3239,14 +3367,13 @@ function lostStartJoin(room) {
     } catch (e) {}
   });
   peer.on("error", (e) => {
-    clearTimeout(timer);
     console.error(e);
-    if (lostPeer === peer) lostFail(lostPeerErrorText(e, true));
+    fail(lostPeerErrorText(e, true), !["browser-incompatible", "invalid-id"].includes(e.type));
   });
 }
 function lostAuthAction(action) {
   if (action === "logout") {
-    const had = !!lostPeer;
+    const had = !!lostPeer || !!lostRole;
     lostLeave();
     lostAuthMessage(
       had ? "Disconnected." : "Host a session (author) or join one with the room code.",
@@ -3280,7 +3407,7 @@ function lostAuthAction(action) {
     );
     return;
   }
-  if (lostPeer) return;
+  if (lostPeer || lostRole) return;
   const name = $("#auth-username").value.trim(),
     room = $("#auth-password").value.trim().toLowerCase();
   if (!/^[a-zA-Z0-9_]{3,20}$/.test(name)) {
