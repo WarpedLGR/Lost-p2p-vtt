@@ -111,14 +111,21 @@ const NW = (() => {
   function heartsHtml(cur, max) {
     const m = Math.max(0, Math.floor(max)), v = Math.max(0, Math.min(m, Math.floor(cur)));
     const nHearts = Math.ceil(m / 2) || 1;
+    // Classic heart path in a 32x32 viewBox
+    const path = "M16 28 C16 28 4 20 4 12 C4 7.5 7.5 4 12 4 C14.2 4 15.5 5.2 16 6.5 C16.5 5.2 17.8 4 20 4 C24.5 4 28 7.5 28 12 C28 20 16 28 16 28 Z";
     let h = "";
     for (let i = 0; i < nHearts; i++) {
       const need = i * 2;
-      let cls = "empty";
-      if (v >= need + 2) cls = "full";
-      else if (v >= need + 1) cls = "half";
-      // single container + fill mask → exact 50% half hearts
-      h += `<span class="nw-heart ${cls}" aria-hidden="true"><span class="nw-h-fill"></span></span>`;
+      // clip width in viewBox units (32 wide): 0 / 16 / 32 → empty / half / full
+      let clipW = 0;
+      if (v >= need + 2) clipW = 32;
+      else if (v >= need + 1) clipW = 16;
+      const uid = "nwH" + i + "_" + m + "_" + v;
+      h += `<span class="nw-heart" aria-hidden="true"><svg viewBox="0 0 32 32" width="28" height="28" focusable="false">
+  <defs><clipPath id="${uid}"><rect x="0" y="0" width="${clipW}" height="32"/></clipPath></defs>
+  <path d="${path}" fill="#1a1a1a" stroke="#c8c8c8" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="${path}" fill="#e22828" clip-path="url(#${uid})"/>
+</svg></span>`;
     }
     return `<div class="nw-vitals"><div class="lb"><span>HEALTH</span><span>${v}/${m} HP</span></div><div class="nw-hearts" title="${v}/${m} HP">${h}</div></div>`;
   }
