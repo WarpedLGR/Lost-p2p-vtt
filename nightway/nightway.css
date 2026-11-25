@@ -72,45 +72,10 @@ body.nw main{contain:layout}
 .nw-two-vitals{display:grid;gap:10px;grid-template-columns:1fr 1fr}
 @media(max-width:520px){.nw-two-vitals{grid-template-columns:1fr}}
 
-/* Heart containers: full = 2 HP, half = 1 HP (exact 50% mask). Larger N64/Majora style. */
-.nw-hearts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:32px}
-.nw-heart{
-  position:relative;
-  width:30px;height:28px;
-  flex:none;
-  line-height:1;
-}
-/* empty shell (always drawn) */
-.nw-heart::before{
-  content:"♥";
-  position:absolute;left:0;top:0;
-  font-size:30px;line-height:28px;
-  color:#1a1a1a;
-  text-shadow:
-    0 0 1px #ccc, 1px 0 0 #bbb, -1px 0 0 #bbb,
-    0 1px 0 #bbb, 0 -1px 0 #bbb,
-    1px 1px 0 #999, -1px -1px 0 #999;
-  pointer-events:none;
-}
-/* red fill clipped to width (100% full / 50% half / 0 empty) */
-.nw-heart .nw-h-fill{
-  position:absolute;left:0;top:0;
-  height:100%;overflow:hidden;
-  width:0;
-  pointer-events:none;
-}
-.nw-heart.full .nw-h-fill{width:100%}
-.nw-heart.half .nw-h-fill{width:50%}
-.nw-heart.empty .nw-h-fill{width:0}
-.nw-heart .nw-h-fill::before{
-  content:"♥";
-  position:absolute;left:0;top:0;
-  font-size:30px;line-height:28px;
-  color:#e22828;
-  text-shadow:
-    0 0 1px #fff, 1px 0 0 #f88, -1px 0 0 #a00,
-    0 1px 0 #a00, 0 -1px 0 #fcc;
-}
+/* Heart containers (SVG): full = 2 HP, half = exact left 50%. */
+.nw-hearts{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:30px}
+.nw-heart{display:inline-flex;flex:none;width:28px;height:28px;line-height:0}
+.nw-heart svg{display:block;width:28px;height:28px;filter:drop-shadow(0 1px 0 #000)}
 
 /* Stamina: continuous notched green bar (Zelda magic meter) */
 .nw-sta{
