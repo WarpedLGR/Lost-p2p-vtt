@@ -9,7 +9,7 @@ const NW = (() => {
     ["STAMINA", "Cada ponto adiciona +1 entalhe à barra de stamina (base 3). Substitui sanidade."],
     ["TEMPERO", "Energias do destino. Sorte e eventos aleatórios no Nightway."],
   ];
-  const K = ST.map((x) => x[0]), MIN = -1, MAX = 5, POOL = 7, BASE_STAT = 4;
+  const K = ST.map((x) => x[0]), MIN = -1, MAX = 6, POOL = 4, BASE_STAT = 0;
   const ALIAS = { VIDA: "hpmax", BARRA: "sanmax", DANO: "dmg" };
   const KEY = "lost_mode", CK = "nw_crt";
   let mode = "lost", crt = "on";
@@ -26,7 +26,7 @@ const NW = (() => {
     n.nw ??= {};
     const w = n.nw;
     w.st ??= {};
-    // Ensure every stat defaults to BASE_STAT (4) when first created
+    // Ensure every stat defaults to 0 when first created
     K.forEach((k) => { if (w.st[k] === undefined || w.st[k] === null) w.st[k] = BASE_STAT; });
     w.info ??= {};
     w.pool ??= POOL;
@@ -147,7 +147,7 @@ ${tags.map((g) => `<span class="chip o">${esc(g.t.replace("hpmax", "VIDA").repla
   const stats = (c) => {
     const used = K.reduce((a, k) => a + (base(c, k) - BASE_STAT), 0);
     const left = c.nw.pool - used;
-    return `<div class="nwhead">STATS</div><div class="mt">Base de cada atributo: <b class="o">${BASE_STAT}</b> · mínimo <b>−1</b> · máximo <b>${MAX}</b>. Equipamentos <b>não</b> alteram atributos (travados na ficha). <b class="${left < 0 ? "pz" : "o"}">Pontos de pool restantes (desvio da base): ${left}</b>${admin ? ` · pool <input type="number" data-nw="nw.pool" value="${c.nw.pool}" style="width:54px;display:inline-block">` : ""}</div>` +
+    return `<div class="nwhead">STATS</div><div class="mt">Cada atributo começa em <b class="o">0</b> · mínimo <b>−1</b> · máximo <b>${MAX}</b> · pool de <b>${c.nw.pool}</b> pontos para distribuir. Equipamentos <b>não</b> alteram atributos (travados na ficha). <b class="${left < 0 ? "pz" : "o"}">Restantes: ${left}</b>${admin ? ` · pool <input type="number" data-nw="nw.pool" value="${c.nw.pool}" style="width:54px;display:inline-block">` : ""}</div>` +
       ST.map(([k, d]) => {
         const b = base(c, k), e = eff(c, k);
         return `<div class="nwstat"><div class="nwsn"><b>${k}</b><span class="mt">${d}</span></div><div class="nwsc">${admin ? `<button class="b s" data-a="nw" data-op="st" data-k="${k}" data-d="-1">−</button>` : ""}<span class="nwv ${b < 0 ? "neg" : ""}">${b}</span>${admin ? `<button class="b s" data-a="nw" data-op="st" data-k="${k}" data-d="1">+</button>` : ""}</div><div class="nwsd"><span class="chip">${lbl(e)}</span>${canRollCharacter(c) ? `<button class="b s am" data-a="nw" data-op="roll" data-k="${k}">ROLAR</button>` : ""}</div></div>`;
