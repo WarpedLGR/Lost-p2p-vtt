@@ -66,3 +66,60 @@ body.nw .nwstat,body.nw .nwslot{content-visibility:auto;contain-intrinsic-size:a
 body.nw .side-panel,body.nw #v{overscroll-behavior:contain}
 body.nw main{contain:layout}
 @media(prefers-reduced-motion:reduce){body.nw *{animation:none!important}}
+
+/* ---- Nightway vitals: N64 / Majora's Mask heart containers + Zelda-style notched stamina ---- */
+.nw-vitals{display:grid;gap:4px;min-width:0}
+.nw-two-vitals{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+@media(max-width:520px){.nw-two-vitals{grid-template-columns:1fr}}
+
+/* Heart container: full heart = 2 HP, half = 1 HP. N64 / Majora style. */
+.nw-hearts{display:flex;flex-wrap:wrap;gap:3px;align-items:center;min-height:24px}
+.nw-heart{
+  position:relative;
+  width:22px;height:20px;
+  flex:none;
+  font-size:22px;line-height:1;
+  color:#333;
+  text-shadow:0 0 0 #ccc, 1px 0 0 #ccc, -1px 0 0 #ccc, 0 1px 0 #ccc, 0 -1px 0 #ccc;
+}
+.nw-heart .nw-h-l,.nw-heart .nw-h-r{
+  position:absolute;top:0;width:50%;height:100%;overflow:hidden;
+  pointer-events:none;
+}
+.nw-heart .nw-h-l{left:0}
+.nw-heart .nw-h-r{right:0}
+.nw-heart .nw-h-l::before,.nw-heart .nw-h-r::before{
+  content:"♥";
+  position:absolute;top:0;font-size:22px;line-height:1;
+  color:#2a2a2a;
+}
+.nw-heart .nw-h-l::before{left:0}
+.nw-heart .nw-h-r::before{left:-11px} /* show right half of ♥ */
+.nw-heart.full .nw-h-l::before,.nw-heart.full .nw-h-r::before{color:#e22828}
+.nw-heart.half .nw-h-l::before{color:#e22828}
+.nw-heart.half .nw-h-r::before{color:#2a2a2a}
+.nw-heart.empty .nw-h-l::before,.nw-heart.empty .nw-h-r::before{color:#2a2a2a}
+/* subtle outline via text-shadow on the halves */
+.nw-heart .nw-h-l::before,.nw-heart .nw-h-r::before{
+  text-shadow: 0 0 1px #fff, 1px 0 0 #bbb, -1px 0 0 #bbb, 0 1px 0 #bbb, 0 -1px 0 #bbb;
+}
+
+/* Notched green stamina bar (Zelda magic-meter style) */
+.nw-sta{display:flex;flex-wrap:wrap;gap:3px;align-items:center;min-height:16px;padding:2px 0}
+.nw-notch{
+  width:14px;height:12px;
+  background:#0a1a0a;
+  border:2px solid #3a5a3a;
+  border-radius:2px;
+  box-sizing:border-box;
+  box-shadow:inset 0 0 0 1px #000;
+}
+.nw-notch.on{
+  background:linear-gradient(#6dff6d,#1a9a1a 60%,#0d6b0d);
+  border-color:#a8ffa8;
+  box-shadow:inset 0 1px 0 #cfc, 0 0 4px #2f8f2f88;
+}
+
+/* Cards also get the same vitals treatment via NW.bar */
+body.nw .card .nw-hearts,body.nw .card .nw-sta{margin-top:2px}
+body.nw .card .nw-vitals .lb{font-size:11px}
