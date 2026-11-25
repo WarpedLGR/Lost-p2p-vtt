@@ -72,52 +72,78 @@ body.nw main{contain:layout}
 .nw-two-vitals{display:grid;gap:10px;grid-template-columns:1fr 1fr}
 @media(max-width:520px){.nw-two-vitals{grid-template-columns:1fr}}
 
-/* Heart container: full heart = 2 HP, half = 1 HP. N64 / Majora style. */
-.nw-hearts{display:flex;flex-wrap:wrap;gap:3px;align-items:center;min-height:24px}
+/* Heart containers: full = 2 HP, half = 1 HP (exact 50% mask). Larger N64/Majora style. */
+.nw-hearts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:32px}
 .nw-heart{
   position:relative;
-  width:22px;height:20px;
+  width:30px;height:28px;
   flex:none;
-  font-size:22px;line-height:1;
-  color:#333;
-  text-shadow:0 0 0 #ccc, 1px 0 0 #ccc, -1px 0 0 #ccc, 0 1px 0 #ccc, 0 -1px 0 #ccc;
+  line-height:1;
 }
-.nw-heart .nw-h-l,.nw-heart .nw-h-r{
-  position:absolute;top:0;width:50%;height:100%;overflow:hidden;
+/* empty shell (always drawn) */
+.nw-heart::before{
+  content:"♥";
+  position:absolute;left:0;top:0;
+  font-size:30px;line-height:28px;
+  color:#1a1a1a;
+  text-shadow:
+    0 0 1px #ccc, 1px 0 0 #bbb, -1px 0 0 #bbb,
+    0 1px 0 #bbb, 0 -1px 0 #bbb,
+    1px 1px 0 #999, -1px -1px 0 #999;
   pointer-events:none;
 }
-.nw-heart .nw-h-l{left:0}
-.nw-heart .nw-h-r{right:0}
-.nw-heart .nw-h-l::before,.nw-heart .nw-h-r::before{
-  content:"♥";
-  position:absolute;top:0;font-size:22px;line-height:1;
-  color:#2a2a2a;
+/* red fill clipped to width (100% full / 50% half / 0 empty) */
+.nw-heart .nw-h-fill{
+  position:absolute;left:0;top:0;
+  height:100%;overflow:hidden;
+  width:0;
+  pointer-events:none;
 }
-.nw-heart .nw-h-l::before{left:0}
-.nw-heart .nw-h-r::before{left:-11px} /* show right half of ♥ */
-.nw-heart.full .nw-h-l::before,.nw-heart.full .nw-h-r::before{color:#e22828}
-.nw-heart.half .nw-h-l::before{color:#e22828}
-.nw-heart.half .nw-h-r::before{color:#2a2a2a}
-.nw-heart.empty .nw-h-l::before,.nw-heart.empty .nw-h-r::before{color:#2a2a2a}
-/* subtle outline via text-shadow on the halves */
-.nw-heart .nw-h-l::before,.nw-heart .nw-h-r::before{
-  text-shadow: 0 0 1px #fff, 1px 0 0 #bbb, -1px 0 0 #bbb, 0 1px 0 #bbb, 0 -1px 0 #bbb;
+.nw-heart.full .nw-h-fill{width:100%}
+.nw-heart.half .nw-h-fill{width:50%}
+.nw-heart.empty .nw-h-fill{width:0}
+.nw-heart .nw-h-fill::before{
+  content:"♥";
+  position:absolute;left:0;top:0;
+  font-size:30px;line-height:28px;
+  color:#e22828;
+  text-shadow:
+    0 0 1px #fff, 1px 0 0 #f88, -1px 0 0 #a00,
+    0 1px 0 #a00, 0 -1px 0 #fcc;
 }
 
-/* Notched green stamina bar (Zelda magic-meter style) */
-.nw-sta{display:flex;flex-wrap:wrap;gap:3px;align-items:center;min-height:16px;padding:2px 0}
-.nw-notch{
-  width:14px;height:12px;
-  background:#0a1a0a;
-  border:2px solid #3a5a3a;
-  border-radius:2px;
-  box-sizing:border-box;
-  box-shadow:inset 0 0 0 1px #000;
+/* Stamina: continuous notched green bar (Zelda magic meter) */
+.nw-sta{
+  display:flex;
+  align-items:stretch;
+  height:16px;
+  min-width:72px;
+  max-width:100%;
+  padding:0;
+  margin:2px 0 0;
+  background:#061206;
+  border:2px solid #8fdf8f;
+  border-radius:3px;
+  box-shadow:inset 0 0 0 1px #000, 0 0 6px #2f8f2f44;
+  overflow:hidden;
+  gap:0;
 }
+.nw-notch{
+  flex:1 1 0;
+  min-width:10px;
+  height:100%;
+  background:transparent;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  border-right:1px solid #0d2a0d;
+  box-sizing:border-box;
+}
+.nw-notch:last-child{border-right:none}
 .nw-notch.on{
-  background:linear-gradient(#6dff6d,#1a9a1a 60%,#0d6b0d);
-  border-color:#a8ffa8;
-  box-shadow:inset 0 1px 0 #cfc, 0 0 4px #2f8f2f88;
+  background:linear-gradient(#9dff9d 0%, #3ec83e 45%, #1a8a1a 100%);
+  box-shadow:inset 0 1px 0 #dfffdF88;
+  border-color:#0d2a0d;
 }
 
 /* Cards also get the same vitals treatment via NW.bar */
