@@ -1,7 +1,7 @@
 /* NIGHTWAY mode — alternate ruleset layered on top of L.O.S.T. (LOST mode is untouched). */
 const NW = (() => {
   const ST = [
-    ["TRIPAS", "Quanto um indivíduo aguenta fisicamente. Cada ponto dá +2 de vida (base 6). Cada 2 HP = 1 coração (estilo N64 / Majora's Mask)."],
+    ["TRIPAS", "Quanto um indivíduo aguenta fisicamente. Cada ponto dá +2 de vida (base 6). Cada 2 HP = 1 coração."],
     ["MIOLOS", "Raciocínio e compreensão rápida. Lógica e precisão de ataques críticos."],
     ["CARNE", "Força exercida só com o corpo. Cada ponto dá +1 slot de inventário (base 2)."],
     ["CHEIRO", "Perceber o mundo ao redor. Percepção e intuição."],
