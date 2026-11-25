@@ -364,8 +364,10 @@ const wpn = () => ({
           )
           .join("")
       : "",
-  bar = (v, m, k) =>
-    `<div class="lb"><span>${k == "hp" ? "HEALTH" : NWon() ? "STAMINA" : "SANITY"}</span><span>${v}/${m} ${k == "hp" ? "HP" : NWon() ? "STA" : "SAN"}</span></div><div class="m ${k}"><i style="width:${m ? cl((v / m) * 100, 0, 100) : 0}%"></i></div>`,
+  bar = (v, m, k) => {
+    if (NWon() && typeof NW !== "undefined" && NW.bar) return NW.bar(v, m, k);
+    return `<div class="lb"><span>${k == "hp" ? "HEALTH" : NWon() ? "STAMINA" : "SANITY"}</span><span>${v}/${m} ${k == "hp" ? "HP" : NWon() ? "STA" : "SAN"}</span></div><div class="m ${k}"><i style="width:${m ? cl((v / m) * 100, 0, 100) : 0}%"></i></div>`;
+  },
   no = (t) => `<div class="mt">— ${t} —</div>`,
   hms = () => new Date().toLocaleTimeString("en-US", { hour12: false });
 const ld = (k, d) => {
@@ -1277,7 +1279,7 @@ const psv = () => {
     } catch (e) {}
     scheduleCloudSync();
   },
-  slotsOf = (c) => (NWon() ? (c.nw?.slots ?? 24) : (c.slots ?? 9)),
+  slotsOf = (c) => (NWon() ? (typeof NW !== "undefined" && NW.slots ? NW.slots(c) : (c.nw?.slots ?? 2)) : (c.slots ?? 9)),
   invHtml = (c) => {
     const v = c.inv || [],
       n = Math.max(slotsOf(c), v.length);
