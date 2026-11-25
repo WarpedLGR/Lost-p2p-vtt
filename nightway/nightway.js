@@ -1,28 +1,42 @@
 /* NIGHTWAY mode — alternate ruleset layered on top of L.O.S.T. (LOST mode is untouched). */
 const NW = (() => {
   const ST = [
-    ["TRIPAS", "Quanto um indivíduo aguenta fisicamente. Cada ponto dá +25 de vida (base 100)."],
+    ["TRIPAS", "Quanto um indivíduo aguenta fisicamente. Cada ponto dá +2 de vida (base 6). Cada 2 HP = 1 coração (estilo N64 / Majora's Mask)."],
     ["MIOLOS", "Raciocínio e compreensão rápida. Lógica e precisão de ataques críticos."],
-    ["CARNE", "Força exercida só com o corpo. Carregamento e impacto de ataques corpo-a-corpo."],
+    ["CARNE", "Força exercida só com o corpo. Cada ponto dá +1 slot de inventário (base 2)."],
     ["CHEIRO", "Perceber o mundo ao redor. Percepção e intuição."],
     ["SANGUE", "Movimento, destreza e reação. Velocidade, furtividade, iniciativa e ataques à distância."],
-    ["STAMINA", "Cada ponto adiciona +5 à barra de stamina (com 0, o valor é 15). Substitui sanidade."],
+    ["STAMINA", "Cada ponto adiciona +1 entalhe à barra de stamina (base 3). Substitui sanidade."],
     ["TEMPERO", "Energias do destino. Sorte e eventos aleatórios no Nightway."],
   ];
-  const K = ST.map((x) => x[0]), MIN = -3, MAX = 5, POOL = 7;
+  const K = ST.map((x) => x[0]), MIN = -1, MAX = 5, POOL = 7, BASE_STAT = 4;
   const ALIAS = { VIDA: "hpmax", BARRA: "sanmax", DANO: "dmg" };
   const KEY = "lost_mode", CK = "nw_crt";
   let mode = "lost", crt = "on";
   try { mode = localStorage.getItem(KEY) || "lost"; crt = ({ "1": "on", "0": "off" })[localStorage.getItem(CK)] || localStorage.getItem(CK) || "on"; } catch (e) {}
   const on = () => mode === "nightway";
   const eff0 = (b, g) => cl((b || 0) + (g || 0), MIN, MAX);
-  const base = (c, k) => c.nw?.st?.[k] || 0;
-  const eff = (c, k) => eff0(base(c, k), c.mod?.stat?.[k]);
+  const base = (c, k) => {
+    const v = c.nw?.st?.[k];
+    return v === undefined || v === null ? BASE_STAT : v;
+  };
+  // Equipment no longer modifies attribute stats — hard-locked to sheet values.
+  const eff = (c, k) => eff0(base(c, k), 0);
   const init = (n) => {
     n.nw ??= {};
     const w = n.nw;
-    w.st ??= {}; w.info ??= {}; w.pool ??= POOL; w.slots ??= 24;
-    w.armor ??= [{}, {}, {}]; w.acc ??= [{}, {}]; w.weapons ??= [{}, {}]; w.skills ??= [];
+    w.st ??= {};
+    // Ensure every stat defaults to BASE_STAT (4) when first created
+    K.forEach((k) => { if (w.st[k] === undefined || w.st[k] === null) w.st[k] = BASE_STAT; });
+    w.info ??= {};
+    w.pool ??= POOL;
+    // slots are formula-driven (2 + CARNE); keep a stored value only as optional override cache
+    w.slots ??= null;
+    w.armor ??= [{}, {}, {}];
+    w.acc ??= [{}, {}];
+    w.weapons ??= [{}, {}];
+    w.skills ??= [];      // Ações especiais (custam stamina)
+    w.pericias ??= [];    // Perícias (rolagens nomeadas custom)
     while (w.armor.length < 3) w.armor.push({});
     while (w.acc.length < 2) w.acc.push({});
     while (w.weapons.length < 2) w.weapons.push({});
@@ -35,7 +49,9 @@ const NW = (() => {
     const out = [];
     String(s || "").replace(/([A-ZÀ-Ú]+)\s*([+-]\s*\d+)/gi, (_, k, v) => {
       k = k.toUpperCase();
-      const t = K.includes(k) ? "stat:" + k : ALIAS[k];
+      // Attribute stats (TRIPAS, CARNE, …) are ignored from gear — hard-locked on the sheet.
+      if (K.includes(k)) return;
+      const t = ALIAS[k];
       if (t) out.push({ t, v: parseInt(v.replace(/\s/g, ""), 10) });
     });
     return out;
@@ -50,10 +66,22 @@ const NW = (() => {
       if (p.code)
         try { (FN[p.code] ??= new Function("c", "m", p.code))(J(c), m); } catch (e) { p.err = e.message; }
     });
+    // Force attribute stats from gear to zero (code may have tried to set them)
+    K.forEach((k) => { m.stat[k] = 0; });
     return m;
   }
-  const hp = (c, m) => Math.max(10, 100 + 25 * eff0(base(c, "TRIPAS"), m.stat.TRIPAS) + m.hpmax);
-  const sta = (c, m) => Math.max(5, 15 + 5 * eff0(base(c, "STAMINA"), m.stat.STAMINA) + m.sanmax);
+  // HP: base 6, +2 per TRIPAS. Min 1.
+  const hp = (c, m) => Math.max(1, 6 + 2 * eff0(base(c, "TRIPAS"), 0) + (m?.hpmax || 0));
+  // Stamina: base 3, +1 per STAMINA point. Min 1.
+  const sta = (c, m) => Math.max(1, 3 + eff0(base(c, "STAMINA"), 0) + (m?.sanmax || 0));
+  // Inventory slots: base 2 + CARNE
+  const slots = (c) => {
+    init(c);
+    const fromCarne = 2 + eff(c, "CARNE");
+    // If author manually set slots, respect a stored override only when explicitly set via UI
+    if (c.nw.slots != null && c.nw._slotsManual) return Math.max(1, c.nw.slots);
+    return Math.max(1, fromCarne);
+  };
   const dice = (p) => (p >= 1 ? { n: p, best: true } : { n: 2 - p, best: false });
   const lbl = (p) => { const x = dice(p); return x.n === 1 ? "1d20" : `${x.n}d20 ${x.best ? "▲ melhor" : "▼ pior"}`; };
   function rollK(c, k) {
@@ -78,19 +106,51 @@ const NW = (() => {
   const canEdit = () => admin;
   const inp = (path, v, ph = "", cls = "") => canEdit() ? `<input data-nw="${path}" value="${esc(v ?? "")}" placeholder="${esc(ph)}" class="${cls}">` : `<b>${esc(v || "—")}</b>`;
   const area = (path, v, ph = "", rows = 3) => canEdit() ? `<textarea data-nw="${path}" rows="${rows}" placeholder="${esc(ph)}">${esc(v ?? "")}</textarea>` : `<div class="nwtxt">${esc(v || "—")}</div>`;
+
+  /* ---- N64-style heart containers (2 HP per full heart) + notched stamina bar ---- */
+  function heartsHtml(cur, max) {
+    const m = Math.max(0, Math.floor(max)), v = Math.max(0, Math.min(m, Math.floor(cur)));
+    const nHearts = Math.ceil(m / 2) || 1;
+    let h = "";
+    for (let i = 0; i < nHearts; i++) {
+      const need = i * 2;
+      let cls = "empty";
+      if (v >= need + 2) cls = "full";
+      else if (v >= need + 1) cls = "half";
+      h += `<span class="nw-heart ${cls}" aria-hidden="true"><span class="nw-h-l"></span><span class="nw-h-r"></span></span>`;
+    }
+    return `<div class="nw-vitals"><div class="lb"><span>HEALTH</span><span>${v}/${m} HP</span></div><div class="nw-hearts" title="${v}/${m} HP">${h}</div></div>`;
+  }
+  function notchesHtml(cur, max) {
+    const m = Math.max(0, Math.floor(max)), v = Math.max(0, Math.min(m, Math.floor(cur)));
+    let h = "";
+    for (let i = 0; i < m; i++) {
+      h += `<span class="nw-notch${i < v ? " on" : ""}"></span>`;
+    }
+    if (!m) h = '<span class="nw-notch"></span>';
+    return `<div class="nw-vitals"><div class="lb"><span>STAMINA</span><span>${v}/${m} STA</span></div><div class="nw-sta" title="${v}/${m} STA">${h}</div></div>`;
+  }
+  function bar(v, m, k) {
+    if (k === "hp") return heartsHtml(v, m);
+    if (k === "sn" || k === "san") return notchesHtml(v, m);
+    // fallback
+    return `<div class="lb"><span>${k}</span><span>${v}/${m}</span></div><div class="m ${k}"><i style="width:${m ? cl((v / m) * 100, 0, 100) : 0}%"></i></div>`;
+  }
+
   const itemCard = (c, kind, i, label) => {
     const it = c.nw[kind][i] || {}, p = `nw.${kind}.${i}`, tags = parseMod(it.mod);
     return `<div class="nwslot${it.off ? " off" : ""}"><div class="row sp"><b class="o">${label}</b>${canEdit() && it.n ? `<button class="b s${it.off ? "" : " on"}" data-a="nw" data-op="toggle" data-p="${kind}.${i}">${it.off ? "DESLIGADO" : "ATIVO"}</button>` : ""}</div>
 ${inp(p + ".n", it.n, "Nome do item")}${area(p + ".d", it.d, "Descrição", 2)}
-${canEdit() ? `<label>MODIFICADORES <span class="mt">(ex: CARNE+1, TRIPAS-1, VIDA+10, BARRA+5, DANO+2)</span></label>${inp(p + ".mod", it.mod, "CARNE+1, VIDA+10")}<details><summary class="b s">{ } CÓDIGO INLINE</summary><textarea data-nw="${p}.code" rows="2" placeholder="m.hpmax += 10;  // recebe (c, m)">${esc(it.code || "")}</textarea></details>` : ""}
-${tags.map((g) => `<span class="chip o">${esc(g.t.replace("stat:", "").replace("hpmax", "VIDA").replace("sanmax", "BARRA").replace("dmg", "DANO"))} ${sg(g.v)}</span>`).join("")}${it.code && !it.off ? '<span class="chip">{ } código</span>' : ""}${it.err ? `<div class="pz">Erro: ${esc(it.err)}</div>` : ""}</div>`;
+${canEdit() ? `<label>MODIFICADORES <span class="mt">(apenas VIDA / BARRA / DANO — stats de atributo estão travados na ficha)</span></label>${inp(p + ".mod", it.mod, "VIDA+2, BARRA+1, DANO+1")}<details><summary class="b s">{ } CÓDIGO INLINE</summary><textarea data-nw="${p}.code" rows="2" placeholder="m.hpmax += 2;  // recebe (c, m) — NÃO altere stats de atributo">${esc(it.code || "")}</textarea></details>` : ""}
+${tags.map((g) => `<span class="chip o">${esc(g.t.replace("hpmax", "VIDA").replace("sanmax", "BARRA").replace("dmg", "DANO"))} ${sg(g.v)}</span>`).join("")}${it.code && !it.off ? '<span class="chip">{ } código</span>' : ""}${it.err ? `<div class="pz">Erro: ${esc(it.err)}</div>` : ""}</div>`;
   };
   const stats = (c) => {
-    const used = K.reduce((a, k) => a + base(c, k), 0), left = c.nw.pool - used;
-    return `<div class="nwhead">STATS</div><div class="mt">Você possui ${c.nw.pool} no total · pode negativar até −3 · máximo 5 por stat. Não é recomendado negativar. <b class="${left < 0 ? "pz" : "o"}">Restantes: ${left}</b>${admin ? ` <input type="number" data-nw="nw.pool" value="${c.nw.pool}" style="width:54px;display:inline-block">` : ""}</div>` +
+    const used = K.reduce((a, k) => a + (base(c, k) - BASE_STAT), 0);
+    const left = c.nw.pool - used;
+    return `<div class="nwhead">STATS</div><div class="mt">Base de cada atributo: <b class="o">${BASE_STAT}</b> · mínimo <b>−1</b> · máximo <b>${MAX}</b>. Equipamentos <b>não</b> alteram atributos (travados na ficha). <b class="${left < 0 ? "pz" : "o"}">Pontos de pool restantes (desvio da base): ${left}</b>${admin ? ` · pool <input type="number" data-nw="nw.pool" value="${c.nw.pool}" style="width:54px;display:inline-block">` : ""}</div>` +
       ST.map(([k, d]) => {
-        const b = base(c, k), g = c.mod?.stat?.[k] || 0, e = eff(c, k);
-        return `<div class="nwstat"><div class="nwsn"><b>${k}</b><span class="mt">${d}</span></div><div class="nwsc">${admin ? `<button class="b s" data-a="nw" data-op="st" data-k="${k}" data-d="-1">−</button>` : ""}<span class="nwv ${b < 0 ? "neg" : ""}">${b}</span>${admin ? `<button class="b s" data-a="nw" data-op="st" data-k="${k}" data-d="1">+</button>` : ""}${g ? `<span class="chip o">equip ${sg(g)}</span>` : ""}</div><div class="nwsd">${e !== b + g ? `<span class="mt">efetivo ${e}</span> ` : ""}<span class="chip">${lbl(e)}</span>${canRollCharacter(c) ? `<button class="b s am" data-a="nw" data-op="roll" data-k="${k}">ROLAR</button>` : ""}</div></div>`;
+        const b = base(c, k), e = eff(c, k);
+        return `<div class="nwstat"><div class="nwsn"><b>${k}</b><span class="mt">${d}</span></div><div class="nwsc">${admin ? `<button class="b s" data-a="nw" data-op="st" data-k="${k}" data-d="-1">−</button>` : ""}<span class="nwv ${b < 0 ? "neg" : ""}">${b}</span>${admin ? `<button class="b s" data-a="nw" data-op="st" data-k="${k}" data-d="1">+</button>` : ""}</div><div class="nwsd"><span class="chip">${lbl(e)}</span>${canRollCharacter(c) ? `<button class="b s am" data-a="nw" data-op="roll" data-k="${k}">ROLAR</button>` : ""}</div></div>`;
       }).join("");
   };
   const weapons = (c) => (c.nw?.weapons || [{}, {}]).map((w, i) => {
@@ -100,20 +160,34 @@ ${tags.map((g) => `<span class="chip o">${esc(g.t.replace("stat:", "").replace("
 ${admin ? `<div class="r3"><div><label>STAT DE ACERTO</label><select data-nw="${p}.stat">${opts([["", "CARNE"], ...K.map((k) => [k, k])], w.stat || "")}</select></div><div><label>DANO (NdS+B)</label><input data-nw="${p}.f" value="${esc(w.f || "")}" placeholder="1d8+2"></div></div>` : `<div class="mt">Acerto: ${esc(w.stat || "CARNE")} · Dano: ${esc(w.f || "—")}${mDmg(c) ? ` ${sg(mDmg(c))} equip` : ""}</div>`}
 ${area(p + ".d", w.d, "Notas / efeitos", 2)}${w.n && canR ? `<div class="row"><button class="b am" data-a="nw" data-op="hit" data-i="${i}">ACERTAR</button>${w.f ? `<button class="b rd" data-a="nw" data-op="dmg" data-i="${i}">DANO</button>` : ""}</div>` : ""}</div>`;
   }).join("");
-  const skills = (c) => {
-    const list = c.nw?.skills || [];
+
+  /* Perícias = named custom rolls (no stamina cost) */
+  const pericias = (c) => {
+    const list = c.nw?.pericias || [];
     if (!list.length) return '<div class="mt">— nenhuma perícia —</div>';
     return list.map((s, i) => {
       s = s || {};
-      const p = `nw.skills.${i}`;
-      return `<div class="nwslot"><div class="row sp"><b class="o">${admin ? "" : esc(s.n || "Perícia")}</b><span class="row"><span class="chip o">${num(s.cost)} STA</span>${typeof canRollCharacter === "function" && canRollCharacter(c) && s.n ? `<button class="b s am" data-a="nw" data-op="skill" data-i="${i}">USAR</button>` : ""}${admin ? `<button class="b s rd" data-a="nw" data-op="delskill" data-i="${i}">✕</button>` : ""}</span></div>
-${admin ? `<div class="row"><input data-nw="${p}.n" value="${esc(s.n || "")}" placeholder="Nome da perícia" style="flex:2"><input type="number" data-nw="${p}.cost" value="${num(s.cost)}" placeholder="Custo" style="flex:1"><select data-nw="${p}.stat" style="flex:1">${opts([["", "sem rolagem"], ...K.map((k) => [k, k])], s.stat || "")}</select></div>` : `<div class="mt">${s.stat ? "Rola " + esc(s.stat) : "Sem rolagem"}</div>`}${area(p + ".d", s.d, "Descrição / efeito", 2)}</div>`;
+      const p = `nw.pericias.${i}`;
+      return `<div class="nwslot"><div class="row sp"><b class="o">${admin ? "" : esc(s.n || "Perícia")}</b><span class="row">${typeof canRollCharacter === "function" && canRollCharacter(c) && s.n ? `<button class="b s am" data-a="nw" data-op="pericia" data-i="${i}">ROLAR</button>` : ""}${admin ? `<button class="b s rd" data-a="nw" data-op="delpericia" data-i="${i}">✕</button>` : ""}</span></div>
+${admin ? `<div class="row"><input data-nw="${p}.n" value="${esc(s.n || "")}" placeholder="Nome da perícia" style="flex:2"><select data-nw="${p}.stat" style="flex:1">${opts([["", "sem rolagem"], ...K.map((k) => [k, k])], s.stat || "")}</select></div>` : `<div class="mt">${s.stat ? "Rola " + esc(s.stat) : "Sem rolagem"}</div>`}${area(p + ".d", s.d, "Descrição / efeito", 2)}</div>`;
     }).join("");
   };
+
+  /* Ações especiais = stamina-consuming abilities (former Perícias) */
+  const acoes = (c) => {
+    const list = c.nw?.skills || [];
+    if (!list.length) return '<div class="mt">— nenhuma ação especial —</div>';
+    return list.map((s, i) => {
+      s = s || {};
+      const p = `nw.skills.${i}`;
+      return `<div class="nwslot"><div class="row sp"><b class="o">${admin ? "" : esc(s.n || "Ação")}</b><span class="row"><span class="chip o">${num(s.cost)} STA</span>${typeof canRollCharacter === "function" && canRollCharacter(c) && s.n ? `<button class="b s am" data-a="nw" data-op="skill" data-i="${i}">USAR</button>` : ""}${admin ? `<button class="b s rd" data-a="nw" data-op="delskill" data-i="${i}">✕</button>` : ""}</span></div>
+${admin ? `<div class="row"><input data-nw="${p}.n" value="${esc(s.n || "")}" placeholder="Nome da ação" style="flex:2"><input type="number" data-nw="${p}.cost" value="${num(s.cost)}" placeholder="Custo STA" style="flex:1"><select data-nw="${p}.stat" style="flex:1">${opts([["", "sem rolagem"], ...K.map((k) => [k, k])], s.stat || "")}</select></div>` : `<div class="mt">${s.stat ? "Rola " + esc(s.stat) : "Sem rolagem"} · Custo ${num(s.cost)} STA</div>`}${area(p + ".d", s.d, "Descrição / efeito", 2)}</div>`;
+    }).join("");
+  };
+
   function view(c) {
     if (!c) return;
     try {
-      // Ensure Nightway data exists before reading armor/weapons/skills
       init(c);
       if (typeof mth === "function") mth(c);
       const w = c.nw,
@@ -124,29 +198,29 @@ ${admin ? `<div class="row"><input data-nw="${p}.n" value="${esc(s.n || "")}" pl
         accList = w.acc || [{}, {}];
       const tab = (typeof TAB !== "undefined" && TAB === "imp") ? "imp" : "main",
         used = (c.inv || []).length,
-        slots = typeof slotsOf === "function" ? slotsOf(c) : (w.slots || 24);
-      const inv = Array.from({ length: Math.max(slots, used) }, (_, j) =>
+        slotCount = slots(c);
+      const inv = Array.from({ length: Math.max(slotCount, used) }, (_, j) =>
         j < used
-          ? `<div class="sl${j >= slots ? " ov" : ""}"><span>${esc(c.inv[j])}</span>${admin ? `<button class="b s rd" data-a="nw" data-op="rmi" data-i="${j}">✕</button>` : ""}</div>`
+          ? `<div class="sl${j >= slotCount ? " ov" : ""}"><span>${esc(c.inv[j])}</span>${admin ? `<button class="b s rd" data-a="nw" data-op="rmi" data-i="${j}">✕</button>` : ""}</div>`
           : '<div class="sl e">vazio</div>',
       ).join("");
       const body =
         tab === "imp"
-          ? `<div class="nwhead">ARMADURA</div><div class="nwgrid">${["TOPO", "MEIO", "BAIXO"].map((l, j) => itemCard(c, "armor", j, l)).join("")}</div><div class="nwhead">ACESSÓRIOS</div><div class="nwgrid">${["ACESSÓRIO 1", "ACESSÓRIO 2"].map((l, j) => itemCard(c, "acc", j, l)).join("")}</div>`
+          ? `<div class="nwhead">ARMADURA</div><div class="mt">Armaduras e acessórios <b>não</b> modificam atributos da ficha (TRIPAS, CARNE, etc. ficam travados). Podem afetar apenas VIDA, BARRA (stamina) e DANO.</div><div class="nwgrid">${["TOPO", "MEIO", "BAIXO"].map((l, j) => itemCard(c, "armor", j, l)).join("")}</div><div class="nwhead">ACESSÓRIOS</div><div class="nwgrid">${["ACESSÓRIO 1", "ACESSÓRIO 2"].map((l, j) => itemCard(c, "acc", j, l)).join("")}</div>`
           : `<div class="nwhead">VOCÊ.</div><div class="nwid"><div><label>Seu Nome</label>${inp("name", c.name)}</div><div><label>Seu Gênero</label>${inp("nw.info.gender", i.gender)}</div><div><label>Sua Idade</label>${inp("nw.info.age", i.age)}</div><div><label>Sua "Classe" (Guerreiro, mago, etc.)</label>${inp("nw.info.cls", i.cls)}</div></div>
-<div class="mt">Equipamentos: ${weaponsList.filter((x) => x && x.n).length}/2 armas · ${armorList.filter((x) => x && x.n).length}/3 armaduras · ${accList.filter((x) => x && x.n).length}/2 acessórios</div>
+<div class="mt">Equipamentos: ${weaponsList.filter((x) => x && x.n).length}/2 armas · ${armorList.filter((x) => x && x.n).length}/3 armaduras · ${accList.filter((x) => x && x.n).length}/2 acessórios · Inventário base 2 + CARNE</div>
 <label>Sua história <span class="mt">(Não mencione o lorde das sombras. Mas você sabe que uma hora ele apareceu, e ele é seu objetivo.)</span></label>${area("nw.info.story", i.story, "⚿> …", 4)}
 ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div>
-<div class="row sp"><div class="nwhead" style="flex:1">PERÍCIAS <span class="mt">(custam stamina)</span></div>${admin ? '<button class="b s am" data-a="nw" data-op="addskill">+ PERÍCIA</button>' : ""}</div><div class="nwgrid">${skills(c)}</div>
-<div class="row sp"><div class="nwhead" style="flex:1">INVENTÁRIO · <span class="${used > slots ? "pz" : "o"}">${used}/${slots}</span></div>${admin ? `<span class="row"><button class="b s" data-a="nw" data-op="slot" data-d="-1">−</button><button class="b s" data-a="nw" data-op="slot" data-d="1">+</button></span>` : ""}</div>
+<div class="row sp"><div class="nwhead" style="flex:1">PERÍCIAS <span class="mt">(rolagens nomeadas — sem custo de stamina)</span></div>${admin ? '<button class="b s am" data-a="nw" data-op="addpericia">+ PERÍCIA</button>' : ""}</div><div class="nwgrid">${pericias(c)}</div>
+<div class="row sp"><div class="nwhead" style="flex:1">AÇÕES ESPECIAIS <span class="mt">(consomem stamina)</span></div>${admin ? '<button class="b s am" data-a="nw" data-op="addskill">+ AÇÃO</button>' : ""}</div><div class="nwgrid">${acoes(c)}</div>
+<div class="row sp"><div class="nwhead" style="flex:1">INVENTÁRIO · <span class="${used > slotCount ? "pz" : "o"}">${used}/${slotCount}</span> <span class="mt">(2 + CARNE)</span></div>${admin ? `<span class="row"><button class="b s" data-a="nw" data-op="slot" data-d="-1">−</button><button class="b s" data-a="nw" data-op="slot" data-d="1">+</button></span>` : ""}</div>
 <div class="inv">${inv}</div>${admin ? '<div class="row" style="margin-top:4px"><input id="nwadd" placeholder="Novo item…" style="flex:1"><button class="b am" data-a="nw" data-op="addi">ADICIONAR</button></div>' : ""}`;
       const html = `<div class="tb"><span>▸ ${esc(c.name)}</span><span class="row">${typeof sb === "function" ? sb(c) : ""}<button class="b s" data-a="nwexpchar" title="Baixar só este personagem (.json)">⇧ EXPORTAR</button>${admin ? '<button class="b s" data-a="edit">EDIT</button>' : ""}<button class="b s" data-a="close">FECHAR</button></span></div>
 <div class="pd sh nwm"><div><div class="im">${im(c, "SEM IMAGEM")}</div></div><div>
-<div class="two">${bar(h[0], h[1], "hp")}${bar(s[0], s[1], "sn")}</div>${typeof lostVitalsControls === "function" ? lostVitalsControls(c) : ""}
+<div class="two nw-two-vitals">${bar(h[0], h[1], "hp")}${bar(s[0], s[1], "sn")}</div>${typeof lostVitalsControls === "function" ? lostVitalsControls(c) : ""}
 <div class="row nwtabs">${[["main", "PRINCIPAL"], ["imp", "ARMADURA"]].map(([k, t]) => `<button class="b${tab == k ? " on" : ""}" data-a="tab" data-k="${k}">${t}</button>`).join("")}</div>${body}</div></div>`;
       const el = $("#v");
       if (el) {
-        // Force refresh even if setH thinks HTML is unchanged (e.g. after a failed open)
         el._h = null;
         setH(el, html);
         el.classList.remove("hid");
@@ -174,12 +248,22 @@ ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div
         const s = c.nw.skills[+d.i], cost = Math.max(0, Math.floor(num(s.cost)));
         if (c.san[0] < cost) return alert(`Stamina insuficiente (${c.san[0]}/${cost}).`);
         if (cost) lostUser ? lostAdjustVital(c.id, "san", -cost) : mut((n) => (n.san[0] = cl(n.san[0] - cost, 0, n.san[1])));
+        return s.stat ? doRoll(c, s.stat, "Ação · " + s.n) : show(c.name, "Ação · " + s.n, R("1d2"), []);
+      }
+      case "pericia": {
+        const s = c.nw.pericias[+d.i];
         return s.stat ? doRoll(c, s.stat, "Perícia · " + s.n) : show(c.name, "Perícia · " + s.n, R("1d2"), []);
       }
       case "toggle": return e((w) => { const [k, i] = d.p.split("."); w[k][i].off = !w[k][i].off; });
-      case "addskill": return e((w) => w.skills.push({ n: "", cost: 5, stat: "", d: "" }));
+      case "addskill": return e((w) => w.skills.push({ n: "", cost: 1, stat: "", d: "" }));
       case "delskill": return e((w) => w.skills.splice(+d.i, 1));
-      case "slot": return e((w) => (w.slots = Math.max(1, w.slots + +d.d)));
+      case "addpericia": return e((w) => w.pericias.push({ n: "", stat: "", d: "" }));
+      case "delpericia": return e((w) => w.pericias.splice(+d.i, 1));
+      case "slot": return e((w) => {
+        // Manual override of inventory slots
+        w._slotsManual = true;
+        w.slots = Math.max(1, (w.slots != null ? w.slots : slots({ nw: w })) + +d.d);
+      });
       case "rmi": return e((w, n) => n.inv.splice(+d.i, 1));
       case "addi": { const v = $("#nwadd")?.value.trim(); if (v) e((w, n) => n.inv.push(v)); }
     }
@@ -289,5 +373,5 @@ ${stats(c)}<div class="nwhead">ARMAS</div><div class="nwgrid">${weapons(c)}</div
     setMode(mode, true);
     if (on()) { C.forEach(mth); render(); }
   }
-  return { on, setMode, mods, hp, sta, ini, view, restore, checkImport, boot, STATS: K };
+  return { on, setMode, mods, hp, sta, slots, ini, view, restore, checkImport, boot, bar, STATS: K, MIN, MAX, BASE_STAT };
 })();
