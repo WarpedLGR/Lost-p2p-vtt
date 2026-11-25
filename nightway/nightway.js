@@ -117,7 +117,8 @@ const NW = (() => {
       let cls = "empty";
       if (v >= need + 2) cls = "full";
       else if (v >= need + 1) cls = "half";
-      h += `<span class="nw-heart ${cls}" aria-hidden="true"><span class="nw-h-l"></span><span class="nw-h-r"></span></span>`;
+      // single container + fill mask → exact 50% half hearts
+      h += `<span class="nw-heart ${cls}" aria-hidden="true"><span class="nw-h-fill"></span></span>`;
     }
     return `<div class="nw-vitals"><div class="lb"><span>HEALTH</span><span>${v}/${m} HP</span></div><div class="nw-hearts" title="${v}/${m} HP">${h}</div></div>`;
   }
